@@ -188,14 +188,7 @@ const Footer = () => {
                       Symulacje CFD
                     </a>
                   </li>
-                  <li>
-                    <a
-                      href="/wentylacja"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
-                    >
-                      Wentylacja pożarowa
-                    </a>
-                  </li>
+
                   <li>
                     <a
                       href="/operat"
@@ -294,7 +287,7 @@ const Footer = () => {
           <div className="h-px w-full bg-gradient-to-r from-transparent via-[#DC3545] to-transparent dark:via-[#DC3545]"></div>
           <div className="py-8">
             <p className="text-center text-base text-body-color dark:text-white">
-            ©{year}{" "}Fire Protection Solutions Jakub baran
+            ©{year}{" "}Fire Protection Solutions Jakub Baran
             </p>
           </div>
         </div>

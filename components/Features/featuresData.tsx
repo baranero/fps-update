@@ -30,15 +30,6 @@ const featuresData: Feature[] = [
   {
     id: 1,
     icon: (
-      <FaDoorOpen size={35}/>
-    ),
-    title: "Wentylacja pożarowa",
-    paragraph:
-      "Warunki bezpiecznej ewakuacji z obiektów oraz bezpieczeństwo działań ekip ratowniczych.",
-  },
-  {
-    id: 1,
-    icon: (
       <FaTrashAlt size={35}/>
     ),
     title: "Operat przeciwpożarowy",

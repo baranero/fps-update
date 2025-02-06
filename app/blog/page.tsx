@@ -1,12 +1,14 @@
 import SingleBlog from "@/components/Blog/SingleBlog";
 import blogData from "@/components/Blog/blogData";
 import Breadcrumb from "@/components/Common/Breadcrumb";
+import { FaArrowLeft } from "react-icons/fa";
 
 import { Metadata } from "next";
+import { FaArrowRight } from "react-icons/fa6";
 
 export const metadata: Metadata = {
-  title: "Blog Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Blog Page for Startup Nextjs Template",
+  title: "Fire Protection Solutions",
+  description: "Profesjonalne usługi z zakresu ochrony ppoż.",
   // other metadata
 };
 
@@ -14,8 +16,8 @@ const Blog = () => {
   return (
     <>
       <Breadcrumb
-        pageName="Blog Grid"
-        description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. In varius eros eget sapien consectetur ultrices. Ut quis dapibus libero."
+        pageName="Blog"
+        description=""
       />
 
       <section className="pb-[120px] pt-[120px]">
@@ -42,7 +44,7 @@ const Blog = () => {
                     href="#0"
                     className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
                   >
-                    Prev
+                    <FaArrowLeft />
                   </a>
                 </li>
                 <li className="mx-1">
@@ -87,7 +89,7 @@ const Blog = () => {
                     href="#0"
                     className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
                   >
-                    Next
+                    <FaArrowRight />
                   </a>
                 </li>
               </ul>
