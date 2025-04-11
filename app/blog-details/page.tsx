@@ -3,6 +3,7 @@ import TagButton from "@/components/Blog/TagButton";
 import Image from "next/image";
 
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
@@ -19,8 +20,7 @@ const BlogDetailsPage = () => {
             <div className="w-full px-4 lg:w-8/12">
               <div>
                 <h2 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                  10 amazing sites to download stock photos & digital assets for
-                  free
+                  Symulacja CFD w oddymianiu klatek schodowych
                 </h2>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
@@ -28,7 +28,7 @@ const BlogDetailsPage = () => {
                       <div className="mr-4">
                         <div className="relative h-10 w-10 overflow-hidden rounded-full">
                           <Image
-                            src="/images/blog/author-02.png"
+                            src="/images/blog/jakub.jpg"
                             alt="author"
                             fill
                           />
@@ -36,7 +36,7 @@ const BlogDetailsPage = () => {
                       </div>
                       <div className="w-full">
                         <span className="mb-1 text-base font-medium text-body-color">
-                          By <span>Musharof Chy</span>
+                          <span>Jakub Baran</span>
                         </span>
                       </div>
                     </div>
@@ -60,9 +60,9 @@ const BlogDetailsPage = () => {
                             <path d="M13.2637 3.3697H7.64754V2.58105C8.19721 2.43765 8.62738 1.91189 8.62738 1.31442C8.62738 0.597464 8.02992 0 7.28906 0C6.54821 0 5.95074 0.597464 5.95074 1.31442C5.95074 1.91189 6.35702 2.41376 6.93058 2.58105V3.3697H1.31442C0.597464 3.3697 0 3.96716 0 4.68412V13.2637C0 13.9807 0.597464 14.5781 1.31442 14.5781H13.2637C13.9807 14.5781 14.5781 13.9807 14.5781 13.2637V4.68412C14.5781 3.96716 13.9807 3.3697 13.2637 3.3697ZM6.6677 1.31442C6.6677 0.979841 6.93058 0.716957 7.28906 0.716957C7.62364 0.716957 7.91042 0.979841 7.91042 1.31442C7.91042 1.649 7.64754 1.91189 7.28906 1.91189C6.95448 1.91189 6.6677 1.6251 6.6677 1.31442ZM1.31442 4.08665H13.2637C13.5983 4.08665 13.8612 4.34954 13.8612 4.68412V6.45261H0.716957V4.68412C0.716957 4.34954 0.979841 4.08665 1.31442 4.08665ZM13.2637 13.8612H1.31442C0.979841 13.8612 0.716957 13.5983 0.716957 13.2637V7.16957H13.8612V13.2637C13.8612 13.5983 13.5983 13.8612 13.2637 13.8612Z" />
                           </svg>
                         </span>
-                        12 Jan 2024
+                        11.04.2025
                       </p>
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
+                      {/* <p className="mr-5 flex items-center text-base font-medium text-body-color">
                         <span className="mr-3">
                           <svg
                             width="18"
@@ -76,8 +76,8 @@ const BlogDetailsPage = () => {
                           </svg>
                         </span>
                         50
-                      </p>
-                      <p className="flex items-center text-base font-medium text-body-color">
+                      </p> */}
+                      {/* <p className="flex items-center text-base font-medium text-body-color">
                         <span className="mr-3">
                           <svg
                             width="20"
@@ -90,7 +90,7 @@ const BlogDetailsPage = () => {
                           </svg>
                         </span>
                         35
-                      </p>
+                      </p> */}
                     </div>
                   </div>
                   <div className="mb-5">
@@ -98,20 +98,19 @@ const BlogDetailsPage = () => {
                       href="#0"
                       className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
                     >
-                      Design
+                      CFD
                     </a>
                   </div>
                 </div>
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Duis aute irure dolor in reprehenderit in voluptate velit
-                    esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-                    occaecat cupidatat.
+                    Kiedy wymagana jest symulacja CFD do projektu oddymiania
+                    klatki schodowej?
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
                       <Image
-                        src="/images/blog/blog-details-02.jpg"
+                        src="/images/blog/blog.png"
                         alt="image"
                         fill
                         className="object-cover object-center"
@@ -119,54 +118,84 @@ const BlogDetailsPage = () => {
                     </div>
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Quis enim lobortis scelerisque fermentum. Neque
-                    sodales ut etiam sit amet. Ligula ullamcorper
-                    <strong className="text-primary dark:text-white">
-                      malesuada
-                    </strong>
-                    proin libero nunc consequat interdum varius. Quam
-                    pellentesque nec nam aliquam sem et tortor consequat.
-                    Pellentesque adipiscing commodo elit at imperdiet.
+                    W dobie coraz większych wymagań dotyczących bezpieczeństwa
+                    pożarowego budynków, projektanci i inwestorzy coraz chętniej
+                    sięgają po narzędzia inżynierskie pozwalające zweryfikować
+                    skuteczność zastosowanych rozwiązań. Jednym z takich
+                    narzędzi są symulacje CFD (Computational Fluid Dynamics),
+                    które stają się coraz powszechniejszym standardem przy
+                    projektowaniu systemów oddymiania klatek schodowych.
                   </p>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Semper auctor neque vitae tempus quam pellentesque nec.
-                    <span className="text-primary underline dark:text-white">
-                      Amet dictum sit amet justo
-                    </span>
-                    donec enim diam. Varius sit amet mattis vulputate enim nulla
-                    aliquet porttitor. Odio pellentesque diam volutpat commodo
-                    sed.
+                    Jeśli projekt oddymiania został wykonany w oparciu o
+                    wytyczne projektowania CNBOP-PIB-0003:2016, to dokument ten
+                    podpowiada nam w jakich przypadkach jesteśmy zobligowani do
+                    wykonania symulacji oraz jakie paramatery pożaru i
+                    środowiskowe powinny zostać zawarte w analizie.
                   </p>
                   <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
-                    Digital marketplace for Ui/Ux designers.
+                    Warunki, które wymagają wykonania symulacji CFD
                   </h3>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    consectetur adipiscing elit in voluptate velit esse cillum
-                    dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                    mattis vulputate cupidatat.
-                  </p>
+
                   <ul className="mb-10 list-inside list-disc text-body-color">
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Consectetur adipiscing elit in voluptate velit.
+                      powierzchnia klatki schodowej (A<sub>KS</sub>) na dowolnej
+                      kondygnacji jest większa niż 40 m<sup>2</sup>,
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Mattis vulputate cupidatat.
+                      przestrzeń klatki schodowej jest połączona z przyległymi
+                      korytarzami lub holami i długość dojścia z najbardziej
+                      oddalonych drzwi do granicy powierzchni obliczeniowej
+                      klatki schodowej jest większa niż 5 m (granice powierzchni
+                      obliczeniowej klatki schodowej zawarte w Załączniku 1),
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Vulputate enim nulla aliquet porttitor odio pellentesque
+                      przestrzeń klatki schodowej jest połączona z przyległymi
+                      korytarzami i holami o długości dojścia od granicy
+                      powierzchni obliczeniowej klatki schodowej do końca
+                      korytarza większej niż 10 m,
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Ligula ullamcorper malesuada proin
+                      szerokość korytarzy połączonych z klatką schodową
+                      niewydzieloną przekracza 3 m,
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      klatka schodowa charakteryzuje się architekturą inną niż
+                      opisana w wytycznych (przykłady w Załączniku 1),
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      powierzchnia pozostałych otworów międzykondygnacyjnych nie
+                      spełnia warunku: C ≤ 10% (A+B), o którym mowa w rozdziale
+                      6.2 wytycznych,
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      powierzchnia duszy schodów nie spełnia warunku: D ≤ 25%
+                      (A+B), o którym mowa w rozdziale 6.2 wytycznych,
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      klatka stanowi pionową drogę ewakuacji ludzi w budynku
+                      wysokim zaliczanym do kategorii zagrożenia ludzi ZL IV,
+                    </li>
+
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      napływ powietrza kompensacyjnego w systemie oddymiania
+                      grawitacyjnego odbywa się przez dwoje drzwi, w układzie
+                      szeregowym, łączących przestrzeń klatki schodowej z
+                      przestrzenią zewnętrzną, oddalonych od siebie o więcej niż
+                      5 m,
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      nawiew mechaniczny powietrza jest realizowany inaczej niż
+                      zapisano w rozdziale 6.5 wytycznych,
+                    </li>
+                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                      w budynku wysokim ZL IV występują korytarze przyległe do
+                      klatki schodowej (nieoddzielone drzwiami).
                     </li>
                   </ul>
                   <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
                     <p className="text-center text-base font-medium italic text-body-color">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                      sed do eiusmod incididunt utionals labore et dolore magna
-                      aliqua. Quis lobortis scelerisque fermentum, The Neque ut
-                      etiam sit amet.
+                      Wytyczne dostępne pod adresem: <Link target="blank" className="hover:text-gray-700 transition" href='https://cnbop.pl/app/uploads/2025/02/Wytyczne_Systemy-oddymiania-klatek-schodowych_04.06.2019.pdf'><u>Kliknij tutaj</u></Link>
                     </p>
                     <span className="absolute left-0 top-0 z-[-1]">
                       <svg
@@ -309,30 +338,30 @@ const BlogDetailsPage = () => {
                       </svg>
                     </span>
                   </div>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                  {/* <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     consectetur adipiscing elit in voluptate velit esse cillum
                     dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                     mattis vulputate cupidatat.
-                  </p>
+                  </p> */}
                   <div className="items-center justify-between sm:flex">
                     <div className="mb-5">
                       <h4 className="mb-3 text-sm font-medium text-body-color">
                         Popular Tags :
                       </h4>
                       <div className="flex items-center">
-                        <TagButton text="Design" />
-                        <TagButton text="Development" />
-                        <TagButton text="Info" />
+                        <TagButton text="Symulacje CFD" />
+                        <TagButton text="Oddymianie" />
+                        <TagButton text="Ewakuacja" />
                       </div>
                     </div>
-                    <div className="mb-5">
+                    {/* <div className="mb-5">
                       <h5 className="mb-3 text-sm font-medium text-body-color sm:text-right">
                         Share this post :
                       </h5>
                       <div className="flex items-center sm:justify-end">
                         <SharePost />
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

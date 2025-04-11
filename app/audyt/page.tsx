@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   // other metadata
 };
 
-const operat = () => {
+const audyt = () => {
   return (
     <>
-      <Breadcrumb pageName="Operat ppoż." description="" />
+      <Breadcrumb pageName="Audyt ppoż." description="" />
 
       <section className="py-16 md:py-20 lg:py-28">
         <div className="container">
@@ -114,4 +114,4 @@ const operat = () => {
   );
 };
 
-export default operat;
+export default audyt;

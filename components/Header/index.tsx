@@ -49,14 +49,14 @@ const Header = () => {
       >
         <div className="container">
           <div className="relative -mx-4 flex items-center justify-between">
-            <div className="w-60 max-w-full px-4 xl:mr-16 xl:whitespace-nowrap">
+            <div className="w-max px-4 xl:mr-16 xl:whitespace-nowrap">
               <Link
                 href="/"
                 className={`header-logo block w-full ${
                   sticky ? "py-5 lg:py-2" : "py-8"
                 } `}
               >
-                <div className="flex items-center">
+                <div className="flex flex-col items-center">
                   <Image
                     src="/images/logo/logo.webp"
                     alt="logo"
@@ -64,9 +64,9 @@ const Header = () => {
                     height={30}
                     className="dark:hidden"
                   />
-                  <p className="font-bold w-full pl-0 dark:hidden hidden sm:block">Fire Protection <span className="text-primary">Solutions</span></p>
+                  <p className="font-bold w-full pl-0 dark:hidden hidden sm:block text-center pt-2">Fire Protection <span className="text-primary">Solutions</span></p>
                 </div>
-                <div className="flex items-center">
+                <div className="flex flex-col items-center">
                   <Image
                     src="/images/logo/logo.webp"
                     alt="logo"
@@ -74,7 +74,7 @@ const Header = () => {
                     height={30}
                     className="dark:block hidden"
                   />
-                  <p className="font-bold w-full pl-0 sm:dark:block hidden ">Fire Protection <span className="text-primary">Solutions</span></p>
+                  <p className="font-bold w-full pl-0 sm:dark:block hidden text-center pt-2">Fire Protection <span className="text-primary">Solutions</span></p>
                 </div>
               </Link>
             </div>
