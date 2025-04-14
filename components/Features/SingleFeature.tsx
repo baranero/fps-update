@@ -1,9 +1,10 @@
 import { Feature } from "@/types/feature";
+import Link from "next/link";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {
-  const { icon, title, paragraph } = feature;
+  const { icon, title, paragraph, href } = feature;
   return (
-    <div className="w-full">
+    <Link href={href} className="w-full p-10 hover:bg-opacity-10 hover:bg-red-400 transition-all rounded-xl">
       <div className="wow fadeInUp sm:block flex items-center gap-x-6" data-wow-delay=".15s">
         <div className="mb-10 flex sm:h-[70px] sm:w-[70px] items-center justify-center rounded-md bg-primary bg-opacity-10 text-primary">
           {icon}
@@ -17,7 +18,7 @@ const SingleFeature = ({ feature }: { feature: Feature }) => {
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
