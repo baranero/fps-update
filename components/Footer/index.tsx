@@ -213,7 +213,7 @@ const Footer = () => {
                       Scenariusz rozwoju pożaru
                     </a>
                   </li>
-                  <li>
+                  {/* <li>
                     <a
                       href="/ozw"
                       className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
@@ -244,7 +244,7 @@ const Footer = () => {
                     >
                       Projekt systemu oddymiania mechanicznego
                     </a>
-                  </li>
+                  </li> */}
                 </ul>
               </div>
             </div>

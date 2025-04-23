@@ -59,45 +59,45 @@ const featuresData: Feature[] = [
     paragraph:
       "Opis sekwencji możliwych zdarzeń w czasie rozwoju pożaru.",
   },
-  {
-    id: 6,
-    icon: (
-<FaExplosion size={35}/>
-    ),
-    href: "/ocena-zagrozenia-wybuchem",
-    title: "Ocena zagrożenia wybuchem",
-    paragraph:
-      "Wyznaczenie stref zagrożenia wybuchem.",
-  },
-  {
-    id: 7,
-    icon: (
-      <LuAlarmSmoke size={35}/>
-    ),
-    href: "/ssp",
-    title: "Projekt Systemu Sygnalizacji Pożarowej",
-    paragraph:
-      "System detekcji pożaru.",
-  },
-  {
-    id: 8,
-    icon: (
-<PiStairsBold size={35}/>
-    ),
-    href: "/oddymianie-grawitacyjne",
-    title: "Projekt systemu oddymiania grawitacyjnego",
-    paragraph:
-      "Oddymianie grawitacyjne klatek schodowych i budynków PM.",
-  },
-  {
-    id: 9,
-    icon: (
-      <FaFan size={35} />
-    ),
-    href: "/oddymianie-mechaniczne",
-    title: "Projekt systemu oddymiania mechanicznego",
-    paragraph:
-      "Oddymianie mechaniczne klatek schodowych i budynków PM.",
-  },
+//   {
+//     id: 6,
+//     icon: (
+// <FaExplosion size={35}/>
+//     ),
+//     href: "/ocena-zagrozenia-wybuchem",
+//     title: "Ocena zagrożenia wybuchem",
+//     paragraph:
+//       "Wyznaczenie stref zagrożenia wybuchem.",
+//   },
+//   {
+//     id: 7,
+//     icon: (
+//       <LuAlarmSmoke size={35}/>
+//     ),
+//     href: "/ssp",
+//     title: "Projekt Systemu Sygnalizacji Pożarowej",
+//     paragraph:
+//       "System detekcji pożaru.",
+//   },
+//   {
+//     id: 8,
+//     icon: (
+// <PiStairsBold size={35}/>
+//     ),
+//     href: "/oddymianie-grawitacyjne",
+//     title: "Projekt systemu oddymiania grawitacyjnego",
+//     paragraph:
+//       "Oddymianie grawitacyjne klatek schodowych i budynków PM.",
+//   },
+//   {
+//     id: 9,
+//     icon: (
+//       <FaFan size={35} />
+//     ),
+//     href: "/oddymianie-mechaniczne",
+//     title: "Projekt systemu oddymiania mechanicznego",
+//     paragraph:
+//       "Oddymianie mechaniczne klatek schodowych i budynków PM.",
+//   },
 ];
 export default featuresData;
