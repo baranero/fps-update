@@ -1,21 +1,28 @@
-import AboutSectionOne from "@/components/About/AboutSectionOne";
-import AboutSectionTwo from "@/components/About/AboutSectionTwo";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import SectionTitle from "@/components/Common/SectionTitle";
-
 import { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Fire Protection Solutions",
-  description: "Profesjonalne usługi z zakresu ochrony ppoż.",
-  // other metadata
+  title: "Symulacje CFD – Warszawa, Łódź, Grodzisk Mazowiecki",
+  description:
+    "Profesjonalne symulacje CFD (Computational Fluid Dynamics) – Warszawa, Łódź, Grodzisk Mazowiecki. Sprawdź, kiedy są wymagane i ile kosztują.",
+  alternates: {
+    canonical: "https://fp-solutions.pl/cfd",
+  },
+  openGraph: {
+    title: "Symulacje CFD – Warszawa i Łódź",
+    description:
+      "Analiza przepływu dymu i powietrza – wentylacja pożarowa, oddymianie, ewakuacja. Koszt i wymagania dla CFD. Realizacja: Warszawa, Łódź, mazowieckie i łódzkie.",
+    url: "https://fp-solutions.pl/cfd",
+  },
 };
 
 const CFD = () => {
   return (
     <>
-      <Breadcrumb pageName="Symulacje CFD" description="" />
+      <Breadcrumb pageName="Symulacje CFD" description="Profesjonalne analizy przepływu dymu i powietrza w warunkach pożarowych – Warszawa, Łódź, Grodzisk Mazowiecki i cała Polska"
+      />
 
       <section className="py-16 md:py-20 lg:py-28">
         <div className="container">
@@ -27,13 +34,13 @@ const CFD = () => {
               >
                 <Image
                   src="/images/cfd.png"
-                  alt="cfd"
+                  alt="Symulacja CFD Warszawa"
                   fill
                   className="rounded-md object-contain drop-shadow-three dark:hidden dark:drop-shadow-none"
                 />
                 <Image
                   src="/images/cfd.png"
-                  alt="cfd"
+                  alt="Symulacja CFD Warszawa"
                   fill
                   className="hidden rounded-md object-contain drop-shadow-three dark:block dark:drop-shadow-none"
                 />
@@ -71,6 +78,26 @@ const CFD = () => {
                 </div>
                 <div className="mb-9">
                   <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                    Kiedy wymagana jest symulacja CFD?
+                  </h3>
+                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                    Symulacje CFD są wymagane m.in. w obiektach wysokich,
+                    garażach podziemnych, tunelach oraz tam, gdzie stosuje się
+                    systemy oddymiania mechanicznego lub planuje niestandardowe
+                    scenariusze ewakuacyjne. Wymagania te mogą wynikać z przepisów,
+                    zaleceń rzeczoznawcy ppoż. lub indywidualnych analiz ryzyka.
+                  </p>
+                </div>
+                <div className="mb-9">
+                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                    Ile kosztuje symulacja CFD?
+                  </h3>
+                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                    Koszt symulacji CFD zależy od złożoności obiektu, liczby scenariuszy oraz oczekiwanego zakresu opracowania. Średnie ceny zaczynają się od kilku tysięcy złotych – każda wycena przygotowywana jest indywidualnie. Zapraszam do kontaktu w celu otrzymania oferty.
+                  </p>
+                </div>
+                <div className="mb-9">
+                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Dlaczego warto wykonać symulację CFD?
                   </h3>
                   <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
@@ -93,14 +120,6 @@ const CFD = () => {
                       Spełnić wymagania normatywne i prawne.
                     </li>
                   </ul>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
-                    Wykorzystanie symulacji na etapie projektu i koncepcji
-                    systemów oddymiania pozwala na weryfikację założeń
-                    projektowych i ewentualną eliminację błędów bądź
-                    optymalizację jeszcze przed rozpoczęciem prac budowlanych,
-                    co w procesie inwestycyjnym potrafi zaoszczędzić wielu
-                    problemów.
-                  </p>
                 </div>
                 <div className="mb-9">
                   <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
@@ -108,78 +127,33 @@ const CFD = () => {
                   </h3>
                   <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                     Wykonując symulację w 100% trzymam się założeń przyjętych w
-                    projekcie lub koncpecji. Uwzględniam wszystkie czynniki
+                    projekcie lub koncepcji. Uwzględniam wszystkie czynniki
                     środowiskowe, które mogą mieć wpływ na wyniki analizy.
                     Znajomość norm i wytycznych jest kluczowa w prawidłowym
                     opracowaniu symulacji.
                   </p>
                   <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">
-                      CNBOP-PIB-0003:2016 – Krajowe wytyczne dotyczące
-                      projektowania systemów oddymiania klatek schodowych,
+                      CNBOP-PIB-0003:2016 – krajowe wytyczne dla oddymiania klatek schodowych,
                     </li>
                     <li className="list-disc">
-                      PN-B-02877-4:2001+Az1:2006 Ochrona przeciwpożarowa
-                      budynków. Instalacja grawitacyjna do odprowadzania dymu i
-                      ciepła. Zasady projektowania.
+                      PN-EN 12101-13:2022 – systemy różnicowania ciśnień (SRC),
                     </li>
                     <li className="list-disc">
-                    PN-EN 12101-13:2022-09 Systemy kontroli rozprzestrzeniania dymu i ciepła -- Część 13: Systemy różnicowania ciśnień (SRC) -- Projektowanie i metody obliczeniowe, instalowanie, badania okresowe i konserwacja
+                      ITB 378/2002 – wentylacja pożarowa dróg ewakuacyjnych,
                     </li>
                     <li className="list-disc">
-                    ITB nr 378/2002 Projektowanie instalacji wentylacji pożarowej dróg
-ewakuacyjnych w budynkach wysokich i wysokościowych
-                    </li>
-
-                    <li className="list-disc">
-                      NFPA 92 Standard for Smoke management Systems in Malls
-                    </li>
-                    <li className="list-disc">
-                      NFPA 204 Standard for Smoke and Heat Venting (National
-                      Fire Protection Association)
-                    </li>
-
-                    <li className="list-disc">
-                      VdS 2221:2007-06 VdS Richlinien fur Entrauchungsanlagen in
-                      Treppenraumen (ETA) – Planung und Einbau (Urządzenia do
-                      oddymiania klatek schodowych. Projektowanie i
-                      instalowanie).
-                    </li>
-
-                    <li className="list-disc">
-                      BS 7346-4: 2003 Components for smoke and heat control
-                      systems. Part 4: Functional recommendations and
-                      calculation methods for smoke and heat exhaust ventilation
-                      systems, employing steady- state design fires-Code of
-                      practice.
+                      NFPA 92, NFPA 204, VdS 2221, BS 7346-4 i inne.
                     </li>
                   </ul>
                 </div>
-
                 <div className="mb-9">
                   <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
-                    Optymalizacja projektów pod kątem bezpieczeństwa i zgodności
+                    Działam lokalnie i zdalnie
                   </h3>
                   <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
-                    Dzięki symulacjom CFD możliwe jest nie tylko spełnienie
-                    obowiązujących norm, ale także poprawa efektywności
-                    działania systemów wentylacyjnych. To kluczowe w
-                    projektowaniu:
+                    Realizuję symulacje CFD w <strong>Warszawie</strong>, <strong>Łodzi</strong>, <strong>Grodzisku Mazowieckim</strong> oraz na terenie całego <strong>województwa mazowieckiego i łódzkiego</strong>. Współpracuję również zdalnie z klientami z całej Polski.
                   </p>
-                  <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
-                    <li className="list-disc">
-                      Systemów oddymiania w budynkach PM oraz ZL,
-                    </li>
-                    <li className="list-disc">
-                      Wentylacji garaży podziemnych i tuneli,
-                    </li>
-                    <li className="list-disc">
-                      Ewakuacji w budynkach wysokościowych,
-                    </li>
-                    <li className="list-disc">
-                      Systemów wspomagających akcje ratownicze.
-                    </li>
-                  </ul>
                 </div>
               </div>
             </div>

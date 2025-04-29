@@ -1,21 +1,30 @@
-import AboutSectionOne from "@/components/About/AboutSectionOne";
-import AboutSectionTwo from "@/components/About/AboutSectionTwo";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import SectionTitle from "@/components/Common/SectionTitle";
-
 import { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Fire Protection Solutions",
-  description: "Profesjonalne usługi z zakresu ochrony ppoż.",
-  // other metadata
+  title: "Audyt przeciwpożarowy – Warszawa, Łódź, Grodzisk Mazowiecki",
+  description:
+    "Profesjonalne audyty przeciwpożarowe budynków i obiektów. Warszawa, Łódź, Grodzisk Mazowiecki, woj. mazowieckie i łódzkie. Sprawdź zakres audytu ppoż.",
+  alternates: {
+    canonical: "https://fp-solutions.pl/audyt",
+  },
+  openGraph: {
+    title: "Audyt przeciwpożarowy – Warszawa i okolice",
+    description:
+      "Wykonujemy audyty ppoż. w Warszawie, Łodzi i całym woj. mazowieckim i łódzkim. Ocena warunków ochrony przeciwpożarowej, dróg ewakuacyjnych i wyposażenia obiektów.",
+    url: "https://fp-solutions.pl/audyt",
+  },
 };
 
 const audyt = () => {
   return (
     <>
-      <Breadcrumb pageName="Audyt ppoż." description="" />
+      <Breadcrumb
+        pageName="Audyt ppoż."
+        description="Profesjonalny audyt ochrony przeciwpożarowej – Warszawa, Łódź, Grodzisk Mazowiecki i województwa mazowieckie oraz łódzkie."
+      />
 
       <section className="py-16 md:py-20 lg:py-28">
         <div className="container">
@@ -27,13 +36,13 @@ const audyt = () => {
               >
                 <Image
                   src="/images/audyt-1.jpg"
-                  alt="rop"
+                  alt="Audyt przeciwpożarowy Warszawa"
                   fill
                   className="rounded-md object-cover drop-shadow-three dark:hidden dark:drop-shadow-none"
                 />
                 <Image
                   src="/images/audyt-1.jpg"
-                  alt="rop"
+                  alt="Audyt przeciwpożarowy Warszawa"
                   fill
                   className="hidden rounded-md object-cover drop-shadow-three dark:block dark:drop-shadow-none"
                 />
@@ -121,8 +130,24 @@ const audyt = () => {
                       Ustawa z dnia 24 sierpnia 1991 r. o ochronie
                       przeciwpożarowej (Dz.U. 2025 poz. 188)
                     </li>
-
                   </ul>
+                </div>
+
+                <div className="mb-9">
+                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                    Gdzie realizuję audyty przeciwpożarowe?
+                  </h3>
+                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                    Wykonuję audyty przeciwpożarowe na terenie{" "}
+                    <strong>Warszawy</strong>, <strong>Łodzi</strong>,{" "}
+                    <strong>Grodziska Mazowieckiego</strong> oraz całego{" "}
+                    <strong>województwa mazowieckiego i łódzkiego</strong>.
+                    Działam również na terenie{" "}
+                    <em>
+                      Pruszkowa, Milanówka, Brwinowa, Żyrardowa, Sochaczewa, Skierniewic
+                    </em>{" "}
+                    i innych miast.
+                  </p>
                 </div>
 
                 <div>

@@ -7,15 +7,28 @@ import { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Fire Protection Solutions",
-  description: "Profesjonalne usługi z zakresu ochrony ppoż.",
-  // other metadata
+  title:
+    "Instrukcja Bezpieczeństwa Pożarowego – Warszawa, Grodzisk Mazowiecki, Łódź",
+  description:
+    "Opracowanie Instrukcji Bezpieczeństwa Pożarowego (IBP) dla obiektów w Warszawie, Grodzisku Mazowieckim, Łodzi i całym województwie mazowieckim i łódzkim.",
+  alternates: {
+    canonical: "https://fp-solutions.pl/ibp",
+  },
+  openGraph: {
+    title: "Instrukcja Bezpieczeństwa Pożarowego – Warszawa i okolice",
+    description:
+      "Profesjonalne opracowanie IBP w Warszawie, Łodzi i całym woj. mazowieckim i łódzkim.",
+    url: "https://fp-solutions.pl/ibp",
+  },
 };
 
 const IBP = () => {
   return (
     <>
-      <Breadcrumb pageName="IBP" description="" />
+      <Breadcrumb
+        pageName="Instrukcja Bezpieczeństwa Pożarowego"
+        description="Profesjonalne opracowanie IBP – Warszawa, Łódź, woj. mazowieckie i łódzkie"
+      />
 
       <section className="py-16 md:py-20 lg:py-28">
         <div className="container">
@@ -27,13 +40,13 @@ const IBP = () => {
               >
                 <Image
                   src="/images/ibp.jpg"
-                  alt="gaśnica"
+                  alt="Instrukcja Bezpieczeństwa Pożarowego Warszawa"
                   fill
                   className="rounded-md object-cover drop-shadow-three dark:hidden dark:drop-shadow-none"
                 />
                 <Image
                   src="/images/ibp.jpg"
-                  alt="gaśnica"
+                  alt="Instrukcja Bezpieczeństwa Pożarowego Warszawa"
                   fill
                   className="hidden rounded-md object-cover drop-shadow-three dark:block dark:drop-shadow-none"
                 />
@@ -51,33 +64,34 @@ const IBP = () => {
                     Kiedy Instrukcja Bezpieczeństwa Pożarowego jest wymagana?
                   </h3>
                   <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
-                    Zgodnie z prawem właściciele, zarządcy lub użytkownicy
+                    Zgodnie z prawem, właściciele, zarządcy lub użytkownicy
                     obiektów bądź ich części stanowiących odrębne strefy
                     pożarowe, przeznaczonych do wykonywania funkcji użyteczności
                     publicznej, zamieszkania zbiorowego, produkcyjnych,
                     magazynowych oraz inwentarskich, zapewniają i wdrażają
                     instrukcję bezpieczeństwa pożarowego, gdy spełnione są
                     warunki:
-                    <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
-                      <li className="list-disc">
-                        kubatura brutto budynku lub jego części stanowiącej
-                        odrębną strefę pożarową wynosi 1000 m
-                        <sup>3</sup> lub więcej,
-                      </li>
-                      <li className="list-disc">
-                        kubatura brutto budynku inwentarskiego wynosi
-                        1500 m<sup>3</sup> lub więcej,
-                      </li>
-                      <li className="list-disc">
-                        powierzchnia strefy pożarowej obiektu innego niż budynek
-                        wynosi 1000 m<sup>2</sup> lub więcej,
-                      </li>
-                      <li className="list-disc">
-                        w budynku występuje strefa zagrożenia wybuchem.
-                      </li>
-                    </ul>
                   </p>
+                  <ul className="mt-4 pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                    <li className="list-disc">
+                      kubatura brutto budynku lub jego części stanowiącej
+                      odrębną strefę pożarową wynosi 1000 m<sup>3</sup> lub
+                      więcej,
+                    </li>
+                    <li className="list-disc">
+                      kubatura brutto budynku inwentarskiego wynosi 1500 m
+                      <sup>3</sup> lub więcej,
+                    </li>
+                    <li className="list-disc">
+                      powierzchnia strefy pożarowej obiektu innego niż budynek
+                      wynosi 1000 m<sup>2</sup> lub więcej,
+                    </li>
+                    <li className="list-disc">
+                      w budynku występuje strefa zagrożenia wybuchem.
+                    </li>
+                  </ul>
                 </div>
+
                 <div className="mb-9">
                   <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Kiedy Instrukcja Bezpieczeństwa Pożarowego <u>nie</u> jest
@@ -86,8 +100,7 @@ const IBP = () => {
                   <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                     Instrukcja bezpieczeństwa pożarowego nie jest wymagana, gdy:
                   </p>
-
-                  <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="mt-4 pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">
                       kubatura brutto budynku lub jego części stanowiącej
                       odrębną strefę pożarową nie przekracza 1000 m<sup>3</sup>,
@@ -102,6 +115,7 @@ const IBP = () => {
                     </li>
                   </ul>
                 </div>
+
                 <div className="mb-9">
                   <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Podstawa prawna
@@ -119,28 +133,44 @@ const IBP = () => {
                     Dlaczego warto zlecić opracowanie Instrukcji Bezpieczeństwa
                     Pożarowego mojej osobie?
                   </h3>
-
                   <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">
-                      Indywidualne podejście – każdy obiekt jest inny, dlatego
-                      moja instrukcja zawsze uwzględnia specyficzne zagrożenia i
-                      potrzeby Państwa obiektu.
+                      Indywidualne podejście – każda instrukcja jest dopasowana
+                      do specyfiki obiektu.
                     </li>
                     <li className="list-disc">
-                      Doświadczenie i wiedza – jestem ekspertem z wieloletnim
-                      doświadczeniem w branży ochrony przeciwpożarowej.
+                      Doświadczenie i wiedza – wieloletnia praktyka w zakresie
+                      ochrony ppoż.
                     </li>
                     <li className="list-disc">
-                      Zgodność z przepisami – instrukcje opracowuję zgodnie z
-                      obowiązującymi normami i przepisami, co jest kluczowe dla
-                      zgodności z wymaganiami prawnymi.
+                      Zgodność z przepisami – pełna zgodność z obowiązującym
+                      prawem.
                     </li>
                     <li className="list-disc">
-                      Kompleksowe wsparcie – oferuję nie tylko opracowanie
-                      dokumentacji, ale również doradztwo w zakresie ochrony
-                      przeciwpożarowej.
+                      Kompleksowe wsparcie – doradztwo i pomoc również po
+                      przygotowaniu dokumentu.
                     </li>
                   </ul>
+                </div>
+
+                <div className="mb-9">
+                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                    Gdzie działam?
+                  </h3>
+                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                    Swoje usługi z zakresu opracowywania Instrukcji
+                    Bezpieczeństwa Pożarowego świadczę na terenie{" "}
+                    <strong>Warszawy</strong>,{" "}
+                    <strong>Grodziska Mazowieckiego</strong>,{" "}
+                    <strong>Łodzi</strong> oraz całych województw{" "}
+                    <strong>mazowieckiego</strong> i <strong>łódzkiego</strong>.
+                    Działam również na terenie{" "}
+                    <em>
+                      Pruszkowa, Milanówka, Brwinowa, Żyrardowa, Sochaczewa,
+                      Skierniewic
+                    </em>{" "}
+                    i innych miast.
+                  </p>
                 </div>
               </div>
             </div>
