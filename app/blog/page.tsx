@@ -2,25 +2,34 @@ import SingleBlog from "@/components/Blog/SingleBlog";
 import blogData from "@/components/Blog/blogData";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import { FaArrowLeft } from "react-icons/fa";
-
 import { Metadata } from "next";
 import { FaArrowRight } from "react-icons/fa6";
 
 export const metadata: Metadata = {
-  title: "Fire Protection Solutions",
-  description: "Profesjonalne usługi z zakresu ochrony ppoż.",
-  // other metadata
+  title: "Blog o ochronie przeciwpożarowej – FP Solutions",
+  description:
+    "Porady, przepisy i praktyczne wskazówki z zakresu ochrony ppoż., symulacji CFD, audytów i OZEx. Czytaj najnowsze wpisy na blogu FP Solutions.",
+  alternates: {
+    canonical: "https://fp-solutions.pl/blog",
+  },
+  openGraph: {
+    title: "Blog FP Solutions – Ekspercka wiedza o ochronie ppoż.",
+    description:
+      "Sprawdź praktyczne artykuły o bezpieczeństwie pożarowym, scenariuszach pożaru, IBP i więcej.",
+    url: "https://fp-solutions.pl/blog",
+  },
 };
 
 const Blog = () => {
   return (
     <>
-      <Breadcrumb
-        pageName="Blog"
-        description=""
-      />
+      <Breadcrumb pageName="Blog" description="Aktualności i wiedza z zakresu ochrony przeciwpożarowej" />
 
-      <section className="pb-[120px] pt-[120px]">
+      <h1 className="pt-10 text-center text-3xl font-bold text-body-color">
+        Blog o ochronie przeciwpożarowej
+      </h1>
+
+      <section className="pb-[120px] pt-[60px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap justify-center">
             {blogData.map((blog) => (
@@ -31,69 +40,6 @@ const Blog = () => {
                 <SingleBlog blog={blog} />
               </div>
             ))}
-          </div>
-
-          <div
-            className="wow fadeInUp -mx-4 flex flex-wrap"
-            data-wow-delay=".15s"
-          >
-            {/* <div className="w-full px-4">
-              <ul className="flex items-center justify-center pt-8">
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    <FaArrowLeft />
-                  </a>
-                </li>
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    1
-                  </a>
-                </li>
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    2
-                  </a>
-                </li>
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    3
-                  </a>
-                </li>
-                <li className="mx-1">
-                  <span className="flex h-9 min-w-[36px] cursor-not-allowed items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color">
-                    ...
-                  </span>
-                </li>
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    12
-                  </a>
-                </li>
-                <li className="mx-1">
-                  <a
-                    href="#0"
-                    className="flex h-9 min-w-[36px] items-center justify-center rounded-md bg-body-color bg-opacity-[15%] px-4 text-sm text-body-color transition hover:bg-primary hover:bg-opacity-100 hover:text-white"
-                  >
-                    <FaArrowRight />
-                  </a>
-                </li>
-              </ul>
-            </div> */}
           </div>
         </div>
       </section>
