@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://fp-solutions.pl
+
+# Sitemaps
+Sitemap: https://fp-solutions.pl/sitemap.xml
