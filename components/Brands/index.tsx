@@ -33,10 +33,16 @@ const SingleBrand = ({ brand }: { brand: Brand }) => {
       <a
         href={href}
         target="_blank"
-        rel="nofollow noreferrer"
-        className="relative h-10 w-full opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 dark:opacity-60 dark:hover:opacity-100"
+        rel="noopener noreferrer"
+        title={`Oprogramowanie: ${name}`}
+        className="relative h-10 w-full opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 dark:opacity-50 dark:hover:opacity-100"
       >
-        <Image src={image} alt={name} fill />
+        <Image 
+          src={image} 
+          alt={`Logo oprogramowania ${name}`} 
+          fill 
+          className="object-contain" // Kluczowe dla zachowania proporcji logotypów
+        />
       </a>
     </div>
   );

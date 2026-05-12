@@ -12,4 +12,8 @@ export type Blog = {
   author: Author;
   tags: string[];
   publishDate: string;
+  /** * Przyjazny dla SEO adres URL (np. "tytul-artykulu"). 
+   * To pole jest kluczowe, aby uniknąć błędów 404 przy dynamicznym linkowaniu.
+   */
+  slug: string; 
 };

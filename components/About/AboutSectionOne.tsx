@@ -7,30 +7,34 @@ const checkIcon = (
   </svg>
 );
 
-const AboutSectionOne = () => {
-  const List = ({ text }) => (
-    <p className="mb-5 flex items-center text-lg font-medium text-body-color">
-      <span className="mr-4 flex h-[30px] w-[30px] items-center justify-center rounded-md bg-primary bg-opacity-10 text-primary">
-        {checkIcon}
-      </span>
-      {text}
-    </p>
-  );
+// Przeniesienie komponentu List na zewnątrz głównej funkcji! 
+// Dzięki temu React nie musi go na nowo tworzyć przy każdym renderowaniu strony.
+const List = ({ text }: { text: string }) => (
+  <p className="mb-5 flex items-center text-lg font-medium text-body-color">
+    <span className="mr-4 flex h-[30px] w-[30px] items-center justify-center rounded-md bg-primary bg-opacity-10 text-primary">
+      {checkIcon}
+    </span>
+    {text}
+  </p>
+);
 
+const AboutSectionOne = () => {
   return (
     <section id="about" className="pt-16 md:pt-20 lg:pt-28">
       <div className="container">
         <div className="border-b border-body-color/[.15] pb-16 dark:border-white/[.15] md:pb-20 lg:pb-28">
           <div className="-mx-4 flex flex-wrap items-center">
+            
+            {/* Sekcja Tekstowa */}
             <div className="w-full px-4 lg:w-1/2">
-            <SectionTitle
+              <SectionTitle
                 title="mgr inż. poż. Jakub Baran"
                 paragraph=""
-                mb="44px"
+                mb="20px" // Zmniejszyłem margines, aby nagłówki lepiej ze sobą wizualnie grały
               />
               <SectionTitle
-                title="Współpraca skrojona na miarę"
-                paragraph="Do każdej sprawy podchodzę indywidualnie dostosowując się do wymagań klienta. Wieloletnie doświadczenie w branży pozwala mi na odpowiedni dobór rozwiązań."
+                title="Ochrona ppoż. skrojona na miarę"
+                paragraph="Jako inżynier bezpieczeństwa pożarowego do każdego projektu podchodzę indywidualnie, dostosowując się do specyfiki obiektu i wymagań inwestora. Wieloletnie doświadczenie w branży pozwala mi na dobór najbezpieczniejszych i optymalnych rozwiązań."
                 mb="44px"
               />
 
@@ -42,36 +46,32 @@ const AboutSectionOne = () => {
                   <div className="w-full px-3 sm:w-1/2 lg:w-full xl:w-1/2">
                     <List text="Indywidualne podejście" />
                     <List text="Możliwość zdalnej współpracy" />
-                    <List text="Doświadczenie w branży" />
+                    <List text="Inżynierska wiedza i doświadczenie" />
                   </div>
 
                   <div className="w-full px-3 sm:w-1/2 lg:w-full xl:w-1/2">
-                    <List text="Szybka realizacja" />
+                    <List text="Szybka realizacja projektów" />
                     <List text="Wsparcie na każdym etapie" />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="w-full text-center px-4 lg:w-1/2">
+            {/* Sekcja Obrazka */}
+            <div className="w-full px-4 text-center lg:w-1/2">
               <div
                 className="wow fadeInUp relative mx-auto aspect-[25/24] max-w-[500px] lg:mr-0"
                 data-wow-delay=".2s"
               >
                 <Image
                   src="/images/about/apoz.png"
-                  alt="about-image"
+                  alt="mgr inż. poż. Jakub Baran - absolwent Akademii Pożarniczej"
                   fill
-                  className="drop-shadow-three object-cover mx-auto max-w-full dark:hidden dark:drop-shadow-none lg:mr-0"
-                />
-                <Image
-                  src="/images/about/apoz.png"
-                  alt="about-image"
-                  fill
-                  className="drop-shadow-three object-cover mx-auto hidden max-w-full dark:block dark:drop-shadow-none lg:mr-0"
+                  className="mx-auto max-w-full object-cover drop-shadow-three dark:drop-shadow-none lg:mr-0"
                 />
               </div>
             </div>
+            
           </div>
         </div>
       </div>

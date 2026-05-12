@@ -12,21 +12,18 @@ const brandsData: Brand[] = [
     name: "Pathfinder",
     href: "https://pyrosim.pl/program-pathfinder/",
     image: "/images/brands/pathfinder.svg",
-
   },
   {
     id: 3,
     name: "Ventus",
     href: "https://pyrosim.pl/program-do-analizy-jakosci-powietrza-wewnetrznego-i-wentylacji/",
     image: "/images/brands/ventus.svg",
-    imageLight: "/images/brands/lineicons-light.svg",
   },
   {
     id: 4,
     name: "GstarCAD",
     href: "https://gstarcad.pl/",
     image: "/images/brands/gstar.png",
-
   },
 ];
 

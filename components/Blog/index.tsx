@@ -6,12 +6,12 @@ const Blog = () => {
   return (
     <section
       id="blog"
-      className="bg-gray-light dark:bg-bg-color-dark py-16 md:py-20 lg:py-28"
+      className="bg-gray-light py-16 dark:bg-bg-color-dark md:py-20 lg:py-28"
     >
       <div className="container">
         <SectionTitle
-          title="Najnowsze wpisy"
-          paragraph="Dawka informacji ze świata inżynierii bezpieczeństwa."
+          title="Najnowsze wpisy na blogu"
+          paragraph="Praktyczna dawka wiedzy ze świata inżynierii bezpieczeństwa pożarowego. Bądź na bieżąco z przepisami, poradami i nowinkami z zakresu ochrony ppoż."
           center
         />
 
