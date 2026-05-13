@@ -48,30 +48,16 @@ const menuData: Menu[] = [
         path: "/scenariusz",
         newTab: false,
       },
-      // {
-      //   id: 36,
-      //   title: "Ocena zagrożenia wybuchem",
-      //   path: "/ozw",
-      //   newTab: false,
-      // },
-      // {
-      //   id: 37,
-      //   title: "Projekt Systemu Sygnalizacji Pożarowej",
-      //   path: "/ssp",
-      //   newTab: false,
-      // },
-      // {
-      //   id: 38,
-      //   title: "Projekt systemu oddymiania grawitacyjnego",
-      //   path: "/oddymianie-grawitacyjne",
-      //   newTab: false,
-      // },
-      // {
-      //   id: 39,
-      //   title: "Projekt systemu oddymiania mechanicznego",
-      //   path: "/oddymianie-mechaniczne",
-      //   newTab: false,
-      // },
+      /* Odkomentuj poniższe pozycje, gdy będziesz gotowy na dodanie nowych usług.
+         Pamiętaj, aby odkomentować je również w plikach: 
+         1. featuresData.tsx (Sekcja usług)
+         2. Footer/index.tsx (Stopka -> offerLinks)
+         
+      { id: 36, title: "Ocena zagrożenia wybuchem", path: "/ozw", newTab: false },
+      { id: 37, title: "Projekt Systemu Sygnalizacji Pożarowej", path: "/ssp", newTab: false },
+      { id: 38, title: "Projekt systemu oddymiania grawitacyjnego", path: "/oddymianie-grawitacyjne", newTab: false },
+      { id: 39, title: "Projekt systemu oddymiania mechanicznego", path: "/oddymianie-mechaniczne", newTab: false },
+      */
     ],
   },
   {
@@ -86,6 +72,6 @@ const menuData: Menu[] = [
     path: "/kontakt",
     newTab: false,
   },
-  
 ];
+
 export default menuData;

@@ -22,13 +22,18 @@ const Header = () => {
       setSticky(false);
     }
   };
+
+  // NAPRAWA: Dodano tablicę zależności [] oraz funkcję sprzątającą (cleanup)
   useEffect(() => {
     window.addEventListener("scroll", handleStickyNavbar);
-  });
+    return () => {
+      window.removeEventListener("scroll", handleStickyNavbar);
+    };
+  }, []);
 
   // submenu handler
   const [openIndex, setOpenIndex] = useState(-1);
-  const handleSubmenu = (index) => {
+  const handleSubmenu = (index: number) => {
     if (openIndex === index) {
       setOpenIndex(-1);
     } else {
@@ -36,14 +41,15 @@ const Header = () => {
     }
   };
 
-  const usePathName = usePathname();
+  // Zmiana nazwy zmiennej (nie powinna zaczynać się od "use", jeśli nie jest custom hookiem)
+  const pathname = usePathname();
 
   return (
     <>
       <header
         className={`header left-0 top-0 z-40 flex w-full items-center ${
           sticky
-            ? "dark:bg-gray-dark dark:shadow-sticky-dark fixed z-[9999] bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition"
+            ? "fixed z-[9999] bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition dark:bg-gray-dark dark:shadow-sticky-dark"
             : "absolute bg-transparent"
         }`}
       >
@@ -59,22 +65,26 @@ const Header = () => {
                 <div className="flex flex-col items-center">
                   <Image
                     src="/images/logo/logo.webp"
-                    alt="logo"
+                    alt="Fire Protection Solutions Logo"
                     width={50}
                     height={30}
                     className="dark:hidden"
                   />
-                  <p className="font-bold w-full pl-0 dark:hidden hidden sm:block text-center pt-2">Fire Protection <span className="text-primary">Solutions</span></p>
+                  <p className="hidden w-full pt-2 text-center font-bold sm:block dark:hidden">
+                    Fire Protection <span className="text-primary">Solutions</span>
+                  </p>
                 </div>
                 <div className="flex flex-col items-center">
                   <Image
                     src="/images/logo/logo.webp"
-                    alt="logo"
+                    alt="Fire Protection Solutions Logo"
                     width={50}
                     height={30}
-                    className="dark:block hidden"
+                    className="hidden dark:block"
                   />
-                  <p className="font-bold w-full pl-0 sm:dark:block hidden text-center pt-2">Fire Protection <span className="text-primary">Solutions</span></p>
+                  <p className="hidden w-full pt-2 text-center font-bold sm:dark:block">
+                    Fire Protection <span className="text-primary">Solutions</span>
+                  </p>
                 </div>
               </Link>
             </div>
@@ -116,8 +126,9 @@ const Header = () => {
                         {menuItem.path ? (
                           <Link
                             href={menuItem.path}
+                            onClick={() => setNavbarOpen(false)} // UX: Zamyka menu po kliknięciu na telefonie
                             className={`flex py-2 text-base lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${
-                              usePathName === menuItem.path
+                              pathname === menuItem.path
                                 ? "text-primary dark:text-white"
                                 : "text-dark hover:text-primary dark:text-white/70 dark:hover:text-white"
                             }`}
@@ -126,9 +137,9 @@ const Header = () => {
                           </Link>
                         ) : (
                           <>
-                            <p
+                            <button
                               onClick={() => handleSubmenu(index)}
-                              className="flex cursor-pointer items-center justify-between py-2 text-base text-dark group-hover:text-primary dark:text-white/70 dark:group-hover:text-white lg:mr-0 lg:inline-flex lg:px-0 lg:py-6"
+                              className="flex w-full cursor-pointer items-center justify-between py-2 text-base text-dark group-hover:text-primary dark:text-white/70 dark:group-hover:text-white lg:mr-0 lg:inline-flex lg:w-auto lg:px-0 lg:py-6"
                             >
                               {menuItem.title}
                               <span className="pl-3">
@@ -141,16 +152,17 @@ const Header = () => {
                                   />
                                 </svg>
                               </span>
-                            </p>
+                            </button>
                             <div
                               className={`submenu relative left-0 top-full rounded-sm bg-white transition-[top] duration-300 group-hover:opacity-100 dark:bg-dark lg:invisible lg:absolute lg:top-[110%] lg:block lg:w-[250px] lg:p-4 lg:opacity-0 lg:shadow-lg lg:group-hover:visible lg:group-hover:top-full ${
                                 openIndex === index ? "block" : "hidden"
                               }`}
                             >
-                              {menuItem.submenu.map((submenuItem, index) => (
+                              {menuItem.submenu.map((submenuItem, subIndex) => (
                                 <Link
                                   href={submenuItem.path}
-                                  key={index}
+                                  key={subIndex}
+                                  onClick={() => setNavbarOpen(false)} // UX: Zamyka menu po kliknięciu na telefonie
                                   className="block rounded py-2.5 text-sm text-dark hover:text-primary dark:text-white/70 dark:hover:text-white lg:px-3"
                                 >
                                   {submenuItem.title}
@@ -165,8 +177,13 @@ const Header = () => {
                 </nav>
               </div>
               <div className="flex items-center justify-end pr-16 lg:pr-0">
-                    <a className="text-primary hidden sm:block" href="mailto:biuro@fp-solutions.pl">biuro@fp-solutions.pl</a>
-                <div>
+                <a
+                  className="hidden text-primary transition-colors hover:text-primary/80 sm:block"
+                  href="mailto:biuro@fp-solutions.pl"
+                >
+                  biuro@fp-solutions.pl
+                </a>
+                <div className="ml-4">
                   <ThemeToggler />
                 </div>
               </div>
