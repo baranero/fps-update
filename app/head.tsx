@@ -21,7 +21,7 @@ export default function Head() {
       <meta property="og:site_name" content="Fire Protection Solutions" />
 
       {/* Ikona strony (Favicon) */}
-      <link rel="icon" href="/favicon.ico" />
+      <link rel="icon" href="/favicon.webp"/>
     </>
   );
 }
