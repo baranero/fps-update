@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = { 
   title: "Kalkulatory PPOŻ | Fire Protection Solutions",
   description: "Zestaw profesjonalnych kalkulatorów inżynierskich do projektowania zabezpieczeń przeciwpożarowych.",
 };
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const calculators = [
   {
     id: "cnbop",
-    title: "Klatki Schodowe (CNBOP-PIB W-0003:2016)",
+    title: "Klatki Schodowe - (CNBOP-PIB W-0003:2016)",
     description: "Zautomatyzowane narzędzie do weryfikacji wymogów i obliczania parametrów systemów oddymiania (grawitacyjnych i mechanicznych) dla klatek schodowych wg CNBOP-PIB W-0003:2016 wydanie 2, maj 2019.",
     icon: (
       <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
