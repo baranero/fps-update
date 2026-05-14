@@ -179,7 +179,7 @@ export default function SmokeExhaustCalculatorPage() {
             
             {!result ? (
               <p className="text-sm font-medium text-body-color dark:text-body-color-dark">
-                Wprowadź dane i kliknij "Oblicz", aby system dopasował urządzenia z bazy producentów.
+                Wprowadź dane i kliknij &quot;Oblicz&quot;, aby system dopasował urządzenia z bazy producentów.
               </p>
             ) : (
               <div className="space-y-6 animate-fade-in">
