@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 const calculators = [
   {
-    id: "cnbop-wizard",
+    id: "cnbop",
     title: "Kalkulator CNBOP-PIB W-0003:2016 (Wizard)",
     description: "Kompleksowy interaktywny kalkulator z multikrokowymi wytycznymi do projektowania systemów oddymiania klatek schodowych. Obsługuje zarówno oddymianie grawitacyjne, jak i systemy z nawiewem mechanicznym.",
     icon: (
@@ -17,13 +17,13 @@ const calculators = [
     colorClass: "bg-purple-600 text-purple-600 group-hover:bg-purple-600 group-hover:text-white",
   },
   {
-    id: "cnbop",
-    title: "Klatki Schodowe (CNBOP-PIB W-0003:2016)",
-    description: "Zautomatyzowane narzędzie do weryfikacji wymogów i obliczania parametrów systemów oddymiania (grawitacyjnych i mechanicznych) dla klatek schodowych wg CNBOP-PIB W-0003:2016 wydanie 2, maj 2019.",
+    id: "oddymianie-klatek-pn",
+    title: "Klatki Schodowe (PN-B-02877-4:2025)",
+    description: "Kalkulator oddymiania grawitacyjnego klatek schodowych oparty o zasady normy PN-B-02877-4. Elastyczny algorytm wyznaczający A_cz, pow. geometryczną klap oraz wymogi napływu kompensacyjnego.",
     icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
     ),
-    colorClass: "bg-primary text-primary group-hover:bg-primary group-hover:text-white",
+    colorClass: "bg-teal-600 text-teal-600 group-hover:bg-teal-600 group-hover:text-white",
   },
   {
     id: "obciazenie-ogniowe",
