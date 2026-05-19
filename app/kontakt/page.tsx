@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     canonical: "https://fp-solutions.pl/kontakt",
   },
   openGraph: {
-    title: "Kontakt – Fire Protection Solutions Jakub Baran",
+    title: "Kontakt – Fire Protection Solutions Jakub Baran" ,
     description:
       "Masz pytania dotyczące ochrony przeciwpożarowej swojego obiektu? Zadzwoń lub napisz – chętnie doradzę i przygotuję darmową wycenę.",
     url: "https://fp-solutions.pl/kontakt",
@@ -29,5 +29,6 @@ const ContactPage = () => {
     </>
   );
 };
+
 
 export default ContactPage;
