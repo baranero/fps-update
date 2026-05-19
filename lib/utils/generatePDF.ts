@@ -1,6 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+<<<<<<< HEAD
 import { Step4Data } from "@/lib/calculations/cnbop";
+=======
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
 
 export interface CNBOPReportData {
   projectName?: string;
@@ -17,19 +20,51 @@ export interface CNBOPReportData {
   step2: {
     AKS: string; A: string; B: string; C: string; D: string; AKS_O: number;
   };
+<<<<<<< HEAD
   step4: Step4Data;
   actualVent: { Acz: number; Ageom: number };
   compCalc: { providedAcz: number; providedAgeom: number; providedAeff: number };
+=======
+  step4: {
+    ventInputMethod: 'dimensions' | 'geom_cv' | 'acz_cv';
+    ventWidth: string; ventHeight: string; cv: string; count: string;
+    ventAcz: string; ventAgeom: string;
+    compInputMethod: 'known_acz' | 'calculate';
+    compAcz: string;
+    doorConfiguration: 'single' | 'double' | 'two_independent' | 'serial' | 'other';
+    serialDistance: string;
+    doorLeaves: { w: string; h: string; id: number }[];
+    otherCompArea: string;
+    Ae: string; openDoorArea?: string; installationType: string; ductPressureLoss: string;
+  };
+  actualVent: { Acz: number; Ageom: number };
+  compCalc: { providedAcz: number; providedAgeom: number };
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
   results: {
     systemType: "GRAVITATIONAL" | "MECHANICAL";
     cfnWarnings: { cfnC: boolean; cfnD: boolean; cfnAKS: boolean; cfnSerialDoors: boolean; };
     vn_min?: number; vn_p?: number; vn1?: number; vn_v?: number; vn2?: number; vn_max?: number; v_went?: number; totalPressure?: number; Acz?: number;
+<<<<<<< HEAD
     Aodd_geom?: number; Akomp_eff?: number;
+=======
+    Aodd_geom?: number; Akomp_eff?: number; Akomp_geom?: number;
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
   };
 }
 
 const CONTACT_EMAIL = "biuro@fp-solutions.pl";
 
+<<<<<<< HEAD
+=======
+const DOOR_CONFIG_LABELS: Record<string, string> = {
+  'single': 'Pojedyncze drzwi',
+  'double': 'Drzwi dwuskrzydłowe',
+  'two_independent': 'Dwa niezależne wyjścia (obszary sumowane)',
+  'serial': 'Drzwi w szeregu — dwa drzwi jedno za drugim (liczy się mniejszy otwór)',
+  'other': 'Inne otwory napowietrzające (okna, żaluzje itp.)',
+};
+
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
 const VENT_METHOD_LABELS: Record<string, string> = {
   'dimensions': 'Podano wymiary klapy: szerokość × wysokość × współczynnik aerodynamiczny Cv × liczba sztuk',
   'geom_cv': 'Podano powierzchnię geometryczną klapy i współczynnik aerodynamiczny Cv',
@@ -214,14 +249,21 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
     if (data.results.systemType === "GRAVITATIONAL") {
       checkPageBreak(60);
       const compMethod = data.step4.compInputMethod;
+<<<<<<< HEAD
       const groupCount = data.step4.compGroups.length;
       const compBody: any[] = [
         ["Metoda określenia urządzenia napowietrzającego", compMethod === 'known_acz' ? 'Podano bezpośrednio pow. czynną otworów napowietrzających (Aᴄᴢ_komp)' : `Wyliczono z wymiarów geometrycznych (${groupCount} ścież. napowietrzania)`],
+=======
+      const compBody: any[] = [
+        ["Metoda określenia urządzenia napowietrzającego", compMethod === 'known_acz' ? 'Podano bezpośrednio pow. czynną otworów napowietrzających (Aᴄᴢ_komp)' : `Wyliczono z wymiarów geometrycznych`],
+        ["Konfiguracja urządzenia napowietrzającego", compMethod === 'known_acz' ? 'Zadeklarowana wartość Aᴄᴢ_komp' : DOOR_CONFIG_LABELS[data.step4.doorConfiguration]],
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
       ];
 
       if (compMethod === 'known_acz') {
         compBody.push(["Zadeklarowana pow. czynna napowietrzania (Aᴄᴢ_komp, podana)", `${data.step4.compAcz} m²`]);
       } else {
+<<<<<<< HEAD
         compBody.push(["Obliczona efektywna pow. napowietrzania (Aₑff_komp, obliczona)", `${data.compCalc.providedAeff.toFixed(2).replace('.', ',')} m²`]);
         compBody.push(["Suma geometryczna otworów napowietrzających (Aₑₐₒₘ_komp)", `${data.compCalc.providedAgeom.toFixed(2).replace('.', ',')} m²`]);
         if (data.results.Akomp_eff) {
@@ -229,6 +271,17 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
           compBody.push(["Wymagana minimalna pow. efektywna napowietrzania (Aₑff_komp, min = 1,3 × Aₑₐₒₘ_klapy)", `${data.results.Akomp_eff.toFixed(2).replace('.', ',')} m²`]);
           compBody.push(["Status napowietrzania", compOk ? "SPEŁNIONY — dobrana pow. pokrywa wymagane minimum" : "NIEWYSTARCZAJĄCY — wymagana większa powierzchnia napowietrzania"]);
         }
+=======
+        compBody.push(["Obliczona pow. geometryczna napowietrzania (Aₑₐₒₘ_komp, obliczona)", `${data.compCalc.providedAgeom.toFixed(2).replace('.', ',')} m²`]);
+        if (data.results.Akomp_geom) {
+          compBody.push(["Wymagana minimalna pow. geometryczna napowietrzania przez drzwi (Aₑₐₒₘ_komp, min)", `${data.results.Akomp_geom.toFixed(2).replace('.', ',')} m²`]);
+          const compOk = data.compCalc.providedAgeom >= data.results.Akomp_geom;
+          compBody.push(["Status napowietrzania", compOk ? "SPEŁNIONY — dobrana pow. pokrywa wymagane minimum" : "NIEWYSTARCZAJĄCY — wymagana większa powierzchnia napowietrzania"]);
+        }
+        if (data.results.Akomp_eff) {
+          compBody.push(["Wymagana minimalna pow. efektywna innych otworów napowietrzających (Aᴄᴢ_komp, min)", `${data.results.Akomp_eff.toFixed(2).replace('.', ',')} m²`]);
+        }
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
       }
 
       autoTable(doc, {
@@ -239,8 +292,13 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
         columnStyles: { 0: { cellWidth: 130 }, 1: { fontStyle: "bold" } },
         didParseCell: (hookData: any) => {
           const lastBodyIdx = compBody.length - 1;
+<<<<<<< HEAD
           if (hookData.section === 'body' && hookData.row.index === lastBodyIdx && compMethod !== 'known_acz' && data.results.Akomp_eff) {
             const compOk = data.compCalc.providedAeff >= (data.results.Akomp_eff ?? 0);
+=======
+          if (hookData.section === 'body' && hookData.row.index === lastBodyIdx && compMethod !== 'known_acz' && data.results.Akomp_geom) {
+            const compOk = data.compCalc.providedAgeom >= (data.results.Akomp_geom ?? 0);
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
             hookData.cell.styles.textColor = compOk ? [21, 128, 61] : [185, 28, 28];
           }
         },
@@ -290,7 +348,12 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
         ["Wymagany typ systemu oddymiania", "Grawitacyjny — klapy dymowe"],
         ["Minimalna wymagana pow. czynna klapy dymowej (Aᴄᴢ, min)", `${data.results.Acz?.toFixed(2).replace('.', ',')} m²`],
         ["Dobrana pow. czynna klapy dymowej (Aᴄᴢ, dobrana)", `${data.actualVent.Acz.toFixed(2).replace('.', ',')} m²`],
+<<<<<<< HEAD
         ...(data.results.Akomp_eff ? [["Minimalna wymagana pow. efektywna napowietrzania (Aₑff_komp, min)", `${data.results.Akomp_eff.toFixed(2).replace('.', ',')} m²`]] : []),
+=======
+        ...(data.results.Akomp_geom ? [["Minimalna wymagana pow. geometryczna napowietrzania przez drzwi (Aₑₐₒₘ_komp, min)", `${data.results.Akomp_geom.toFixed(2).replace('.', ',')} m²`]] : []),
+        ...(data.results.Akomp_eff ? [["Minimalna wymagana pow. efektywna innych otworów napowietrzających (Aᴄᴢ_komp, min)", `${data.results.Akomp_eff.toFixed(2).replace('.', ',')} m²`]] : []),
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
       ],
       bodyStyles: { fillColor: [248, 250, 252] },
       columnStyles: { 0: { cellWidth: 130, fontStyle: "bold" }, 1: { fontStyle: "bold", textColor: secondaryColor, fontSize: 11 } },

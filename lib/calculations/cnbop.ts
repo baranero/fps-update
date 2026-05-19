@@ -26,6 +26,7 @@ export interface Step2aData {
 
 export interface Step2Data {
   AKS: string; A: string; B: string; C: string; D: string;
+<<<<<<< HEAD
 }
 
 export type CompOpeningType = 'door_single' | 'door_double' | 'window' | 'louvre' | 'other';
@@ -42,6 +43,8 @@ export interface CompGroup {
   id: number;
   openings: CompOpening[];
   distances: string[];
+=======
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
 }
 
 export interface Step4Data {
@@ -50,10 +53,19 @@ export interface Step4Data {
   ventAcz: string; ventAgeom: string;
 
   compInputMethod: 'known_acz' | 'calculate';
+<<<<<<< HEAD
   compArrangement: 'parallel' | 'series';
   compAcz: string;
   compGroups: CompGroup[];
 
+=======
+  compAcz: string;
+  doorConfiguration: 'single' | 'double' | 'two_independent' | 'serial' | 'other';
+  serialDistance: string;
+  doorLeaves: { w: string; h: string; id: number }[];
+  otherCompArea: string;
+  
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
   Ae: string;
   openDoorArea: string;
   installationType: 'wall' | 'ducted';
@@ -145,6 +157,7 @@ export function determineSystemType(step1: Step1Data): 'GRAVITATIONAL' | 'MECHAN
 }
 
 export function calculateCFDWarnings(AKS: number, AB: number, C: number, D: number, isGravSerial: boolean): CFDWarnings {
+<<<<<<< HEAD
   return {
     cfnC: C > 0.1 * AB,
     cfnD: D > 0.25 * AB,
@@ -201,6 +214,33 @@ export function calculateGravitational(
 
   const { hasSerialsOverFiveM } = calculateCompGroups(step4.compGroups);
   const cfnWarnings = calculateCFDWarnings(toNum(step2.AKS), A + B, C, D, hasSerialsOverFiveM);
+=======
+  return { 
+    cfnC: C > 0.1 * AB, 
+    cfnD: D > 0.25 * AB, 
+    cfnAKS: AKS > 40,
+    cfnSerialDoors: isGravSerial 
+  };
+}
+
+export function calculateGravitational(
+  step1: Step1Data, step2: Step2Data, step4: Step4Data, calculatedAoddGeom: number
+): CalculationResults {
+  const A = toNum(step2.A); const B = toNum(step2.B); const C = toNum(step2.C); const D = toNum(step2.D);
+  const AKS_O = A + B + C + D;
+
+  const Acz = Math.max(0.05 * AKS_O, 1.0);
+  
+  const Aodd_geom = calculatedAoddGeom > 0 ? calculatedAoddGeom : Acz / 0.6; 
+  const Akomp_base = 1.3 * Aodd_geom;
+  const isDoor = step4.doorConfiguration !== 'other';
+
+  const Akomp_geom = isDoor ? Akomp_base : undefined;
+  const Akomp_eff  = isDoor ? undefined : Akomp_base;
+
+  const isGravSerial = step4.doorConfiguration === 'serial' && toNum(step4.serialDistance) > 5;
+  const cfnWarnings = calculateCFDWarnings(toNum(step2.AKS), A + B, C, D, isGravSerial);
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
 
   return {
     systemType: 'GRAVITATIONAL',
@@ -209,13 +249,22 @@ export function calculateGravitational(
     outputs: {
       Acz: Number(Acz.toFixed(2)),
       Aodd_geom: Number(Aodd_geom.toFixed(2)),
+<<<<<<< HEAD
       Akomp_eff: Number(Akomp_eff.toFixed(2)),
+=======
+      Akomp_geom: Akomp_geom ? Number(Akomp_geom.toFixed(2)) : undefined,
+      Akomp_eff: Akomp_eff ? Number(Akomp_eff.toFixed(2)) : undefined,
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
     },
   };
 }
 
 export function calculateMechanical(
+<<<<<<< HEAD
   step1: Step1Data, step2: Step2Data, step4: Step4Data, _calculatedAoddGeom: number
+=======
+  step1: Step1Data, step2: Step2Data, step4: Step4Data, calculatedAoddGeom: number
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
 ): CalculationResults {
   const A = toNum(step2.A); const B = toNum(step2.B); const C = toNum(step2.C); const D = toNum(step2.D);
   const floors = Number(step1.numberOfFloorsTotal) || 1;

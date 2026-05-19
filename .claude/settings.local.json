@@ -3,9 +3,13 @@
     "allow": [
       "Bash(npx tsc *)",
       "Bash(npx next *)",
+<<<<<<< HEAD
       "Bash(npm install *)",
       "Bash(node -e \"const fs = require\\('fs'\\); const buf = fs.readFileSync\\('public/images/logo/logo.webp'\\); console.log\\('File size:', buf.length, 'bytes'\\);\")",
       "Bash(node -e *)"
+=======
+      "Bash(npm install *)"
+>>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
     ]
   }
 }
