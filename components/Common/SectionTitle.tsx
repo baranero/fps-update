@@ -17,11 +17,11 @@ const SectionTitle = ({
       data-wow-delay=".1s"
       style={{ maxWidth: width, marginBottom: mb }}
     >
-      <h2 className="mb-4 text-3xl font-bold !leading-tight text-black dark:text-white sm:text-4xl md:text-[45px]">
+      <h2 className="mb-4 text-3xl font-bold !leading-tight text-slate-900 dark:text-white sm:text-4xl md:text-[45px]">
         {title}
       </h2>
       {paragraph && (
-        <p className="text-base !leading-relaxed text-body-color md:text-lg">
+        <p className="text-base !leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
           {paragraph}
         </p>
       )}

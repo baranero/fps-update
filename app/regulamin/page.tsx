@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Common/Breadcrumb";
+﻿import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 
 export const metadata = {
@@ -16,20 +16,20 @@ export default function RegulaminPage() {
         <div className="mx-auto max-w-[800px]">
           
           <div className="mb-10">
-            <h1 className="mb-6 text-3xl font-bold text-black dark:text-white sm:text-4xl">
+            <h1 className="mb-6 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
               Regulamin Serwisu Internetowego
             </h1>
-            <p className="text-base leading-relaxed text-body-color dark:text-body-color-dark">
+            <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
               Niniejszy regulamin określa ogólne warunki, zasady oraz sposób korzystania ze strony internetowej 
               Fire Protection Solutions. Regulamin ten jest dokumentem, o którym mowa w art. 8 Ustawy z dnia 
               18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.
             </p>
           </div>
 
-          <div className="space-y-10 text-base leading-relaxed text-body-color dark:text-body-color-dark">
+          <div className="space-y-10 text-base leading-relaxed text-slate-600 dark:text-slate-400">
             
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 1. Postanowienia ogólne
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -46,7 +46,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 2. Definicje
               </h2>
               <ul className="list-disc space-y-2 pl-5">
@@ -58,7 +58,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 3. Rodzaj i zakres świadczonych usług
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -72,7 +72,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 4. Wymagania techniczne i zasady korzystania
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -87,7 +87,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 5. Własność intelektualna
               </h2>
               <p className="leading-relaxed">
@@ -96,7 +96,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 6. Odpowiedzialność
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -110,7 +110,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 7. Postępowanie reklamacyjne
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -127,7 +127,7 @@ export default function RegulaminPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 8. Postanowienia końcowe
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -154,3 +154,4 @@ export default function RegulaminPage() {
     </>
   );
 }
+

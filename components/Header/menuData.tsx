@@ -62,12 +62,18 @@ const menuData: Menu[] = [
   },
   {
     id: 4,
+    title: "Dla projektanta",
+    path: "/narzedzia",
+    newTab: false,
+  },
+  {
+    id: 5,
     title: "Blog",
     path: "/blog",
     newTab: false,
   },
   {
-    id: 5,
+    id: 6,
     title: "Kontakt",
     path: "/kontakt",
     newTab: false,

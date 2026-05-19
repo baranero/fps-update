@@ -28,18 +28,32 @@ export interface Step2Data {
   AKS: string; A: string; B: string; C: string; D: string;
 }
 
+export type CompOpeningType = 'door_single' | 'door_double' | 'window' | 'louvre' | 'other';
+
+export interface CompOpening {
+  id: number;
+  type: CompOpeningType;
+  w: string;
+  h: string;
+  area: string;
+}
+
+export interface CompGroup {
+  id: number;
+  openings: CompOpening[];
+  distances: string[];
+}
+
 export interface Step4Data {
   ventInputMethod: 'dimensions' | 'geom_cv' | 'acz_cv';
   ventWidth: string; ventHeight: string; cv: string; count: string;
   ventAcz: string; ventAgeom: string;
 
   compInputMethod: 'known_acz' | 'calculate';
+  compArrangement: 'parallel' | 'series';
   compAcz: string;
-  doorConfiguration: 'single' | 'double' | 'two_independent' | 'serial' | 'other';
-  serialDistance: string;
-  doorLeaves: { w: string; h: string; id: number }[];
-  otherCompArea: string;
-  
+  compGroups: CompGroup[];
+
   Ae: string;
   openDoorArea: string;
   installationType: 'wall' | 'ducted';
@@ -131,31 +145,62 @@ export function determineSystemType(step1: Step1Data): 'GRAVITATIONAL' | 'MECHAN
 }
 
 export function calculateCFDWarnings(AKS: number, AB: number, C: number, D: number, isGravSerial: boolean): CFDWarnings {
-  return { 
-    cfnC: C > 0.1 * AB, 
-    cfnD: D > 0.25 * AB, 
+  return {
+    cfnC: C > 0.1 * AB,
+    cfnD: D > 0.25 * AB,
     cfnAKS: AKS > 40,
-    cfnSerialDoors: isGravSerial 
+    cfnSerialDoors: isGravSerial,
   };
 }
 
+export function openingGeomArea(o: CompOpening): number {
+  if (o.type === 'door_single') return toNum(o.w) * toNum(o.h);
+  if (o.type === 'door_double') return 2 * toNum(o.w) * toNum(o.h);
+  return toNum(o.area);
+}
+
+export function calculateCompGroups(groups: CompGroup[]): {
+  totalAgeom: number;
+  totalAeff: number;
+  hasSerialsOverFiveM: boolean;
+} {
+  let totalAgeom = 0;
+  let totalAeff = 0;
+  let hasSerialsOverFiveM = false;
+
+  for (const group of groups) {
+    if (group.openings.length === 0) continue;
+    group.distances.forEach(d => { if (toNum(d) > 5) hasSerialsOverFiveM = true; });
+
+    const effs = group.openings.map(openingGeomArea);
+
+    totalAgeom += effs.reduce((s, a) => s + a, 0);
+
+    if (group.openings.length === 1) {
+      totalAeff += effs[0];
+    } else {
+      const valid = effs.filter(a => a > 0);
+      if (valid.length > 0) {
+        totalAeff += 1 / Math.sqrt(valid.reduce((s, a) => s + 1 / (a * a), 0));
+      }
+    }
+  }
+
+  return { totalAgeom, totalAeff, hasSerialsOverFiveM };
+}
+
 export function calculateGravitational(
-  step1: Step1Data, step2: Step2Data, step4: Step4Data, calculatedAoddGeom: number
+  _step1: Step1Data, step2: Step2Data, step4: Step4Data, calculatedAoddGeom: number
 ): CalculationResults {
   const A = toNum(step2.A); const B = toNum(step2.B); const C = toNum(step2.C); const D = toNum(step2.D);
   const AKS_O = A + B + C + D;
 
   const Acz = Math.max(0.05 * AKS_O, 1.0);
-  
-  const Aodd_geom = calculatedAoddGeom > 0 ? calculatedAoddGeom : Acz / 0.6; 
-  const Akomp_base = 1.3 * Aodd_geom;
-  const isDoor = step4.doorConfiguration !== 'other';
+  const Aodd_geom = calculatedAoddGeom > 0 ? calculatedAoddGeom : Acz / 0.6;
+  const Akomp_eff = 1.3 * Aodd_geom;
 
-  const Akomp_geom = isDoor ? Akomp_base : undefined;
-  const Akomp_eff  = isDoor ? undefined : Akomp_base;
-
-  const isGravSerial = step4.doorConfiguration === 'serial' && toNum(step4.serialDistance) > 5;
-  const cfnWarnings = calculateCFDWarnings(toNum(step2.AKS), A + B, C, D, isGravSerial);
+  const { hasSerialsOverFiveM } = calculateCompGroups(step4.compGroups);
+  const cfnWarnings = calculateCFDWarnings(toNum(step2.AKS), A + B, C, D, hasSerialsOverFiveM);
 
   return {
     systemType: 'GRAVITATIONAL',
@@ -164,14 +209,13 @@ export function calculateGravitational(
     outputs: {
       Acz: Number(Acz.toFixed(2)),
       Aodd_geom: Number(Aodd_geom.toFixed(2)),
-      Akomp_geom: Akomp_geom ? Number(Akomp_geom.toFixed(2)) : undefined,
-      Akomp_eff: Akomp_eff ? Number(Akomp_eff.toFixed(2)) : undefined,
+      Akomp_eff: Number(Akomp_eff.toFixed(2)),
     },
   };
 }
 
 export function calculateMechanical(
-  step1: Step1Data, step2: Step2Data, step4: Step4Data, calculatedAoddGeom: number
+  step1: Step1Data, step2: Step2Data, step4: Step4Data, _calculatedAoddGeom: number
 ): CalculationResults {
   const A = toNum(step2.A); const B = toNum(step2.B); const C = toNum(step2.C); const D = toNum(step2.D);
   const floors = Number(step1.numberOfFloorsTotal) || 1;
@@ -222,6 +266,39 @@ export function calculateMechanical(
       totalPressure: Number(totalPressure.toFixed(0)),
     },
   };
+}
+
+export interface CFDConditions {
+  corrLength: boolean;
+  doorDist: boolean;
+  corrWidth: boolean;
+  highNoSeparation: boolean;
+}
+
+export interface ExtraCFD {
+  corrLength: boolean;
+  doorDist: boolean;
+  corrWidth: boolean;
+  zlIVHighAuto: boolean;
+  highNoSeparation: boolean;
+}
+
+export interface AeHelperState {
+  enabled: boolean;
+  doorsIn: string;
+  doorsOut: string;
+  doorsDouble: string;
+  doorsElevator: string;
+  windowLength: string;
+  windowType: 'unsealed' | 'sealed' | 'sliding';
+  wallExtArea: string;
+  wallExtTightness: 'tight' | 'average' | 'leaky' | 'very_leaky';
+  wallIntArea: string;
+  wallIntTightness: 'tight' | 'average' | 'leaky';
+  wallElevArea: string;
+  wallElevTightness: 'tight' | 'average' | 'leaky';
+  ceilingArea: string;
+  otherAe: string;
 }
 
 export function validateStep2(

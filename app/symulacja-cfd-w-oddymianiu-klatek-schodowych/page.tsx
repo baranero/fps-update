@@ -1,4 +1,4 @@
-import TagButton from "@/components/Blog/TagButton";
+﻿import TagButton from "@/components/Blog/TagButton";
 import Image from "next/image";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -21,17 +21,17 @@ export const metadata: Metadata = {
 const BlogDetailsPage = () => {
   return (
     <>
-      <section className="pb-[120px] pt-[150px]">
+      <section className="pb-[120px] pt-[60px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap justify-center">
             <div className="w-full px-4 lg:w-8/12">
               <article>
-                <h1 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
+                <h1 className="mb-8 text-3xl font-bold leading-tight text-slate-900 dark:text-white sm:text-4xl sm:leading-tight">
                   Symulacja CFD w oddymianiu klatek schodowych
                 </h1>
                 
                 {/* Meta informacje o autorze i dacie */}
-                <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
+                <div className="mb-10 flex flex-wrap items-center justify-between border-b border-slate-200  pb-4 dark:border-white dark:">
                   <div className="flex flex-wrap items-center">
                     <div className="mb-5 mr-10 flex items-center">
                       <div className="mr-4">
@@ -45,13 +45,13 @@ const BlogDetailsPage = () => {
                         </div>
                       </div>
                       <div className="w-full">
-                        <span className="mb-1 text-base font-medium text-body-color">
+                        <span className="mb-1 text-base font-medium text-slate-600">
                           <span>Jakub Baran</span>
                         </span>
                       </div>
                     </div>
                     <div className="mb-5 flex items-center">
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
+                      <p className="mr-5 flex items-center text-base font-medium text-slate-600">
                         <span className="mr-3">
                           <svg width="15" height="15" viewBox="0 0 15 15" className="fill-current">
                             <path d="M3.89531 8.67529H3.10666C2.96327 8.67529 2.86768 8.77089 2.86768 8.91428V9.67904C2.86768 9.82243 2.96327 9.91802 3.10666 9.91802H3.89531C4.03871 9.91802 4.1343 9.82243 4.1343 9.67904V8.91428C4.1343 8.77089 4.03871 8.67529 3.89531 8.67529Z" />
@@ -78,7 +78,7 @@ const BlogDetailsPage = () => {
                 
                 {/* Właściwa treść artykułu */}
                 <div>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                  <p className="mb-10 text-base font-medium leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Kiedy wymagana jest symulacja CFD do projektu oddymiania
                     klatki schodowej?
                   </p>
@@ -92,7 +92,7 @@ const BlogDetailsPage = () => {
                       />
                     </div>
                   </div>
-                  <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                  <p className="mb-8 text-base font-medium leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     W dobie coraz większych wymagań dotyczących bezpieczeństwa
                     pożarowego budynków, projektanci i inwestorzy coraz chętniej
                     sięgają po narzędzia inżynierskie pozwalające zweryfikować
@@ -101,76 +101,76 @@ const BlogDetailsPage = () => {
                     które stają się coraz powszechniejszym standardem przy
                     projektowaniu systemów oddymiania klatek schodowych.
                   </p>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                  <p className="mb-10 text-base font-medium leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Jeśli projekt oddymiania został wykonany w oparciu o
                     wytyczne projektowania CNBOP-PIB-0003:2016, to dokument ten
                     podpowiada nam w jakich przypadkach jesteśmy zobligowani do
                     wykonania symulacji oraz jakie parametry pożaru i
                     środowiskowe powinny zostać zawarte w analizie.
                   </p>
-                  <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
+                  <h3 className="font-xl mb-10 font-bold leading-tight text-slate-900 dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     Warunki, które wymagają wykonania symulacji CFD
                   </h3>
 
-                  <ul className="mb-10 list-inside list-disc text-body-color">
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                  <ul className="mb-10 list-inside list-disc text-slate-600">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       powierzchnia klatki schodowej (A<sub>KS</sub>) na dowolnej
                       kondygnacji jest większa niż 40 m<sup>2</sup>,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       przestrzeń klatki schodowej jest połączona z przyległymi
                       korytarzami lub holami i długość dojścia z najbardziej
                       oddalonych drzwi do granicy powierzchni obliczeniowej
                       klatki schodowej jest większa niż 5 m (granice powierzchni
                       obliczeniowej klatki schodowej zawarte w Załączniku 1),
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       przestrzeń klatki schodowej jest połączona z przyległymi
                       korytarzami i holami o długości dojścia od granicy
                       powierzchni obliczeniowej klatki schodowej do końca
                       korytarza większej niż 10 m,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       szerokość korytarzy połączonych z klatką schodową
                       niewydzieloną przekracza 3 m,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       klatka schodowa charakteryzuje się architekturą inną niż
                       opisana w wytycznych (przykłady w Załączniku 1),
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       powierzchnia pozostałych otworów międzykondygnacyjnych nie
                       spełnia warunku: C ≤ 10% (A+B), o którym mowa w rozdziale
                       6.2 wytycznych,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       powierzchnia duszy schodów nie spełnia warunku: D ≤ 25%
                       (A+B), o którym mowa w rozdziale 6.2 wytycznych,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       klatka stanowi pionową drogę ewakuacji ludzi w budynku
                       wysokim zaliczanym do kategorii zagrożenia ludzi ZL IV,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       napływ powietrza kompensacyjnego w systemie oddymiania
                       grawitacyjnego odbywa się przez dwoje drzwi, w układzie
                       szeregowym, łączących przestrzeń klatki schodowej z
                       przestrzenią zewnętrzną, oddalonych od siebie o więcej niż
                       5 m,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       nawiew mechaniczny powietrza jest realizowany inaczej niż
                       zapisano w rozdziale 6.5 wytycznych,
                     </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
+                    <li className="mb-2 text-base font-medium text-slate-600 sm:text-lg lg:text-base xl:text-lg">
                       w budynku wysokim ZL IV występują korytarze przyległe do
                       klatki schodowej (nieoddzielone drzwiami).
                     </li>
                   </ul>
                   
                   {/* Sekcja wyróżnionego linku */}
-                  <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
-                    <p className="text-center text-base font-medium italic text-body-color">
+                  <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary/10 p-8 md:p-9 lg:p-8 xl:p-9">
+                    <p className="text-center text-base font-medium italic text-slate-600">
                       Wytyczne dostępne pod adresem:{" "}
                       <Link
                         target="_blank"
@@ -222,7 +222,7 @@ const BlogDetailsPage = () => {
                   {/* Sekcja tagów */}
                   <div className="items-center justify-between sm:flex">
                     <div className="mb-5">
-                      <h4 className="mb-3 text-sm font-medium text-body-color">
+                      <h4 className="mb-3 text-sm font-medium text-slate-600">
                         Popularne tagi:
                       </h4>
                       <div className="flex flex-wrap items-center gap-2">

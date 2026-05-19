@@ -1,13 +1,6 @@
 import * as XLSX from "xlsx";
 import { CNBOPReportData } from "./generatePDF";
 
-const DOOR_CONFIG_LABELS: Record<string, string> = {
-  single: "Pojedyncze drzwi",
-  double: "Drzwi dwuskrzydłowe",
-  two_independent: "Dwa niezależne wyjścia (powierzchnie sumowane)",
-  serial: "Drzwi w szeregu — liczy się mniejszy otwór",
-  other: "Inne otwory napowietrzające (okna, żaluzje itp.)",
-};
 
 const HEIGHT_GROUP_LABELS: Record<string, string> = {
   N: "Niski (N) — do 12 m / do 4 kond.",
@@ -79,15 +72,14 @@ export function generateXLSX(data: CNBOPReportData, fileName = "Raport_CNBOP.xls
   // 4. Napowietrzanie (grawitacyjny)
   if (data.results.systemType === "GRAVITATIONAL") {
     head("4. DOBÓR OTWORÓW NAPOWIETRZAJĄCYCH (KOMPENSACJA)");
-    add("Konfiguracja urządzenia napowietrzającego", DOOR_CONFIG_LABELS[data.step4.doorConfiguration] ?? data.step4.doorConfiguration);
-    add("Dobrana pow. geometryczna napowietrzania (Ageom,komp) [m²]", `${data.compCalc.providedAgeom.toFixed(2).replace(".", ",")} m²`);
-    if (data.results.Akomp_geom) {
-      add("Minimalna wymagana pow. geometryczna napowietrzania (Ageom,komp,min) [m²]", `${data.results.Akomp_geom.toFixed(2).replace(".", ",")} m²`);
-      const compOk = data.compCalc.providedAgeom >= data.results.Akomp_geom;
-      add("Status napowietrzania", compOk ? "SPEŁNIONY" : "NIEWYSTARCZAJĄCY");
-    }
+    const groupCount = data.step4.compGroups.length;
+    const totalOpenings = data.step4.compGroups.reduce((s, g) => s + g.openings.length, 0);
+    add("Konfiguracja napowietrzania", `${groupCount} ścieżka(i) równoległych, ${totalOpenings} otwór(y) łącznie`);
+    add("Dobrana pow. efektywna napowietrzania (Aeff,komp) [m²]", `${data.compCalc.providedAeff.toFixed(2).replace(".", ",")} m²`);
     if (data.results.Akomp_eff) {
-      add("Minimalna wymagana pow. efektywna innych otworów (Acz,komp,min) [m²]", `${data.results.Akomp_eff.toFixed(2).replace(".", ",")} m²`);
+      const compOk = data.compCalc.providedAeff >= data.results.Akomp_eff;
+      add("Minimalna wymagana pow. efektywna (Acz,komp,min) [m²]", `${data.results.Akomp_eff.toFixed(2).replace(".", ",")} m²`);
+      add("Status napowietrzania", compOk ? "SPEŁNIONY" : "NIEWYSTARCZAJĄCY");
     }
     sep();
   }
@@ -121,8 +113,7 @@ export function generateXLSX(data: CNBOPReportData, fileName = "Raport_CNBOP.xls
     add("Wymagany typ systemu oddymiania", "Grawitacyjny — klapy dymowe");
     add("Acz,min — minimalna wymagana pow. czynna klapy dymowej [m²]", `${data.results.Acz?.toFixed(2).replace(".", ",")} m²`);
     add("Acz — dobrana pow. czynna klapy dymowej [m²]", `${data.actualVent.Acz.toFixed(2).replace(".", ",")} m²`);
-    if (data.results.Akomp_geom) add("Ageom,komp,min — min. pow. geom. napowietrzania przez drzwi [m²]", `${data.results.Akomp_geom.toFixed(2).replace(".", ",")} m²`);
-    if (data.results.Akomp_eff) add("Acz,komp,min — min. pow. efektywna innych otworów napowietrzających [m²]", `${data.results.Akomp_eff.toFixed(2).replace(".", ",")} m²`);
+    if (data.results.Akomp_eff) add("Acz,komp,min — min. pow. efektywna otworów napowietrzających [m²]", `${data.results.Akomp_eff.toFixed(2).replace(".", ",")} m²`);
   }
   sep();
   add("Dokument wygenerowany automatycznie przez Kalkulator CNBOP. Wymaga weryfikacji przez uprawnionego projektanta.");

@@ -20,7 +20,7 @@ const ThemeToggler = () => {
     <button
       aria-label="Przełącz motyw"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gray-2 text-black transition-colors duration-300 dark:bg-dark-bg dark:text-white md:h-14 md:w-14"
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors duration-300 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 md:h-10 md:w-10"
     >
       {/* Ikona Słońca (Tryb Jasny) */}
       <svg

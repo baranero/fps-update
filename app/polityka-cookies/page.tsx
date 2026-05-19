@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Common/Breadcrumb";
+﻿import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 
 export const metadata = {
@@ -16,20 +16,20 @@ export default function PolitykaCookiesPage() {
         <div className="mx-auto max-w-[800px]">
           
           <div className="mb-10">
-            <h1 className="mb-6 text-3xl font-bold text-black dark:text-white sm:text-4xl">
+            <h1 className="mb-6 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
               Polityka Cookies
             </h1>
-            <p className="text-base leading-relaxed text-body-color dark:text-body-color-dark">
+            <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
               Niniejsza Polityka Cookies określa zasady zapisywania i uzyskiwania dostępu do danych na urządzeniach 
               Użytkowników korzystających ze strony internetowej Fire Protection Solutions w celu świadczenia usług 
               drogą elektroniczną przez Administratora.
             </p>
           </div>
 
-          <div className="space-y-10 text-base leading-relaxed text-body-color dark:text-body-color-dark">
+          <div className="space-y-10 text-base leading-relaxed text-slate-600 dark:text-slate-400">
             
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 1. Informacje ogólne
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -43,7 +43,7 @@ export default function PolitykaCookiesPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 2. Czym są pliki cookies?
               </h2>
               <p>
@@ -52,7 +52,7 @@ export default function PolitykaCookiesPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 3. Rodzaje wykorzystywanych plików cookies
               </h2>
               <p className="mb-4">W ramach Serwisu stosowane są następujące rodzaje plików cookies:</p>
@@ -70,7 +70,7 @@ export default function PolitykaCookiesPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 4. Zarządzanie plikami cookies
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -96,7 +96,7 @@ export default function PolitykaCookiesPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 5. Postanowienia końcowe i kontakt
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -124,3 +124,4 @@ export default function PolitykaCookiesPage() {
     </>
   );
 }
+

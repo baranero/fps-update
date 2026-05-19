@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Common/Breadcrumb";
+﻿import Breadcrumb from "@/components/Common/Breadcrumb";
 import SectionTitle from "@/components/Common/SectionTitle";
 import { Metadata } from "next";
 import Image from "next/image";
@@ -40,7 +40,7 @@ const CfdPage = () => {
                   src="/images/cfd.png"
                   alt="Komputerowa symulacja CFD przepływu dymu i ciepła"
                   fill
-                  className="rounded-md object-contain drop-shadow-three dark:drop-shadow-none"
+                  className="rounded-2xl object-contain drop-shadow-sm dark:drop-shadow-none"
                 />
               </div>
             </div>
@@ -56,15 +56,15 @@ const CfdPage = () => {
               <div className="wow fadeInUp max-w-[650px]" data-wow-delay=".2s">
                 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Profesjonalne symulacje CFD
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Oferuję zaawansowane symulacje CFD w zakresie wentylacji pożarowej, wykorzystując
                     profesjonalne oprogramowanie inżynieryjne takie jak PyroSim, Pathfinder i Ventus.
                     Moje usługi są skierowane w szczególności do:
                   </p>
-                  <ul className="mt-3 pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="mt-3 pl-5 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">Rzeczoznawców ds. zabezpieczeń przeciwpożarowych</li>
                     <li className="list-disc">Projektantów systemów wentylacji i inżynierów ochrony ppoż.</li>
                     <li className="list-disc">Biur projektowych i architektonicznych</li>
@@ -73,10 +73,10 @@ const CfdPage = () => {
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Kiedy wymagana jest symulacja CFD?
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Symulacje CFD są wymagane m.in. w obiektach wysokich i wysokościowych,
                     garażach podziemnych, tunelach oraz tam, gdzie stosuje się
                     systemy oddymiania mechanicznego lub planuje niestandardowe
@@ -86,24 +86,24 @@ const CfdPage = () => {
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Ile kosztuje symulacja CFD?
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Koszt symulacji CFD zależy od złożoności architektonicznej obiektu, liczby scenariuszy pożarowych oraz oczekiwanego zakresu opracowania. Średnie ceny zaczynają się od kilku tysięcy złotych – każda wycena przygotowywana jest indywidualnie na podstawie rzutów i specyfikacji.
                   </p>
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Dlaczego warto wykonać symulację CFD?
                   </h3>
-                  <p className="mb-3 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mb-3 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Symulacje CFD pozwalają na precyzyjną analizę
                     rozprzestrzeniania się dymu, temperatury oraz skuteczności
                     systemów wentylacyjnych i oddymiających. Dzięki nim można:
                   </p>
-                  <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="pl-5 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">Ocenić skuteczność systemów oddymiania w budynkach</li>
                     <li className="list-disc">Zweryfikować scenariusze ewakuacji w warunkach pożaru</li>
                     <li className="list-disc">Optymalizować układ wentylacji pod kątem bezpieczeństwa i kosztów wykonania</li>
@@ -112,16 +112,16 @@ const CfdPage = () => {
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Praca zgodna z normami i wytycznymi
                   </h3>
-                  <p className="mb-3 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mb-3 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Wykonując symulację, w 100% trzymam się założeń przyjętych w
                     projekcie budowlanym lub koncepcji. Uwzględniam wszystkie czynniki
                     środiskowe wpływające na wynik analizy.
                     Opieram się na kluczowych normach inżynierskich:
                   </p>
-                  <ul className="pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="pl-5 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     <li className="list-disc">CNBOP-PIB-0003:2016 – wytyczne dla oddymiania klatek schodowych</li>
                     <li className="list-disc">PN-EN 12101-13:2022 – systemy różnicowania ciśnień (SRC)</li>
                     <li className="list-disc">ITB 378/2002 – wentylacja pożarowa dróg ewakuacyjnych</li>
@@ -130,17 +130,17 @@ const CfdPage = () => {
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Działam lokalnie i zdalnie
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Realizuję analizy CFD w <strong>Warszawie</strong>, <strong>Łodzi</strong>, <strong>Grodzisku Mazowieckim</strong> oraz na terenie całego <strong>województwa mazowieckiego i łódzkiego</strong>. Posiadam odpowiednie zaplecze technologiczne, aby współpracować również w pełni zdalnie z biurami z całej Polski.
                   </p>
                 </div>
 
                 {/* Sekcja Call To Action (CTA) */}
-                <div className="mt-8 rounded-sm border-l-4 border-primary bg-primary/5 p-6">
-                  <p className="text-base font-bold leading-relaxed text-black dark:text-white sm:text-lg sm:leading-relaxed">
+                <div className="mt-8 rounded-xl border-l-4 border-primary bg-primary/5 p-6">
+                  <p className="text-base font-bold leading-relaxed text-slate-900 dark:text-white sm:text-lg sm:leading-relaxed">
                     Potrzebujesz profesjonalnej symulacji CFD? Skontaktuj się ze mną, aby omówić projekt i otrzymać darmową wycenę dostosowaną do Twojego obiektu.
                   </p>
                 </div>

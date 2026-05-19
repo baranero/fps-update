@@ -3,128 +3,191 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Panel Inżyniera | Fire Protection Solutions",
-  description: "Zaawansowane narzędzia obliczeniowe i baza osprzętu ppoż. dla profesjonalistów.",
+  description: "Zaawansowane narzędzia obliczeniowe dla profesjonalistów ochrony przeciwpożarowej.",
+};
+
+const featured = {
+  id: "cnbop",
+  href: "/narzedzia/kalkulatory/cnbop",
+  title: "Kalkulator CNBOP-PIB W-0003:2016",
+  subtitle: "Klatki schodowe — wizard 5-krokowy",
+  description:
+    "Najbardziej rozbudowany kalkulator w zestawie. Prowadzi przez cały proces projektowy: od charakterystyki budynku, przez dobór klap z katalogów producentów (Gulajski, ASKON, AWAK), po weryfikację napowietrzania i symulację CFD. Generuje raport PDF i DOCX.",
+  features: ["Grawitacyjne i mechaniczne", "Dobór klap z katalogów", "Weryfikacja napowietrzania", "Raport PDF / DOCX"],
+};
+
+const tools = [
+  {
+    id: "cnbop",
+    href: "/narzedzia/kalkulatory/cnbop",
+    title: "CNBOP W-0003:2016",
+    subtitle: "Wizard 5-krokowy",
+    tags: ["Klatki schodowe", "Grawitacyjne", "Mechaniczne"],
+    color: "purple",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    ),
+  },
+  {
+    id: "oddymianie-klatek-pn",
+    href: "/narzedzia/kalkulatory/oddymianie-klatek-pn",
+    title: "Klatki schodowe PN-B",
+    subtitle: "PN-B-02877-4:2025",
+    tags: ["Klatki schodowe", "Grawitacyjne"],
+    color: "teal",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    id: "oddymianie-grawitacyjne",
+    href: "/narzedzia/kalkulatory/oddymianie-grawitacyjne",
+    title: "Oddymianie — szybki",
+    subtitle: "PN / CNBOP / VdS",
+    tags: ["Klapa dymowa", "Szybki dobór"],
+    color: "blue",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+];
+
+const soonTools = [
+  { title: "Gęstość obciążenia ogniowego", subtitle: "PN-B-02852" },
+  { title: "Podręczny sprzęt gaśniczy", subtitle: "Dobór ilościowy" },
+  { title: "Wentylacja pożarowa", subtitle: "Garaże / drogi ewakuacyjne" },
+];
+
+const colorMap: Record<string, { bg: string; icon: string; accent: string }> = {
+  purple: {
+    bg: "bg-purple-50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/30",
+    icon: "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
+    accent: "text-purple-600 dark:text-purple-400",
+  },
+  teal: {
+    bg: "bg-teal-50 dark:bg-teal-950/20 border-teal-100 dark:border-teal-900/30",
+    icon: "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400",
+    accent: "text-teal-600 dark:text-teal-400",
+  },
+  blue: {
+    bg: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30",
+    icon: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
+    accent: "text-blue-600 dark:text-blue-400",
+  },
 };
 
 export default function DashboardPage() {
   return (
     <div className="space-y-8">
-      
-      {/* Nagłówek powitalny */}
-      <div className="rounded-md bg-white p-6 shadow-two dark:bg-dark sm:p-8">
-        <h1 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-3xl">
-          Panel Inżyniera
-        </h1>
-        <p className="text-base font-medium leading-relaxed text-body-color dark:text-body-color-dark">
-          Wybierz narzędzie, aby rozpocząć obliczenia, lub przeglądaj bazę osprzętu certyfikowanych producentów z którymi współpracujemy.
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Panel główny</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Narzędzia obliczeniowe dla projektantów systemów ochrony przeciwpożarowej.
         </p>
       </div>
 
-      {/* Karty ze statystykami */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-md bg-white p-6 shadow-two dark:bg-dark">
-          <div className="flex items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary bg-opacity-10 text-primary">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+      {/* Featured tool */}
+      <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 p-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1">
+                Polecany
+              </span>
+              <span className="text-xs text-slate-400 font-medium">{featured.subtitle}</span>
             </div>
-            <div className="ml-4">
-              <h2 className="text-sm font-medium text-body-color dark:text-body-color-dark">Kalkulatory</h2>
-              <p className="text-2xl font-bold text-black dark:text-white">4</p>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">{featured.title}</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5 max-w-xl">
+              {featured.description}
+            </p>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {featured.features.map(f => (
+                <span key={f} className="flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {f}
+                </span>
+              ))}
             </div>
-          </div>
-        </div>
-
-        <div className="rounded-md bg-white p-6 shadow-two dark:bg-dark">
-          <div className="flex items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 bg-opacity-10 text-blue-500">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            </div>
-            <div className="ml-4">
-              <h2 className="text-sm font-medium text-body-color dark:text-body-color-dark">Baza produktów</h2>
-              <p className="text-2xl font-bold text-black dark:text-white">128</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-md bg-white p-6 shadow-two dark:bg-dark">
-          <div className="flex items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500 bg-opacity-10 text-green-500">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            </div>
-            <div className="ml-4">
-              <h2 className="text-sm font-medium text-body-color dark:text-body-color-dark">Twoje Raporty</h2>
-              <p className="text-2xl font-bold text-black dark:text-white">12</p>
-            </div>
+            <Link
+              href={featured.href}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors"
+            >
+              Uruchom kalkulator
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Główne akcje / Szybki start */}
-      <h2 className="text-xl font-bold text-black dark:text-white">Szybki start</h2>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        
-        {/* Karta: Kalkulatory */}
-        <div className="group rounded-md bg-white p-6 shadow-two transition-all duration-300 hover:shadow-lg dark:bg-dark">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary bg-opacity-10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-            <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-          </div>
-          <h3 className="mb-2 text-xl font-bold text-black dark:text-white">Kalkulatory PPOŻ</h3>
-          <p className="mb-6 text-base font-medium leading-relaxed text-body-color dark:text-body-color-dark">
-            Wykonuj obliczenia dla systemów oddymiania, wyznaczaj gęstość obciążenia ogniowego i dobieraj urządzenia zgodnie z normami.
-          </p>
-          <Link
-            href="/narzedzia/kalkulatory"
-            className="inline-flex items-center text-sm font-bold text-primary hover:underline"
-          >
-            Przejdź do kalkulatorów
-            <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+      {/* Available tools */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Dostępne kalkulatory</h2>
+          <Link href="/narzedzia/kalkulatory" className="text-xs font-bold text-primary hover:underline">
+            Wszystkie →
           </Link>
         </div>
-
-        {/* Karta: Baza osprzętu */}
-        <div className="group rounded-md bg-white p-6 shadow-two transition-all duration-300 hover:shadow-lg dark:bg-dark">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500 bg-opacity-10 text-blue-500 transition-colors group-hover:bg-blue-500 group-hover:text-white">
-            <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </div>
-          <h3 className="mb-2 text-xl font-bold text-black dark:text-white">Baza Osprzętu</h3>
-          <p className="mb-6 text-base font-medium leading-relaxed text-body-color dark:text-body-color-dark">
-            Przeglądaj parametry techniczne klap, wentylatorów i central sterujących od zweryfikowanych producentów.
-          </p>
-          <Link
-            href="/narzedzia/osprzet"
-            className="inline-flex items-center text-sm font-bold text-blue-500 hover:underline"
-          >
-            Przeglądaj katalog
-            <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </Link>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {tools.map((tool) => {
+            const c = colorMap[tool.color];
+            return (
+              <Link
+                key={tool.id}
+                href={tool.href}
+                className={`group rounded-2xl border p-5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${c.bg}`}
+              >
+                <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${c.icon}`}>
+                  {tool.icon}
+                </div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{tool.title}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5 mb-3">{tool.subtitle}</p>
+                <div className="flex flex-wrap gap-1">
+                  {tool.tags.map(t => (
+                    <span key={t} className="rounded-md bg-white/70 dark:bg-slate-800/60 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div className={`mt-4 flex items-center gap-1 text-xs font-bold ${c.accent}`}>
+                  Uruchom
+                  <svg className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </Link>
+            );
+          })}
         </div>
-
       </div>
 
-      {/* Dolna sekcja: Ostatnie Raporty */}
-      <div className="rounded-md bg-white p-6 shadow-two dark:bg-dark sm:p-8">
-        <h3 className="mb-6 border-b border-body-color border-opacity-10 pb-4 text-xl font-bold text-black dark:border-white dark:border-opacity-10 dark:text-white">
-          Ostatnio wygenerowane PDF
-        </h3>
-        <ul className="divide-y divide-body-color divide-opacity-10 dark:divide-white dark:divide-opacity-10">
-          <li className="flex items-center justify-between py-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-body-color dark:text-body-color-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-              <span className="ml-3 text-base font-medium text-black dark:text-white">Dobór_klap_Hala_A.pdf</span>
+      {/* Coming soon */}
+      <div>
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">W przygotowaniu</h2>
+        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#111827] divide-y divide-slate-100 dark:divide-slate-800">
+          {soonTools.map((tool, i) => (
+            <div key={i} className="flex items-center justify-between px-5 py-3.5">
+              <div>
+                <p className="text-sm font-semibold text-slate-400 dark:text-slate-500">{tool.title}</p>
+                <p className="text-[11px] text-slate-300 dark:text-slate-600 mt-0.5">{tool.subtitle}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-slate-400">
+                Wkrótce
+              </span>
             </div>
-            <span className="text-sm font-medium text-body-color dark:text-body-color-dark">Dzisiaj, 10:45</span>
-          </li>
-          <li className="flex items-center justify-between py-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-body-color dark:text-body-color-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-              <span className="ml-3 text-base font-medium text-black dark:text-white">Obciazenie_ogniowe_Magazyn.pdf</span>
-            </div>
-            <span className="text-sm font-medium text-body-color dark:text-body-color-dark">Wczoraj</span>
-          </li>
-        </ul>
-        <Link href="/narzedzia/raporty" className="mt-6 inline-block text-sm font-bold text-primary hover:underline">
-          Zobacz wszystkie raporty &rarr;
-        </Link>
+          ))}
+        </div>
       </div>
 
     </div>

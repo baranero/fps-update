@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import SectionTitle from "../Common/SectionTitle";
 import OfferList from "./OfferList";
@@ -27,7 +27,7 @@ const Pricing = () => {
               className={`${
                 isMonthly
                   ? "pointer-events-none text-primary"
-                  : "text-dark dark:text-white"
+                  : "text-slate-800 dark:text-white"
               } mr-4 cursor-pointer text-base font-semibold`}
             >
               Monthly
@@ -51,7 +51,7 @@ const Pricing = () => {
               onClick={() => setIsMonthly(false)}
               className={`${
                 isMonthly
-                  ? "text-dark dark:text-white"
+                  ? "text-slate-800 dark:text-white"
                   : "pointer-events-none text-primary"
               } ml-4 cursor-pointer text-base font-semibold`}
             >
@@ -162,3 +162,4 @@ const Pricing = () => {
 };
 
 export default Pricing;
+

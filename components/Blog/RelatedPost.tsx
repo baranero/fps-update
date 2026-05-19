@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 
 const RelatedPost = ({
@@ -33,7 +33,7 @@ const RelatedPost = ({
             {title}
           </Link>
         </h5>
-        <p className="text-xs font-medium text-body-color">{date}</p>
+        <p className="text-xs font-medium text-slate-600">{date}</p>
       </div>
     </div>
   );

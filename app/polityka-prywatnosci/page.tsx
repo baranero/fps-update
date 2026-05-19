@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Common/Breadcrumb";
+﻿import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 
 export const metadata = {
@@ -16,10 +16,10 @@ export default function PolitykaPrywatnosciPage() {
         <div className="mx-auto max-w-[800px]">
           
           <div className="mb-10">
-            <h1 className="mb-6 text-3xl font-bold text-black dark:text-white sm:text-4xl">
+            <h1 className="mb-6 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
               Polityka Prywatności
             </h1>
-            <p className="text-base leading-relaxed text-body-color dark:text-body-color-dark">
+            <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
               Niniejsza Polityka Prywatności zawiera informacje ogólne dotyczące przetwarzania danych osobowych 
               odwiedzających stronę internetową oraz klientów korzystających z usług firmy Fire Protection Solutions. 
               Dokument ten został przygotowany w oparciu o przepisy Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 
@@ -27,10 +27,10 @@ export default function PolitykaPrywatnosciPage() {
             </p>
           </div>
 
-          <div className="space-y-10 text-base leading-relaxed text-body-color dark:text-body-color-dark">
+          <div className="space-y-10 text-base leading-relaxed text-slate-600 dark:text-slate-400">
             
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 1. Administrator Danych Osobowych
               </h2>
               <ol className="list-decimal space-y-3 pl-5">
@@ -47,7 +47,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 2. Cele, podstawy prawne oraz czas przetwarzania danych
               </h2>
               <p className="mb-4">Administrator przetwarza dane osobowe w następujących celach:</p>
@@ -65,7 +65,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 3. Odbiorcy danych osobowych
               </h2>
               <p className="mb-4">
@@ -83,7 +83,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 4. Prawa osób, których dane dotyczą
               </h2>
               <p className="mb-4">Zgodnie z przepisami RODO, każdemu Użytkownikowi przysługuje:</p>
@@ -101,7 +101,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 5. Bezpieczeństwo danych
               </h2>
               <p>
@@ -110,7 +110,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 6. Pliki cookies i technologie śledzące
               </h2>
               <p>
@@ -122,7 +122,7 @@ export default function PolitykaPrywatnosciPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-black dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 § 7. Postanowienia końcowe
               </h2>
               <p>
@@ -139,3 +139,4 @@ export default function PolitykaPrywatnosciPage() {
     </>
   );
 }
+

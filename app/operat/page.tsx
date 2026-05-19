@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Common/Breadcrumb";
+﻿import Breadcrumb from "@/components/Common/Breadcrumb";
 import SectionTitle from "@/components/Common/SectionTitle";
 import { Metadata } from "next";
 import Image from "next/image";
@@ -40,7 +40,7 @@ const OperatPage = () => {
                   src="/images/operat.jpg"
                   alt="Sporządzanie operatu przeciwpożarowego dla miejsc magazynowania odpadów"
                   fill
-                  className="rounded-md object-cover drop-shadow-three dark:drop-shadow-none"
+                  className="rounded-2xl object-cover drop-shadow-sm dark:drop-shadow-none"
                 />
               </div>
             </div>
@@ -56,10 +56,10 @@ const OperatPage = () => {
               <div className="wow fadeInUp max-w-[650px]" data-wow-delay=".2s">
                 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Kiedy wymagany jest operat przeciwpożarowy?
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Każdy inwestor i przedsiębiorca, który ubiega się o wydanie pozwolenia na
                     zbieranie, przetwarzanie bądź wytwarzanie odpadów,
                     zobligowany jest prawem do posiadania aktualnego operatu ppoż. Dokument ten dołącza się
@@ -69,49 +69,49 @@ const OperatPage = () => {
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Kto może prawnie sporządzić operat ppoż.?
                   </h3>
-                  <p className="mb-3 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mb-3 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     W zależności od organu wydającego zezwolenie, operat może sporządzić wyłącznie osoba z określonymi kwalifikacjami z zakresu ochrony ppoż.:
                   </p>
 
-                  <p className="mt-2 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mt-2 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Gdy organem jest marszałek województwa lub regionalny dyrektor ochrony środowiska:
                   </p>
-                  <ul className="mt-1 list-disc pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="mt-1 list-disc pl-5 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     <li>Rzeczoznawca do spraw zabezpieczeń przeciwpożarowych</li>
                   </ul>
 
-                  <p className="mt-4 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mt-4 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Gdy organem decyzyjnym jest starosta:
                   </p>
-                  <ul className="mt-1 list-disc pl-5 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <ul className="mt-1 list-disc pl-5 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     <li><strong>Inżynier pożarnictwa</strong> lub magister inżynier pożarnictwa,</li>
                     <li>Absolwent SGSP (obecnie Akademii Pożarniczej) na kierunku <strong>inżynieria bezpieczeństwa pożarowego</strong>.</li>
                   </ul>
-                  <p className="mt-4 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="mt-4 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Jako inżynier bezpieczeństwa pożarowego posiadam pełne uprawnienia do opracowywania operatów dla organów powiatowych (starostw).
                   </p>
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Podstawa prawna
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Ustawa z dnia 14 grudnia 2012 r. o odpadach (Dz.U. 2023 poz. 1587 z późn. zm.)
                   </p>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Ustawa z dnia 27 kwietnia 2001 r. – Prawo ochrony środowiska (Dz.U. 2024 poz. 54 z późn. zm.)
                   </p>
                 </div>
 
                 <div className="mb-9">
-                  <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                  <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                     Gdzie realizuję operaty przeciwpożarowe?
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                  <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                     Sporządzam operaty ppoż. dla przedsiębiorców i inwestorów w{" "}
                     <strong>Warszawie</strong>, <strong>Łodzi</strong>,{" "}
                     <strong>Grodzisku Mazowieckim</strong> oraz całym{" "}
@@ -122,8 +122,8 @@ const OperatPage = () => {
                 </div>
 
                 {/* Sekcja Call To Action (CTA) */}
-                <div className="mt-8 rounded-sm border-l-4 border-primary bg-primary/5 p-6">
-                  <p className="text-base font-bold leading-relaxed text-black dark:text-white sm:text-lg sm:leading-relaxed">
+                <div className="mt-8 rounded-xl border-l-4 border-primary bg-primary/5 p-6">
+                  <p className="text-base font-bold leading-relaxed text-slate-900 dark:text-white sm:text-lg sm:leading-relaxed">
                     Otwierasz punkt zbierania lub przetwarzania odpadów? Zleć mi sporządzenie operatu przeciwpożarowego. Skontaktuj się ze mną po darmową konsultację i wycenę usługi.
                   </p>
                 </div>
@@ -138,3 +138,4 @@ const OperatPage = () => {
 };
 
 export default OperatPage;
+

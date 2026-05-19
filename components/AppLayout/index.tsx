@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-dark font-sans">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#111827] font-sans">
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -37,9 +37,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-dark border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-[#111827] border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-center h-20 border-b border-gray-200 dark:border-gray-800">
-          <Link href="/" className="text-xl font-bold text-black dark:text-white">
+          <Link href="/" className="text-xl font-bold text-slate-900 dark:text-white">
             FP<span className="text-primary">Solutions</span> App
           </Link>
         </div>
@@ -71,7 +71,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         
         {/* Top Navbar */}
-        <header className="flex items-center justify-between h-20 px-6 bg-white dark:bg-dark border-b border-gray-200 dark:border-gray-800">
+        <header className="flex items-center justify-between h-20 px-6 bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-gray-800">
           <button 
             onClick={() => setIsSidebarOpen(true)}
             className="text-gray-500 focus:outline-none lg:hidden"

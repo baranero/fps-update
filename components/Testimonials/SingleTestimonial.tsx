@@ -1,4 +1,4 @@
-import { Testimonial } from "@/types/testimonial";
+﻿import { Testimonial } from "@/types/testimonial";
 import Image from "next/image";
 const starIcon = (
   <svg width="18" height="16" viewBox="0 0 18 16" className="fill-current">
@@ -21,11 +21,11 @@ const SingleTestimonial = ({ testimonial }: { testimonial: Testimonial }) => {
   return (
     <div className="w-full">
       <div
-        className="wow fadeInUp shadow-two dark:shadow-three dark:hover:shadow-gray-dark rounded-sm bg-white p-8 duration-300 hover:shadow-one dark:bg-dark lg:px-5 xl:px-8"
+        className="wow fadeInUp shadow-sm dark:shadow-sm dark:hover:shadow-gray-dark rounded-2xl bg-white p-8 duration-300 hover:shadow-sm dark:bg-[#111827] lg:px-5 xl:px-8"
         data-wow-delay=".1s"
       >
         <div className="mb-5 flex items-center space-x-1">{ratingIcons}</div>
-        <p className="mb-8 border-b border-body-color border-opacity-10 pb-8 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
+        <p className="mb-8 border-b border-slate-200  pb-8 text-base leading-relaxed text-slate-600 dark:border-slate-700 dark:text-white">
           “{content}
         </p>
         <div className="flex items-center">
@@ -33,10 +33,10 @@ const SingleTestimonial = ({ testimonial }: { testimonial: Testimonial }) => {
             <Image src={image} alt={name} fill />
           </div>
           <div className="w-full">
-            <h3 className="mb-1 text-lg font-semibold text-dark dark:text-white lg:text-base xl:text-lg">
+            <h3 className="mb-1 text-lg font-semibold text-slate-800 dark:text-white lg:text-base xl:text-lg">
               {name}
             </h3>
-            <p className="text-sm text-body-color">{designation}</p>
+            <p className="text-sm text-slate-600">{designation}</p>
           </div>
         </div>
       </div>
@@ -45,3 +45,5 @@ const SingleTestimonial = ({ testimonial }: { testimonial: Testimonial }) => {
 };
 
 export default SingleTestimonial;
+
+

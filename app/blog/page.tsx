@@ -1,4 +1,4 @@
-import SingleBlog from "@/components/Blog/SingleBlog";
+﻿import SingleBlog from "@/components/Blog/SingleBlog";
 import blogData from "@/components/Blog/blogData";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import { Metadata } from "next";
@@ -31,10 +31,10 @@ const BlogPage = () => {
           
           {/* Ustrukturyzowany nagłówek SEO */}
           <div className="mb-12 text-center">
-            <h1 className="mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl">
+            <h1 className="mb-4 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
               Baza wiedzy przeciwpożarowej
             </h1>
-            <p className="mx-auto max-w-[700px] text-base leading-relaxed text-body-color dark:text-body-color-dark">
+            <p className="mx-auto max-w-[700px] text-base leading-relaxed text-slate-600 dark:text-slate-400">
               Bądź na bieżąco z najnowszymi wytycznymi i rozwiązaniami w branży. Publikujemy artykuły i poradniki tworzone przez ekspertów od inżynierii bezpieczeństwa pożarowego.
             </p>
           </div>
@@ -58,3 +58,4 @@ const BlogPage = () => {
 };
 
 export default BlogPage;
+

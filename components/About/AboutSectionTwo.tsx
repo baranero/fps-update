@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import SectionTitle from "../Common/SectionTitle";
 
 const AboutSectionTwo = () => {
@@ -17,7 +17,7 @@ const AboutSectionTwo = () => {
                 src="/images/about/pw.png"
                 alt="Politechnika Warszawska - studia podyplomowe z wentylacji pożarowej i systemów oddymiania"
                 fill
-                className="mx-auto max-w-full object-contain drop-shadow-three dark:drop-shadow-none"
+                className="mx-auto max-w-full object-contain drop-shadow-sm dark:drop-shadow-none"
               />
             </div>
           </div>
@@ -32,20 +32,20 @@ const AboutSectionTwo = () => {
             
             <div className="wow fadeInUp max-w-[470px]" data-wow-delay=".2s">
               <div className="mb-9">
-                <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                   Szkoła Główna Służby Pożarniczej
                 </h3>
-                <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                   Absolwent studiów I stopnia na kierunku Inżynieria Bezpieczeństwa Pożarowego. <br />
                   Absolwent studiów II stopnia na kierunku Inżynieria Bezpieczeństwa.
                 </p>
               </div>
 
               <div className="mb-9">
-                <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
+                <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
                   Politechnika Warszawska
                 </h3>
-                <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
+                <p className="text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed">
                   Studia podyplomowe z zakresu wentylacji pożarowej i systemów oddymiania budynków.
                 </p>
                 

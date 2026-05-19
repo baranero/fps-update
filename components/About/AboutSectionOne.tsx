@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import SectionTitle from "../Common/SectionTitle";
 
 const checkIcon = (
@@ -10,8 +10,8 @@ const checkIcon = (
 // Przeniesienie komponentu List na zewnątrz głównej funkcji! 
 // Dzięki temu React nie musi go na nowo tworzyć przy każdym renderowaniu strony.
 const List = ({ text }: { text: string }) => (
-  <p className="mb-5 flex items-center text-lg font-medium text-body-color">
-    <span className="mr-4 flex h-[30px] w-[30px] items-center justify-center rounded-md bg-primary bg-opacity-10 text-primary">
+  <p className="mb-5 flex items-center text-base font-medium text-slate-600 dark:text-slate-400">
+    <span className="mr-4 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
       {checkIcon}
     </span>
     {text}
@@ -22,7 +22,7 @@ const AboutSectionOne = () => {
   return (
     <section id="about" className="pt-16 md:pt-20 lg:pt-28">
       <div className="container">
-        <div className="border-b border-body-color/[.15] pb-16 dark:border-white/[.15] md:pb-20 lg:pb-28">
+        <div className="border-b border-slate-200 pb-16 dark:border-slate-700/50 md:pb-20 lg:pb-28">
           <div className="-mx-4 flex flex-wrap items-center">
             
             {/* Sekcja Tekstowa */}
@@ -67,7 +67,7 @@ const AboutSectionOne = () => {
                   src="/images/about/apoz.png"
                   alt="mgr inż. poż. Jakub Baran - absolwent Akademii Pożarniczej"
                   fill
-                  className="mx-auto max-w-full object-cover drop-shadow-three dark:drop-shadow-none lg:mr-0"
+                  className="mx-auto max-w-full object-cover drop-shadow-sm dark:drop-shadow-none lg:mr-0"
                 />
               </div>
             </div>

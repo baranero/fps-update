@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import SectionTitle from "../Common/SectionTitle";
@@ -25,7 +25,7 @@ const Video = () => {
             <div className="-mx-4 flex flex-wrap">
               <div className="w-full px-4">
                 <div
-                  className="wow fadeInUp flex flex-wrap items-center justify-center rounded-sm bg-gray-light px-8 py-8 dark:bg-gray-dark sm:px-10 md:px-[50px] md:py-[40px] xl:p-[50px] 2xl:px-[70px] 2xl:py-[60px]"
+                  className="wow fadeInUp flex flex-wrap items-center justify-center rounded-sm bg-slate-100 px-8 py-8 dark:bg-[#111827] sm:px-10 md:px-[50px] md:py-[40px] xl:p-[50px] 2xl:px-[70px] 2xl:py-[60px]"
                   data-wow-delay=".1s"
                 >
                   {brandsData.map((brand) => (
@@ -61,3 +61,4 @@ const SingleBrand = ({ brand }: { brand: Brand }) => {
     </div>
   );
 };
+
