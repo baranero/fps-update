@@ -6,7 +6,6 @@ export const metadata: Metadata = {
   description: "Profesjonalne kalkulatory inżynierskie do projektowania systemów ochrony przeciwpożarowej.",
 };
 
-<<<<<<< HEAD
 const available = [
   {
     id: "cnbop",
@@ -23,26 +22,6 @@ const available = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
       </svg>
     ),
-=======
-const calculators = [
-  {
-    id: "cnbop",
-    title: "Kalkulator CNBOP-PIB W-0003:2016 (Wizard)",
-    description: "Kompleksowy interaktywny kalkulator z multikrokowymi wytycznymi do projektowania systemów oddymiania klatek schodowych. Obsługuje zarówno oddymianie grawitacyjne, jak i systemy z nawiewem mechanicznym.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-    ),
-    colorClass: "bg-purple-600 text-purple-600 group-hover:bg-purple-600 group-hover:text-white",
-  },
-  {
-    id: "oddymianie-klatek-pn",
-    title: "Klatki Schodowe (PN-B-02877-4:2025)",
-    description: "Kalkulator oddymiania grawitacyjnego klatek schodowych oparty o zasady normy PN-B-02877-4. Elastyczny algorytm wyznaczający A_cz, pow. geometryczną klap oraz wymogi napływu kompensacyjnego.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-    ),
-    colorClass: "bg-teal-600 text-teal-600 group-hover:bg-teal-600 group-hover:text-white",
->>>>>>> 90d59143e76369e72e6104e5d3a72020759e31cd
   },
   {
     id: "oddymianie-klatek-pn",
