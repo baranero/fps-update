@@ -65,6 +65,22 @@ const navGroups = [
     ],
   },
   {
+    label: "Symulacje CFD",
+    items: [
+      {
+        name: "Obliczenia FDS",
+        href: "/narzedzia/symulacje",
+        exact: false,
+        icon: (
+          <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+          </svg>
+        ),
+        badge: "Nowe",
+      },
+    ],
+  },
+  {
     label: "Wkrótce",
     soon: true,
     items: [
@@ -123,6 +139,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               { name: "CNBOP", href: "/narzedzia/kalkulatory/cnbop", exact: false },
               { name: "Klatki PN-B", href: "/narzedzia/kalkulatory/oddymianie-klatek-pn", exact: false },
               { name: "Szybki", href: "/narzedzia/kalkulatory/oddymianie-grawitacyjne", exact: false },
+              { name: "Symulacje FDS", href: "/narzedzia/symulacje", exact: false },
             ].map((link) => (
               <Link
                 key={link.href}
