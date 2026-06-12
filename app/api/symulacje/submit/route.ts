@@ -230,10 +230,12 @@ export async function POST(req: NextRequest) {
       resend.emails.send(emailAdmin(adminEmail, caseId, name, email, notes, file.name, filePath, parsed, estimate.price, estimate.vcpuHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
     ]);
 
-    // Dispatch Hetzner server (non-blocking — nie blokuje odpowiedzi)
-    dispatchHetzner(caseId, filePath, file.name, parsed.meshCount ?? 1, parsed.ompThreads ?? 1).catch((err) =>
-      console.error("Hetzner dispatch error:", err)
-    );
+    // Dispatch Hetzner server
+    try {
+      await dispatchHetzner(caseId, filePath, file.name, parsed.meshCount ?? 1, parsed.ompThreads ?? 1);
+    } catch (err) {
+      console.error("Hetzner dispatch error:", err);
+    }
 
     return NextResponse.json({ caseId }, { status: 201 });
   } catch (err) {
