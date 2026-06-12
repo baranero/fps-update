@@ -41,6 +41,12 @@ notify() {
     -d "$1" || true
 }
 
+on_exit() {
+  local code=$?
+  [ $code -ne 0 ] && notify "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
+}
+trap on_exit EXIT
+
 send_log() {
   local msg
   msg=$(tail -20 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
