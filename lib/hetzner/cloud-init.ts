@@ -50,7 +50,7 @@ send_log() {
     -d "{\"status\":\"running\",\"log\":\"$msg\"}" || true
 }
 
-log "=== FDS Runner start: $CASE_ID (MPI=${NCORES} x OMP=${OMP_THREADS}) ==="
+log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="
 
 ${useSnapshot ? `
 # ── FDS pre-installed ze snapshotu ───────────────────────────────────────────
