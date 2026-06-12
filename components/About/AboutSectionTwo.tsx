@@ -1,4 +1,5 @@
 ﻿import Image from "next/image";
+import Link from "next/link";
 import SectionTitle from "../Common/SectionTitle";
 
 const AboutSectionTwo = () => {
@@ -51,10 +52,40 @@ const AboutSectionTwo = () => {
                 
 
               </div>
-              
             </div>
           </div>
         </div>
+
+        {/* CTA */}
+        <div className="mt-16 border-t border-slate-200 dark:border-slate-700/50 pt-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h3 className="mb-4 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+              Masz projekt do omówienia?
+            </h3>
+            <p className="mb-8 text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+              Chętnie przeanalizuję Twój obiekt i zaproponuję optymalne rozwiązanie — od obliczeń analitycznych
+              po weryfikację CFD. Pierwsze zapytanie bez zobowiązań.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/kontakt"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+              >
+                Napisz do mnie
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <Link
+                href="/narzedzia/kalkulatory/cnbop"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-primary/50 hover:text-primary transition-colors"
+              >
+                Wypróbuj kalkulator CNBOP
+              </Link>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   );

@@ -6,6 +6,8 @@ export interface FdsMeshDetail {
 export interface FdsParseResult {
   chid: string | null;
   meshCount: number;
+  ompThreads: number;   // OMP_NUM_THREADS z &MISC (domyślnie 1)
+  totalCores: number;   // meshCount × ompThreads
   totalCells: number;
   meshDetails: FdsMeshDetail[];
   tEnd: number | null;
@@ -18,9 +20,10 @@ export interface FdsParseResult {
 }
 
 export interface FdsEstimate {
-  cpuHours: number;
+  vcpuHours: number;
   wallHours: number;
   price: number;
+  cloudCostEur: number;
   complexity: "mała" | "średnia" | "duża" | "bardzo duża";
 }
 
@@ -69,6 +72,8 @@ export function parseFds(content: string): FdsParseResult {
   const result: FdsParseResult = {
     chid: null,
     meshCount: 0,
+    ompThreads: 1,
+    totalCores: 0,
     totalCells: 0,
     meshDetails: [],
     tEnd: null,
@@ -117,6 +122,14 @@ export function parseFds(content: string): FdsParseResult {
         if (t) result.tEnd = parseFloat(t);
         break;
       }
+      case "MISC": {
+        const omp = getParam(nl.body, "OMP_NUM_THREADS");
+        if (omp) {
+          const n = parseInt(omp, 10);
+          if (!isNaN(n) && n >= 1) result.ompThreads = n;
+        }
+        break;
+      }
       case "REAC":
         result.fuel = getStringParam(nl.body, "FUEL") ?? getParam(nl.body, "FUEL");
         break;
@@ -141,22 +154,60 @@ export function parseFds(content: string): FdsParseResult {
     return result;
   }
 
+  result.totalCores = result.meshCount * result.ompThreads;
   result.valid = true;
   return result;
 }
 
+// ─── Stałe kalibracyjne ──────────────────────────────────────────────────────
+// Źródło: rzeczywisty job na CloudHPC (n2highcpu-32):
+//   1,1M komórek × 720 s → 557,8 vCPU-h → €44,5
+//
+// Stała K [vCPU-h / (1M komórek × 300 s)]:
+//   K = 557,8 / (1,1 × 720/300) = 557,8 / 2,64 ≈ 211,3
+const VCPU_H_PER_1M_300S = 211.3;
+
+// Liczba rdzeni standardowej instancji (do przeliczenia na czas zegarowy)
+const CORES = 32;
+
+// Stawka za vCPU-h w EUR (cel: nieco taniej niż CloudHPC ~€0,08)
+const EUR_PER_VCPU_H = 0.06;
+
+// Kurs EUR/PLN
+const EUR_PLN = 4.3;
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function estimateCost(parsed: FdsParseResult): FdsEstimate {
   const cells = parsed.totalCells || 0;
   const tEnd = parsed.tEnd || 300;
+  const meshCount = parsed.meshCount || 1;
+  const totalCores = parsed.totalCores || meshCount;
 
-  // Empirical rule: 1M cells × 300s ≈ 24 CPU-hours
-  const cpuHours = Math.max(0.5, (cells / 1_000_000) * (tEnd / 300) * 24);
+  // 1. Bazowe vCPU-h z kalibracji
+  const baseVcpuH = (cells / 1_000_000) * (tEnd / 300) * VCPU_H_PER_1M_300S;
 
-  // 16-core node: wall time = cpu / 16
-  const wallHours = cpuHours / 16;
+  // 2. Narzut komunikacyjny przy wielu siatkach (+5% za każdą dodatkową)
+  const meshFactor = 1 + Math.max(0, meshCount - 1) * 0.05;
 
-  // 15 PLN/CPU-h + 150 PLN setup, rounded to nearest 10 PLN
-  const price = Math.round((cpuHours * 15 + 150) / 10) * 10;
+  const vcpuHours = Math.max(1, baseVcpuH * meshFactor);
+
+  // 3. Czas zegarowy — na faktycznej liczbie rdzeni z pliku (meshCount × ompThreads)
+  const effectiveCores = Math.max(totalCores, CORES);
+  const wallHours = vcpuHours / effectiveCores;
+
+  // 4. Koszt chmury w EUR i PLN
+  const cloudCostEur = vcpuHours * EUR_PER_VCPU_H;
+  const cloudCostPln = cloudCostEur * EUR_PLN;
+
+  // 5. Minimalna cena według rozmiaru modelu
+  let minimum: number;
+  if (cells < 500_000) minimum = 250;
+  else if (cells < 2_000_000) minimum = 400;
+  else if (cells < 5_000_000) minimum = 700;
+  else minimum = 1_200;
+
+  // 6. Cena końcowa: max(koszt chmury, minimum), zaokrąglona do 10 zł
+  const price = Math.round(Math.max(cloudCostPln, minimum) / 10) * 10;
 
   let complexity: FdsEstimate["complexity"];
   if (cells < 500_000) complexity = "mała";
@@ -164,5 +215,5 @@ export function estimateCost(parsed: FdsParseResult): FdsEstimate {
   else if (cells < 5_000_000) complexity = "duża";
   else complexity = "bardzo duża";
 
-  return { cpuHours, wallHours, price, complexity };
+  return { vcpuHours, wallHours, price, cloudCostEur, complexity };
 }

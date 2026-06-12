@@ -117,30 +117,37 @@ export default function PnStaircaseDynamicCalculatorPage() {
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-[#0B1120]">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <Link href="/narzedzia/kalkulatory" className="mb-8 inline-flex items-center text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400">
-          <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Powrót do kalkulatorów
-        </Link>
-
-        <div className="mb-8 rounded-2xl bg-white p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-          <h1 className="mb-4 text-3xl font-bold text-slate-950 dark:text-white sm:text-4xl">
-            Weryfikator Oddymiania Klatek PN-B-02877-4
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Kompleksowe narzędzie weryfikujące projektowane klapy i otwory napowietrzające zgodnie z normą <strong className="text-primary">PN-B-02877-4:2025-07</strong>.
-          </p>
+    <div>
+      {/* Header block */}
+      <div className="rounded-xl bg-slate-900 dark:bg-[#0D1117] mb-8 overflow-hidden">
+        <div className="flex items-center px-5 py-3 border-b border-slate-800">
+          <Link
+            href="/narzedzia/kalkulatory"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Kalkulatory
+          </Link>
         </div>
+        <div className="px-5 py-4 flex items-center gap-3">
+          <svg className="h-4 w-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <div>
+            <span className="text-white text-sm font-medium">Weryfikator oddymiania klatek schodowych</span>
+            <span className="ml-3 text-slate-600 text-xs">PN-B-02877-4:2025-07</span>
+          </div>
+        </div>
+      </div>
 
-        <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-          <form onSubmit={handleCalculate} className="space-y-8">
+      <div className="pb-10">
+        <form onSubmit={handleCalculate} className="space-y-8">
             
             {/* PARAMETRY BUDYNKU */}
             <section>
-              <h2 className="mb-4 text-xl font-semibold text-slate-950 dark:text-white border-b border-slate-100 pb-2 dark:border-slate-800">1. Parametry geometryczne klatki</h2>
+              <h2 className="mb-4 text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3">1. Parametry geometryczne klatki</h2>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Typ budynku wg normy <span className="text-primary">*</span></label>
@@ -168,23 +175,23 @@ export default function PnStaircaseDynamicCalculatorPage() {
             {/* URZĄDZENIA ODDYMIAJĄCE */}
             <section>
               <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-2 dark:border-slate-800">
-                <h2 className="text-xl font-semibold text-slate-950 dark:text-white">2. Urządzenia oddymiające</h2>
-                <button type="button" onClick={addVent} className="text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition">+ Dodaj klapę</button>
+                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">2. Urządzenia oddymiające</h2>
+                <button type="button" onClick={addVent} className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg transition">+ Dodaj klapę</button>
               </div>
               <div className="space-y-3">
                 {vents.map((v, idx) => (
                   <div key={v.id} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
                     <span className="font-bold text-slate-400">{idx+1}.</span>
                     <div className="flex-1 w-full">
-                      <label className="block text-[10px] uppercase text-slate-500 mb-1">Szerokość [m]</label>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Szerokość [m]</label>
                       <input type="text" inputMode="decimal" value={v.width} onChange={e => updateVent(v.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                     </div>
                     <div className="flex-1 w-full">
-                      <label className="block text-[10px] uppercase text-slate-500 mb-1">Długość [m]</label>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Długość [m]</label>
                       <input type="text" inputMode="decimal" value={v.length} onChange={e => updateVent(v.id, "length", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                     </div>
                     <div className="flex-1 w-full">
-                      <label className="block text-[10px] uppercase text-slate-500 mb-1">C<sub>v</sub></label>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">C<sub>v</sub></label>
                       <input type="text" inputMode="decimal" value={v.cv} onChange={e => updateVent(v.id, "cv", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                     </div>
                     <button type="button" onClick={() => removeVent(v.id)} disabled={vents.length === 1} className="text-red-500 hover:text-red-700 disabled:opacity-30 p-2"><TrashIcon /></button>
@@ -198,10 +205,10 @@ export default function PnStaircaseDynamicCalculatorPage() {
               <section>
                 <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-2 dark:border-slate-800">
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-950 dark:text-white">3. Otwory napowietrzające</h2>
+                    <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">3. Otwory napowietrzające</h2>
                     <p className="text-xs text-slate-500 mt-1">Kompensacja musi równoważyć wymaganą czynną powierzchnię oddymiania.</p>
                   </div>
-                  <button type="button" onClick={addInlet} className="text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition">+ Dodaj otwór</button>
+                  <button type="button" onClick={addInlet} className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg transition">+ Dodaj otwór</button>
                 </div>
 
                 <div className="mb-4">
@@ -219,22 +226,22 @@ export default function PnStaircaseDynamicCalculatorPage() {
 
                 <div className="space-y-3">
                   {inlets.map((i, idx) => (
-                    <div key={i.id} className="flex flex-col sm:flex-row items-center gap-3 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl">
-                      <span className="font-bold text-amber-600 dark:text-amber-500">{idx+1}.</span>
+                    <div key={i.id} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                      <span className="font-medium text-slate-400 dark:text-slate-500">{idx+1}.</span>
                       <div className="w-full sm:w-20">
-                        <label className="block text-[10px] uppercase text-slate-500 mb-1">Ilość</label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Ilość</label>
                         <input type="number" min="1" value={i.count} onChange={e => updateInlet(i.id, "count", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] uppercase text-slate-500 mb-1">Szer. [m]</label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Szer. [m]</label>
                         <input type="text" inputMode="decimal" value={i.width} onChange={e => updateInlet(i.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] uppercase text-slate-500 mb-1">Wys. [m]</label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Wys. [m]</label>
                         <input type="text" inputMode="decimal" value={i.height} onChange={e => updateInlet(i.id, "height", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] uppercase text-slate-500 mb-1">C<sub>z</sub></label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">C<sub>z</sub></label>
                         <input type="text" inputMode="decimal" value={i.cz} onChange={e => updateInlet(i.id, "cz", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
                       </div>
                       <button type="button" onClick={() => removeInlet(i.id)} disabled={inlets.length === 1} className="text-red-500 hover:text-red-700 disabled:opacity-30 p-2"><TrashIcon /></button>
@@ -255,81 +262,69 @@ export default function PnStaircaseDynamicCalculatorPage() {
 
         {/* WYNIKI OBLICZEŃ */}
         {hasCalculated && results && (
-          <div ref={resultsRef} className="mt-8 rounded-2xl bg-white p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800 animate-fade-in">
-            <h2 className="mb-6 text-2xl font-semibold text-slate-950 dark:text-white border-b border-slate-100 pb-2 dark:border-slate-800">Weryfikacja Projektu</h2>
+          <div ref={resultsRef} className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800 animate-fade-in">
+            <h2 className="mb-6 text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3">Wyniki weryfikacji</h2>
 
             <div className="space-y-8">
               {/* ODDYMIANIE */}
-              <div className="rounded-2xl border border-slate-100 p-5 bg-slate-50 dark:bg-slate-900 dark:border-slate-800">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-dark dark:text-white">Urządzenia Oddymiające</h3>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Urządzenia oddymiające</h3>
                   {results.ventsPass ? (
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Norma spełniona</span>
+                    <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2.5 py-1 rounded-lg text-xs font-semibold">Norma spełniona</span>
                   ) : (
-                    <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Zbyt mała pow.</span>
+                    <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-lg text-xs font-semibold">Zbyt mała pow.</span>
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Zaprojektowana pow. czynna (A<sub>cz</sub>)</p>
-                    <div className="mt-1">
-                      <span className={`text-3xl font-bold ${results.ventsPass ? 'text-green-600' : 'text-red-600'}`}>
-                        {results.actualAcz.toFixed(2)}
-                      </span>
-                      <span className="text-base ml-1">m²</span>
-                    </div>
-                    <p className="text-xs mt-1 text-gray-500">Geometryczna: {results.actualGeomAcz.toFixed(2)} m²</p>
+                <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800">
+                  <div className="p-5">
+                    <p className="text-xs text-slate-500 mb-2">Zaprojektowana pow. czynna (A<sub>cz</sub>)</p>
+                    <p className={`text-2xl font-semibold tabular-nums ${results.ventsPass ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {results.actualAcz.toFixed(2)} <span className="text-sm font-medium">m²</span>
+                    </p>
+                    <p className="text-xs mt-1 text-slate-400">Geometryczna: {results.actualGeomAcz.toFixed(2)} m²</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Minimum normowe</p>
-                    <div className="mt-1">
-                      <span className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-                        {results.requiredAcz.toFixed(2)}
-                      </span>
-                      <span className="text-base ml-1">m²</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-gray-500">{results.minApplied ? `Rygor absolutnego minimum (${buildingType === 'wysokie' ? '1.5' : '1.0'} m²)` : `Wynika z reguły ${buildingType === 'wysokie' ? '7.5%' : '5%'} rzutu klatki.`}</p>
+                  <div className="p-5">
+                    <p className="text-xs text-slate-500 mb-2">Minimum normowe</p>
+                    <p className="text-2xl font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                      {results.requiredAcz.toFixed(2)} <span className="text-sm font-medium">m²</span>
+                    </p>
+                    <p className="text-xs mt-1 text-slate-400">{results.minApplied ? `Min. bezwzgl. (${buildingType === 'wysokie' ? '1,5' : '1,0'} m²)` : `Reguła ${buildingType === 'wysokie' ? '7,5' : '5'}% rzutu klatki`}</p>
                   </div>
                 </div>
               </div>
 
               {/* NAPOWIETRZANIE */}
               {results.compensationType === "MECHANICZNE" ? (
-                <div className="rounded-2xl border border-amber-200 p-5 bg-amber-50 dark:bg-amber-900/20">
-                  <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">Powietrze Kompensacyjne (Mechaniczne)</h3>
+                <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 p-5 bg-amber-50 dark:bg-amber-900/20">
+                  <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">Powietrze kompensacyjne — mechaniczne</h3>
                   <p className="text-sm text-amber-800 dark:text-amber-300">W budynkach wysokich normy dla grawitacyjnego napływu powietrza kompensacyjnego nie mają zastosowania. System wymaga zaprojektowania mechanicznego nawiewu zgodnie z zasadami wiedzy inżynierskiej.</p>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-slate-100 p-5 bg-slate-50 dark:bg-slate-900 dark:border-slate-800">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-dark dark:text-white">Otwory Kompensacyjne</h3>
+                <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                  <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Otwory kompensacyjne</h3>
                     {results.compPass ? (
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Norma spełniona</span>
+                      <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2.5 py-1 rounded-lg text-xs font-semibold">Norma spełniona</span>
                     ) : (
-                      <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Zbyt mała pow.</span>
+                      <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-lg text-xs font-semibold">Zbyt mała pow.</span>
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Zaprojektowana pow. efektywna (A<sub>eff</sub>)</p>
-                      <div className="mt-1">
-                        <span className={`text-3xl font-bold ${results.compPass ? 'text-green-600' : 'text-red-600'}`}>
-                          {results.actualCompEffArea.toFixed(2)}
-                        </span>
-                        <span className="text-base ml-1">m²</span>
-                      </div>
+                  <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800">
+                    <div className="p-5">
+                      <p className="text-xs text-slate-500 mb-2">Zaprojektowana pow. efektywna (A<sub>eff</sub>)</p>
+                      <p className={`text-2xl font-semibold tabular-nums ${results.compPass ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {results.actualCompEffArea.toFixed(2)} <span className="text-sm font-medium">m²</span>
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Minimum normowe</p>
-                      <div className="mt-1">
-                        <span className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-                          {results.requiredCompEffArea.toFixed(2)}
-                        </span>
-                        <span className="text-base ml-1">m²</span>
-                      </div>
-                      <p className="text-[10px] mt-1 text-gray-500">Mnożnik z uwagi na układ otworów: {(results.compMultiplier * 100).toFixed(0)}% z min. A<sub>odd</sub>.</p>
+                    <div className="p-5">
+                      <p className="text-xs text-slate-500 mb-2">Minimum normowe</p>
+                      <p className="text-2xl font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                        {results.requiredCompEffArea.toFixed(2)} <span className="text-sm font-medium">m²</span>
+                      </p>
+                      <p className="text-xs mt-1 text-slate-400">Mnożnik: {(results.compMultiplier * 100).toFixed(0)}% z min. A<sub>odd</sub></p>
                     </div>
                   </div>
                 </div>
@@ -338,6 +333,5 @@ export default function PnStaircaseDynamicCalculatorPage() {
           </div>
         )}
       </div>
-    </div>
   );
 }

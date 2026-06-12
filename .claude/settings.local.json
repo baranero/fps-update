@@ -7,7 +7,10 @@
       "Bash(node -e \"const fs = require\\('fs'\\); const buf = fs.readFileSync\\('public/images/logo/logo.webp'\\); console.log\\('File size:', buf.length, 'bytes'\\);\")",
       "Bash(node -e *)",
       "Bash(cd \"/c/Users/jbara/OneDrive/Documents/github/fps/fps-update\" && grep -r \"className=\" components/Calculators/cnbop/Step1.tsx | head -3)",
-      "Read(//c/c/Users/jbara/OneDrive/Documents/github/fps/fps-update/components/Calculators/cnbop/**)"
+      "Read(//c/c/Users/jbara/OneDrive/Documents/github/fps/fps-update/components/Calculators/cnbop/**)",
+      "WebFetch(domain:www.cloudhpc.com)",
+      "Bash(not exist *)",
+      "PowerShell(cd \"c:/Users/jbara/OneDrive/Documents/github/fps/fps-update\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"hetzner\" })"
     ]
   }
 }

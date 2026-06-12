@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Step1Data, Step2aData, Step2Data, Step4Data,
   AeHelperState, CFDConditions,
@@ -13,13 +14,16 @@ import {
 import { generateEngineeringPDF, CNBOPReportData } from "@/lib/utils/generatePDF";
 import { generateXLSX } from "@/lib/utils/generateXLSX";
 import { generateDOCX } from "@/lib/utils/generateDOCX";
+import {
+  saveHistory, loadHistory, clearHistory, buildShareUrl, parseShareParam,
+  HistoryEntry,
+} from "@/lib/utils/cnbopHistory";
 import Step1 from "@/components/Calculators/cnbop/Step1";
 import Step2 from "@/components/Calculators/cnbop/Step2";
-import Step3 from "@/components/Calculators/cnbop/Step3";
 import Step4 from "@/components/Calculators/cnbop/Step4";
 import Step5 from "@/components/Calculators/cnbop/Step5";
 
-const STEP_LABELS = ["Budynek", "Klatka schodowa", "Typ systemu", "Instalacja", "Wyniki"];
+const STEP_LABELS = ["Budynek", "Klatka schodowa", "Instalacja", "Wyniki"];
 
 const initialStep1: Step1Data = {
   categoryZL: "ZL_IV",
@@ -62,10 +66,14 @@ const initialAeHelper: AeHelperState = {
 };
 
 export default function CNBOPWizardPage() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [hasCalculated, setHasCalculated] = useState(false);
   const [step2Errors, setStep2Errors] = useState<string[]>([]);
   const tabsRef = useRef<HTMLDivElement>(null);
+  const historyMenuRef = useRef<HTMLDivElement>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const [step1Data, setStep1Data] = useState<Step1Data>(initialStep1);
   const [step2aData, setStep2aData] = useState<Step2aData>({
@@ -79,6 +87,38 @@ export default function CNBOPWizardPage() {
   const [step4Data, setStep4Data] = useState<Step4Data>(initialStep4);
   const [cfDCond, setCFDCond] = useState<CFDConditions>({ corrLength: false, doorDist: false, corrWidth: false, highNoSeparation: false });
   const [aeHelper, setAeHelper] = useState<AeHelperState>(initialAeHelper);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
+
+  // Restore state from URL share param
+  useEffect(() => {
+    const s = searchParams.get("s");
+    if (!s) return;
+    const snapshot = parseShareParam(s);
+    if (!snapshot) return;
+    setStep1Data(snapshot.step1Data);
+    setStep2aData(snapshot.step2aData);
+    setStep2Data(snapshot.step2Data);
+    setStep4Data(snapshot.step4Data);
+    setCFDCond(snapshot.cfDCond);
+    setAeHelper(snapshot.aeHelper);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Close history dropdown on outside click
+  useEffect(() => {
+    if (!historyOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (historyMenuRef.current && !historyMenuRef.current.contains(e.target as Node)) {
+        setHistoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [historyOpen]);
 
   // Auto-update step2Data from geometries
   const calculatedAreas = useMemo(() => {
@@ -238,20 +278,6 @@ export default function CNBOPWizardPage() {
     setStep1Data(prev => ({ ...prev, ...newState }));
   };
 
-  const getSystemJustification = () => {
-    const { categoryZL: cat, buildingHeightGroup: h, expandsEvacuation: expands, stairwellEnclosure: enc } = step1Data;
-    if (cat === "ZL_IV") {
-      if (h === "W" || h === "WW") return "Zgodnie z rozdz. 4.3 wytycznych CNBOP, budynki mieszkalne wysokie (W) i wysokościowe (WW) wymagają skutecznego zabezpieczenia przed zadymieniem za pomocą zaawansowanego systemu z nawiewem mechanicznym.";
-      if (h === "SW" && enc === "non-ppoż") return "Zgodnie z rozdz. 4.2 wytycznych CNBOP, klatki schodowe w budynkach ZL IV średniowysokich, które nie są wydzielone drzwiami PPOŻ, narażone są na bezpośredni napływ dymu z mieszkań. Obligatoryjnie wymagany jest nawiew mechaniczny.";
-      if (h === "SW" && enc === "ppoż") return "Zgodnie z rozdz. 4.4 wytycznych CNBOP, klatki w bud. ZL IV średniowysokich (SW), posiadające pełne wydzielenie obudową i drzwiami PPOŻ, dopuszczają standardowe oddymianie grawitacyjne.";
-      return "Dla budynków niskich (N) ZL IV wytyczne dopuszczają stosowanie standardowego oddymiania grawitacyjnego jako skutecznej ochrony klatki schodowej.";
-    }
-    if (h === "W" || h === "WW") return "Zgodnie z rozdz. 4.5 wytycznych CNBOP, klatki schodowe stanowiące drogi ewakuacyjne w budynkach użyteczności publicznej lub PM (wysokich i wysokościowych) wymagają bezwzględnie instalacji nawiewu mechanicznego.";
-    if (h === "SW") return "Zgodnie z rozdz. 4.5 wytycznych CNBOP, na klatkach budynków użyteczności publicznej i PM zakwalifikowanych jako Średniowysokie (SW) należy obligatoryjnie stosować system oddymiania z nawiewem mechanicznym.";
-    if (h === "N" && expands) return "Jeżeli celem oddymiania ma być powiększenie dopuszczalnej długości dojścia ewakuacyjnego, to nawet w budynkach niskich (N) algorytmy wymuszają zastosowanie wydajniejszego systemu z nawiewem mechanicznym.";
-    return "W budynkach niskich użyteczności publicznej/PM, w których system nie służy do powiększania dojść ewakuacyjnych, przepisy uznają za wystarczające wykonanie instalacji oddymiania grawitacyjnego.";
-  };
-
   const scrollToTabs = () => {
     if (tabsRef.current) {
       const y = tabsRef.current.getBoundingClientRect().top + window.scrollY - 100;
@@ -264,7 +290,7 @@ export default function CNBOPWizardPage() {
       if (!step2Validation.valid) { setStep2Errors(step2Validation.errors); return false; }
       setStep2Errors([]);
     }
-    if (newStep === 5 && !hasCalculated) return false;
+    if (newStep === 4 && !hasCalculated) return false;
     setStep(newStep);
     scrollToTabs();
     return true;
@@ -273,12 +299,38 @@ export default function CNBOPWizardPage() {
   const handleNextStep = () => {
     if (step === 2 && !step2Validation.valid) { setStep2Errors(step2Validation.errors); return; }
     if (step === 2) setStep2Errors([]);
-    if (step < 5) { setStep(step + 1); scrollToTabs(); }
+    if (step < 4) { setStep(step + 1); scrollToTabs(); }
   };
 
-  const handleSubmit = () => { setHasCalculated(true); setStep(5); scrollToTabs(); };
+  const handleSubmit = () => {
+    setHasCalculated(true);
+    setStep(4);
+    scrollToTabs();
+    const sysType = determineSystemType(step1Data);
+    const label = `${step1Data.categoryZL.replace("_", " ")}, ${step1Data.buildingHeightGroup}, ${sysType === "GRAVITATIONAL" ? "graw." : "mech."}`;
+    saveHistory({ label, step1Data, step2aData, step2Data, step4Data, cfDCond, aeHelper });
+    setHistory(loadHistory());
+  };
   const handleBackStep = () => { if (step > 1) { setStep(step - 1); scrollToTabs(); } };
   const handleReset = () => { setStep(1); setHasCalculated(false); scrollToTabs(); };
+
+  const handleCopyLink = () => {
+    const url = buildShareUrl({ label: "", step1Data, step2aData, step2Data, step4Data, cfDCond, aeHelper });
+    navigator.clipboard.writeText(url).catch(() => {});
+  };
+
+  const restoreFromHistory = (entry: HistoryEntry) => {
+    setStep1Data(entry.step1Data);
+    setStep2aData(entry.step2aData);
+    setStep2Data(entry.step2Data);
+    setStep4Data(entry.step4Data);
+    setCFDCond(entry.cfDCond);
+    setAeHelper(entry.aeHelper);
+    setHasCalculated(false);
+    setStep(1);
+    setHistoryOpen(false);
+    scrollToTabs();
+  };
 
   const buildReportData = (): CNBOPReportData | null => {
     if (!results) return null;
@@ -307,72 +359,129 @@ export default function CNBOPWizardPage() {
     if (data) await generateDOCX(data, `Raport_CNBOP_${Date.now()}.docx`);
   };
 
-  return (
-    <div className="bg-slate-50 dark:bg-[#0B1120]">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <Link href="/narzedzia/kalkulatory" className="mb-10 inline-flex items-center text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-400 transition-colors gap-2.5">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Powrót do bazy kalkulatorów
-        </Link>
+  const isGrav = systemType === "GRAVITATIONAL";
 
-        {/* Header */}
-        <div className="mb-10 rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-          <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-3">
-            <span className="flex items-center justify-center rounded-xl bg-primary/10 text-primary p-3.5 w-14 h-14 shrink-0">
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+  return (
+    <div>
+
+      {/* ── HEADER BLOCK ── */}
+      <div className="rounded-xl bg-slate-900 dark:bg-[#0D1117] mb-8 overflow-hidden">
+
+        {/* top row: breadcrumb + step tabs */}
+        <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-slate-800">
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/narzedzia/kalkulatory"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
+              Kalkulatory
+            </Link>
+            {history.length > 0 && (
+              <div ref={historyMenuRef} className="relative">
+                <button
+                  onClick={() => setHistoryOpen(o => !o)}
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Historia
+                  {history.length > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700 text-[10px] text-slate-300">
+                      {history.length}
+                    </span>
+                  )}
+                </button>
+                {historyOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl z-50 overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                      <span className="text-xs font-medium text-slate-400">Ostatnie obliczenia</span>
+                      <button
+                        onClick={() => { clearHistory(); setHistory([]); setHistoryOpen(false); }}
+                        className="text-[10px] text-slate-600 hover:text-slate-400 transition-colors"
+                      >
+                        Wyczyść
+                      </button>
+                    </div>
+                    <div className="divide-y divide-slate-800 max-h-72 overflow-y-auto">
+                      {history.map((entry) => (
+                        <button
+                          key={entry.id}
+                          onClick={() => restoreFromHistory(entry)}
+                          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-800 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-slate-200 truncate">{entry.label}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">{entry.date}</p>
+                          </div>
+                          <span className="text-[10px] text-slate-500 shrink-0">Wczytaj →</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <nav className="flex items-center gap-0.5 overflow-x-auto hide-scrollbar" ref={tabsRef}>
+            {STEP_LABELS.map((label, idx) => {
+              const num = idx + 1;
+              const done  = num < step;
+              const active = num === step;
+              const isDisabled = num === 4 && !hasCalculated;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => !isDisabled && validateAndSetStep(num)}
+                  disabled={isDisabled}
+                  className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded text-xs transition-colors disabled:cursor-not-allowed ${
+                    active    ? "bg-white text-slate-900 font-semibold" :
+                    done      ? "font-medium text-green-400 hover:text-green-300 hover:bg-slate-800" :
+                    isDisabled ? "font-medium text-slate-700" :
+                    "font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  }`}
+                >
+                  {done
+                    ? <svg className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>
+                    : <span className={`text-[10px] ${active ? "text-slate-500" : ""}`}>{num}.</span>
+                  }
+                  {label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* bottom row: title */}
+        <div className="px-5 py-4 flex items-center gap-3">
+          <svg className="h-4 w-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          <div>
+            <span className="text-white text-sm font-medium">
+              Dobór systemu oddymiania klatki schodowej
             </span>
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
-                <h1 className="text-xl md:text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Dobór systemu oddymiania klatki schodowej</h1>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/20">CNBOP-PIB W-0003:2016</span>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">Wydanie 2 · maj 2019</span>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-3xl">
-                Kalkulator do obliczeń projektowych systemów oddymiania klatek schodowych. Prowadzi przez klasyfikację budynku, geometrię klatki i dobór urządzeń — klapy dymowej oraz wentylacji nawiewnej — zgodnie z wytyczną CNBOP-PIB W-0003:2016.
-              </p>
-            </div>
+            <span className="ml-3 text-slate-600 text-xs">CNBOP-PIB W-0003:2016</span>
           </div>
         </div>
 
-        {/* Wizard tabs */}
-        <div ref={tabsRef} className="mb-10 rounded-full bg-white p-2 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800 flex items-center gap-1 overflow-x-auto hide-scrollbar">
-          {STEP_LABELS.map((label, idx) => {
-            const num = idx + 1;
-            const completed = num < step;
-            const active = num === step;
-            const disabled = num === 5 && !hasCalculated;
-            return (
-              <button
-                key={idx}
-                onClick={() => !disabled && validateAndSetStep(num)}
-                disabled={disabled}
-                className={`group flex-none flex items-center gap-3 rounded-full px-4 md:px-5 py-2.5 md:py-3 text-sm font-bold transition whitespace-nowrap ${
-                  active ? "bg-primary text-white shadow-md" :
-                  completed ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-300" :
-                  disabled ? "text-slate-400 cursor-not-allowed opacity-60 dark:text-slate-600" :
-                  "text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/60"
-                }`}
-              >
-                <span className={`flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full border-2 text-[10px] md:text-xs font-black ${
-                  active ? "border-white/40 bg-white/20 text-white" :
-                  completed ? "border-green-200 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900" :
-                  "border-slate-200 bg-slate-100 group-hover:border-primary/20 dark:border-slate-700 dark:bg-slate-800"
-                }`}>
-                  {num}
-                </span>
-                {label}
-              </button>
-            );
-          })}
+        {/* progress bar */}
+        <div className="h-0.5 bg-slate-800">
+          <div
+            className="h-full bg-primary transition-[width] duration-500 ease-out"
+            style={{ width: `${(step / 4) * 100}%` }}
+          />
         </div>
 
-        {/* Steps */}
+      </div>
+
+      {/* ── CONTENT ── */}
+      <div className="pb-10">
+
         {step === 1 && (
           <Step1 data={step1Data} onChange={handleStep1Change} allowedBuildingTypes={allowedBuildingTypes} />
         )}
@@ -390,9 +499,6 @@ export default function CNBOPWizardPage() {
           />
         )}
         {step === 3 && (
-          <Step3 systemType={systemType} justification={getSystemJustification()} />
-        )}
-        {step === 4 && (
           <Step4
             systemType={systemType}
             step1Data={step1Data}
@@ -402,7 +508,7 @@ export default function CNBOPWizardPage() {
             requiredAcz={requiredAcz}
           />
         )}
-        {step === 5 && results && (
+        {step === 4 && results && (
           <Step5
             results={results}
             step1Data={step1Data}
@@ -416,32 +522,67 @@ export default function CNBOPWizardPage() {
             onDownloadXLSX={handleDownloadXLSX}
             onDownloadDOCX={handleDownloadDOCX}
             onReset={handleReset}
+            onCopyLink={handleCopyLink}
           />
         )}
 
-        {/* Bottom navigation */}
-        <div className="mt-12 flex flex-col sm:flex-row flex-wrap gap-5 justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-8 md:pt-10">
-          <button
-            onClick={handleBackStep}
-            disabled={step === 1}
-            className="flex w-full sm:w-auto justify-center items-center rounded-xl border border-slate-200 px-6 md:px-8 py-3.5 text-sm md:text-base font-bold text-slate-600 transition hover:bg-white shadow-sm disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            ← Wstecz
-          </button>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 w-full sm:w-auto justify-end">
-            {step < 4 && (
-              <button onClick={handleNextStep} className="flex w-full sm:w-auto justify-center items-center rounded-xl bg-primary px-8 md:px-10 py-3.5 text-sm md:text-base font-bold text-white transition hover:bg-opacity-90 shadow-sm gap-2">
-                Dalej →
+        {/* ── INLINE NAV ── */}
+        {step < 4 && (
+          <div className="mt-10 flex items-center justify-between gap-4 border-t border-slate-100 dark:border-slate-800 pt-6">
+
+            {/* Wstecz — ghost, de-emphasized */}
+            <button
+              onClick={handleBackStep}
+              disabled={step === 1}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Wstecz
+            </button>
+
+            {/* Live values */}
+            {akso > 0 && (
+              <div className="hidden sm:flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                <span>A<sub>KS-O</sub> <span className="font-medium text-slate-700 dark:text-slate-300 ml-1">{toStr(akso)} m²</span></span>
+                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span>A<sub>cz,min</sub> <span className="font-medium text-slate-700 dark:text-slate-300 ml-1">{toStr(requiredAcz)} m²</span></span>
+                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span className={`font-medium ${isGrav ? "text-amber-600 dark:text-amber-400" : "text-primary"}`}>
+                  {isGrav ? "Grawitacyjny" : "Mechaniczny"}
+                </span>
+              </div>
+            )}
+
+            {/* Dalej / Oblicz wyniki — filled, prominent */}
+            {step < 3 ? (
+              <button
+                onClick={handleNextStep}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors"
+              >
+                Dalej
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors shadow-sm shadow-primary/25"
+              >
+                Oblicz wyniki
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             )}
-            {step === 4 && (
-              <button onClick={handleSubmit} className="flex w-full sm:w-auto justify-center items-center rounded-xl bg-green-500 px-8 md:px-10 py-3.5 text-sm md:text-base font-bold text-white transition hover:bg-green-600 shadow-sm gap-2">
-                Oblicz Wyniki →
-              </button>
-            )}
+
           </div>
-        </div>
+        )}
+
       </div>
+
     </div>
   );
 }

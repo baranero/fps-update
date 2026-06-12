@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { parseFds, estimateCost, FdsParseResult, FdsEstimate } from "@/lib/fds/parser";
 
 type Step = "upload" | "review" | "submitting" | "done";
@@ -37,6 +38,7 @@ export default function SymulacjePage() {
   const [caseId, setCaseId] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleFile = useCallback((f: File) => {
     if (!f.name.endsWith(".fds")) {
@@ -110,6 +112,7 @@ export default function SymulacjePage() {
 
       setCaseId(data.caseId);
       setStep("done");
+      router.push(`/narzedzia/symulacje/${data.caseId}`);
     } catch {
       setSubmitError("Brak połączenia z serwerem. Spróbuj ponownie.");
       setStep("review");
@@ -134,8 +137,8 @@ export default function SymulacjePage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Symulacje FDS</h1>
-          <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Symulacje FDS</h1>
+          <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
             Beta
           </span>
         </div>
@@ -177,7 +180,7 @@ export default function SymulacjePage() {
       {/* Step 1: Upload */}
       {step === "upload" && (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6 space-y-5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Wgraj plik FDS</h2>
+          <h2 className="text-xs font-medium text-slate-500">Wgraj plik FDS</h2>
 
           {/* Drop zone */}
           <div
@@ -273,7 +276,7 @@ export default function SymulacjePage() {
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-1">Analiza pliku</h2>
+                <h2 className="text-xs font-medium text-slate-500 mb-1">Analiza pliku</h2>
                 <p className="font-bold text-slate-900 dark:text-white">{file?.name}</p>
                 {parseResult.chid && (
                   <p className="text-xs text-slate-400 mt-0.5">CHID: {parseResult.chid}</p>
@@ -287,17 +290,21 @@ export default function SymulacjePage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 {
-                  label: "Siatek (MESH)",
-                  value: String(parseResult.meshCount),
+                  label: "Rdzenie obliczeniowe",
+                  value: String(parseResult.totalCores),
+                  sub: parseResult.ompThreads > 1
+                    ? `${parseResult.meshCount} MPI × ${parseResult.ompThreads} OMP`
+                    : `${parseResult.meshCount} siatek MPI`,
                   icon: (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
                     </svg>
                   ),
                 },
                 {
                   label: "Komórek (łącznie)",
                   value: formatCells(parseResult.totalCells),
+                  sub: undefined as string | undefined,
                   icon: (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M10 3v18M14 3v18" />
@@ -307,6 +314,7 @@ export default function SymulacjePage() {
                 {
                   label: "Czas symulacji",
                   value: `${parseResult.tEnd} s`,
+                  sub: undefined as string | undefined,
                   icon: (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -316,6 +324,7 @@ export default function SymulacjePage() {
                 {
                   label: "Paliwo (REAC)",
                   value: parseResult.fuel ?? "—",
+                  sub: undefined as string | undefined,
                   icon: (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
@@ -326,16 +335,17 @@ export default function SymulacjePage() {
                 <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-4">
                   <div className="flex items-center gap-2 text-slate-400 mb-2">
                     {item.icon}
-                    <span className="text-[10px] font-bold uppercase tracking-wide">{item.label}</span>
+                    <span className="text-[11px] font-medium">{item.label}</span>
                   </div>
-                  <p className="text-lg font-black text-slate-900 dark:text-white">{item.value}</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
+                  {item.sub && <p className="text-[10px] text-slate-400 mt-0.5">{item.sub}</p>}
                 </div>
               ))}
             </div>
 
             {parseResult.meshDetails.length > 1 && (
               <div className="mt-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Szczegóły siatek</p>
+                <p className="text-[11px] font-mediumst text-slate-400 mb-2">Szczegóły siatek</p>
                 <div className="flex flex-wrap gap-2">
                   {parseResult.meshDetails.map((m, i) => (
                     <span key={i} className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-mono text-slate-600 dark:text-slate-400">
@@ -357,25 +367,27 @@ export default function SymulacjePage() {
 
           {/* Estimate card */}
           <div className="rounded-2xl border border-amber-200/60 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/20 p-6">
-            <h2 className="text-sm font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-4">Szacunkowa wycena</h2>
+            <h2 className="text-xs font-medium text-amber-700 dark:text-amber-500 mb-3">Szacunkowa wycena</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-600/70 dark:text-amber-500/70 mb-1">Czas obliczeń (zegar ścienny)</p>
-                <p className="text-2xl font-black text-amber-900 dark:text-amber-200">
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Czas obliczeń (zegar ścienny)</p>
+                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
                   {formatHours(estimate.wallHours)}
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">przy 16 rdzeniach obliczeniowych</p>
+                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">przy {parseResult.totalCores} rdzeniach obliczeniowych</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-600/70 dark:text-amber-500/70 mb-1">CPU-hours</p>
-                <p className="text-2xl font-black text-amber-900 dark:text-amber-200">
-                  {estimate.cpuHours.toFixed(1)}
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">vCPU-hours</p>
+                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
+                  {estimate.vcpuHours.toFixed(1)}
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">zużycie mocy obliczeniowej</p>
+                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
+                  ≈ {estimate.cloudCostEur.toFixed(1)} € koszt chmury
+                </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-600/70 dark:text-amber-500/70 mb-1">Koszt netto</p>
-                <p className="text-3xl font-black text-amber-900 dark:text-amber-200">
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Koszt netto</p>
+                <p className="text-3xl font-bold text-amber-900 dark:text-amber-200">
                   {estimate.price.toLocaleString("pl-PL")} zł
                 </p>
                 <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">cena zawiera konfigurację i weryfikację</p>
@@ -388,7 +400,7 @@ export default function SymulacjePage() {
 
           {/* Form */}
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6 space-y-4">
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Dane kontaktowe</h2>
+            <h2 className="text-xs font-medium text-slate-500">Dane kontaktowe</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-400">
@@ -481,7 +493,7 @@ export default function SymulacjePage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white">Zlecenie przyjęte</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Zlecenie przyjęte</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Numer zgłoszenia: <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{caseId}</span>
             </p>

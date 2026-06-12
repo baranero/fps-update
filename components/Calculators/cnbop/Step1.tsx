@@ -35,22 +35,16 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in">
-      <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-        <h2 className="mb-6 md:mb-8 text-base md:text-lg font-bold text-slate-950 dark:text-white">
-          Krok 1: Charakterystyka i Wydzielenie Budynku
-        </h2>
-        <div className="space-y-6 md:space-y-8">
-
           {/* Category + staircase type */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 <Tooltip text="Przeznaczenie i sposób użytkowania wg WT.">Kategoria zagrożenia ludzi (ZL)</Tooltip>
               </label>
               <select
                 value={data.categoryZL}
                 onChange={(e) => onChange("categoryZL", e.target.value as any)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
               >
                 {categories.map((cat) => (
                   <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -58,13 +52,13 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 <Tooltip text="Definiuje prawne minima dla gabarytów schodów i spoczników wg WT § 68. Opcje dopasowują się do wybranej kategorii ZL.">Rygor wymiarowy schodów</Tooltip>
               </label>
               <select
                 value={data.buildingTypeWT}
                 onChange={(e) => onChange("buildingTypeWT", e.target.value as any)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
               >
                 <option value="standard">Standard (bieg 1,2 m, spocznik 1,5 m)</option>
                 <option value="nursery" disabled={!allowedBuildingTypes.includes("nursery")}>
@@ -109,7 +103,7 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
               </div>
             ) : (
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                   <Tooltip text="Łączna liczba kondygnacji obsługiwanych przez system — kluczowa do wyznaczenia ciśnień.">
                     Kondygnacje klatki schodowej
                   </Tooltip>
@@ -152,14 +146,14 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
           )}
 
           {/* Stairwell enclosure */}
-          <div className="space-y-3 md:space-y-4">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200 block mb-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Wydzielenie pożarowe klatki schodowej
             </label>
             <select
               value={data.stairwellEnclosure}
               onChange={(e) => onChange("stairwellEnclosure", e.target.value as any)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-slate-700 dark:bg-[#1E2342]"
             >
               {enclosures.map((enc) => (
                 <option key={enc.value} value={enc.value}>{enc.label}</option>
@@ -168,43 +162,39 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
           </div>
 
           {/* Checkboxes */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <div className="rounded-xl border border-slate-100 p-4 md:p-5 dark:border-slate-800 bg-slate-50 dark:bg-[#1C213E]">
-              <div className="flex items-start gap-3 md:gap-4">
-                <input
-                  type="checkbox"
-                  checked={data.expandsEvacuation}
-                  onChange={(e) => onChange("expandsEvacuation", e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary flex-shrink-0"
-                />
-                <div>
-                  <label className="text-sm font-bold text-slate-900 dark:text-white">
-                    Powiększanie dojścia ewakuacyjnego
-                  </label>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Czy system służy do powiększania prawnej długości dojścia w budynku?
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <input
+                type="checkbox"
+                checked={data.expandsEvacuation}
+                onChange={(e) => onChange("expandsEvacuation", e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-primary focus:ring-primary"
+              />
+              <div>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  Powiększanie dojścia ewakuacyjnego
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Czy system służy do powiększania prawnej długości dojścia w budynku?
+                </p>
               </div>
-            </div>
-            <div className="rounded-xl border border-slate-100 p-4 md:p-5 dark:border-slate-800 bg-slate-50 dark:bg-[#1C213E]">
-              <div className="flex items-start gap-3 md:gap-4">
-                <input
-                  type="checkbox"
-                  checked={data.selfClosers}
-                  onChange={(e) => onChange("selfClosers", e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary flex-shrink-0"
-                />
-                <div>
-                  <label className="text-sm font-bold text-slate-900 dark:text-white">
-                    Wyposażenie drzwi w samozamykacze
-                  </label>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Czy wszystkie drzwi prowadzące na klatkę schodową (w tym wyjściowe) posiadają sprawne samozamykacze?
-                  </p>
-                </div>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <input
+                type="checkbox"
+                checked={data.selfClosers}
+                onChange={(e) => onChange("selfClosers", e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-primary focus:ring-primary"
+              />
+              <div>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  Wyposażenie drzwi w samozamykacze
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Czy wszystkie drzwi prowadzące na klatkę schodową (w tym wyjściowe) posiadają sprawne samozamykacze?
+                </p>
               </div>
-            </div>
+            </label>
           </div>
 
           {/* No self-closers warning */}
@@ -219,8 +209,6 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
               </p>
             </div>
           )}
-        </div>
-      </div>
     </div>
   );
 }

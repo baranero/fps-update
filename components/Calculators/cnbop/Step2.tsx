@@ -64,11 +64,10 @@ export default function Step2({
     <div className="space-y-6 md:space-y-8 animate-fade-in">
 
       {/* Physical AKS */}
-      <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-primary/30 dark:bg-[#111827] dark:border-primary/50 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-2 h-full bg-primary" />
+      <div className="pl-5 border-l-2 border-primary/40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <HoleIcon className="h-4 w-4 text-primary" />
               </span>
@@ -90,11 +89,11 @@ export default function Step2({
       </div>
 
       {/* AKS-O calculation */}
-      <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
+      <div>
         <div className="flex flex-col lg:flex-row lg:justify-between gap-6 mb-6 lg:mb-8 lg:items-center border-b border-slate-100 dark:border-slate-800 pb-6 lg:pb-8">
           <div>
-            <h2 className="text-base md:text-lg font-bold text-slate-950 dark:text-white">
-              Krok 2: Powierzchnia obliczeniowa (A<sub>KS-O</sub>)
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+              Powierzchnia obliczeniowa (A<sub>KS-O</sub>)
             </h2>
             <p className="text-xs md:text-sm text-slate-500 mt-1.5">
               Geometria biegów i spoczników do obliczeń wymiarów instalacji oddymiającej.
@@ -105,7 +104,7 @@ export default function Step2({
             <select
               value={step2aData.calculationMode}
               onChange={(e) => setStep2aData({ ...step2aData, calculationMode: e.target.value as any })}
-              className="min-w-[200px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold dark:border-slate-700 dark:bg-[#1E2342]"
+              className="min-w-[200px] flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-slate-700 dark:bg-[#1E2342]"
             >
               <option value="auto">Z wymiarów elementów (Auto)</option>
               <option value="manual">Sumaryczna pow. (Manual)</option>
@@ -116,28 +115,28 @@ export default function Step2({
         {step2aData.calculationMode === "auto" ? (
           <div className="space-y-8 md:space-y-10 animate-fade-in">
             {/* Flights (A) */}
-            <div className="rounded-2xl bg-slate-50 p-5 md:p-6 dark:bg-[#1C213E] border border-slate-100 dark:border-slate-800">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <StairsIcon className="h-4 w-4 text-primary" />
+            <div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                    <StairsIcon className="h-3.5 w-3.5 text-primary" />
                   </span>
                   <div>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">Biegi schodowe</h3>
-                    <p className="text-xs text-slate-400">Obszar A — rzuty poziome biegów</p>
+                    <h3 className="text-sm font-medium text-slate-900 dark:text-white">Biegi schodowe <span className="text-slate-400 font-normal">(A)</span></h3>
+                    <p className="text-xs text-slate-400">Rzuty poziome biegów</p>
                   </div>
                 </div>
                 <button
                   onClick={() => addArrayItem("flights")}
-                  className="text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 py-2 px-4 rounded-lg transition border dark:bg-[#111827] dark:border-slate-700 dark:text-slate-300 w-full sm:w-auto"
+                  className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 py-1.5 px-3 rounded-lg transition w-full sm:w-auto"
                 >
                   + Dodaj bieg
                 </button>
               </div>
-              <div className="space-y-4">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {step2aData.flights.map((f, idx) => (
-                  <div key={f.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white dark:bg-[#111827] p-4 md:p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                    <span className="text-sm font-bold text-slate-400 w-6">#{idx + 1}</span>
+                  <div key={f.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-3.5">
+                    <span className="text-sm font-medium text-slate-400 w-5 shrink-0">{idx + 1}.</span>
                     <UnitInput
                       label={`Szer. (x) [min ${toStr(minDims.x)}m]`}
                       unit="m"
@@ -154,7 +153,7 @@ export default function Step2({
                     <button
                       onClick={() => removeArrayItem("flights", f.id)}
                       disabled={step2aData.flights.length === 1}
-                      className="text-red-400 hover:text-red-600 p-2 md:mt-6 self-end sm:self-auto transition-colors disabled:opacity-30"
+                      className="text-red-400 hover:text-red-600 p-2 sm:mt-6 self-end sm:self-auto transition-colors disabled:opacity-30"
                     >
                       <TrashIcon />
                     </button>
@@ -164,28 +163,28 @@ export default function Step2({
             </div>
 
             {/* Landings (B) */}
-            <div className="rounded-2xl bg-slate-50 p-5 md:p-6 dark:bg-[#1C213E] border border-slate-100 dark:border-slate-800">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <PlatformIcon className="h-4 w-4 text-primary" />
+            <div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                    <PlatformIcon className="h-3.5 w-3.5 text-primary" />
                   </span>
                   <div>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">Spoczniki</h3>
-                    <p className="text-xs text-slate-400">Obszar B — wymiarowe poziomy spocznikowe</p>
+                    <h3 className="text-sm font-medium text-slate-900 dark:text-white">Spoczniki <span className="text-slate-400 font-normal">(B)</span></h3>
+                    <p className="text-xs text-slate-400">Wymiarowe poziomy spocznikowe</p>
                   </div>
                 </div>
                 <button
                   onClick={() => addArrayItem("landings")}
-                  className="text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 py-2 px-4 rounded-lg transition border dark:bg-[#111827] dark:border-slate-700 dark:text-slate-300 w-full sm:w-auto"
+                  className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 py-1.5 px-3 rounded-lg transition w-full sm:w-auto"
                 >
                   + Dodaj spocznik
                 </button>
               </div>
-              <div className="space-y-4">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {step2aData.landings.map((l, idx) => (
-                  <div key={l.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white dark:bg-[#111827] p-4 md:p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                    <span className="text-sm font-bold text-slate-400 w-6">#{idx + 1}</span>
+                  <div key={l.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-3.5">
+                    <span className="text-sm font-medium text-slate-400 w-5 shrink-0">{idx + 1}.</span>
                     <UnitInput
                       label={`Szer. (y) [min ${toStr(minDims.y)}m i y ≥ x]`}
                       unit="m"
@@ -202,7 +201,7 @@ export default function Step2({
                     <button
                       onClick={() => removeArrayItem("landings", l.id)}
                       disabled={step2aData.landings.length === 1}
-                      className="text-red-400 hover:text-red-600 p-2 md:mt-6 self-end sm:self-auto transition-colors disabled:opacity-30"
+                      className="text-red-400 hover:text-red-600 p-2 sm:mt-6 self-end sm:self-auto transition-colors disabled:opacity-30"
                     >
                       <TrashIcon />
                     </button>
@@ -213,7 +212,7 @@ export default function Step2({
 
             {/* Openings (C) and Cores (D) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-              <div className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
+              <div className="rounded-xl bg-white p-5 md:p-6 border border-slate-200 dark:bg-[#111827] dark:border-slate-800">
                 <div className="flex justify-between items-center mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
@@ -248,7 +247,7 @@ export default function Step2({
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
+              <div className="rounded-xl bg-white p-5 md:p-6 border border-slate-200 dark:bg-[#111827] dark:border-slate-800">
                 <div className="flex justify-between items-center mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
@@ -308,32 +307,32 @@ export default function Step2({
         )}
 
         {/* CFD conditions */}
-        <div className="mt-8 md:mt-10 rounded-2xl bg-slate-50 dark:bg-[#1C213E] border border-slate-100 dark:border-slate-800 p-5 md:p-6">
-          <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="mt-8 md:mt-10 pt-6 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2 mb-2">
             <AlertTriangleIcon className="h-4 w-4 text-amber-500 shrink-0" />
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-              Warunki otoczenia klatki — weryfikacja CFD (rozdz. 7.1 wytycznych)
+            <h4 className="text-sm font-medium text-slate-900 dark:text-white">
+              Warunki otoczenia — weryfikacja CFD (rozdz. 7.1)
             </h4>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-            Zaznacz każdy warunek, który NIE jest spełniony. Jeżeli którykolwiek jest zaznaczony, standardowy algorytm nie wystarczy — wymagana jest symulacja CFD.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+            Zaznacz każdy warunek, który NIE jest spełniony — wymagana będzie symulacja CFD.
           </p>
           {isZLIVHigh && (
-            <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-800 p-3.5 flex items-start gap-2.5 animate-fade-in">
-              <AlertTriangleIcon className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-              <p className="text-xs font-semibold text-red-800 dark:text-red-300 leading-snug">
-                Budynek ZL IV wysoki (W): dla klatek schodowych w budynkach wysokich ZL IV wymagana jest symulacja CFD bez względu na geometrię (pkt 7.1 wytycznych).
+            <div className="mb-4 flex items-start gap-2.5 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 animate-fade-in">
+              <AlertTriangleIcon className="h-3.5 w-3.5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
+              <p className="text-xs font-medium text-red-800 dark:text-red-300 leading-snug">
+                ZL IV wysoki (W): CFD wymagane bezwzględnie (pkt 7.1).
               </p>
             </div>
           )}
-          <div className="space-y-3">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
             {cfdCheckboxes.map(({ key, label }) => (
               <label
                 key={key}
-                className={`flex cursor-pointer items-start gap-3.5 rounded-xl border p-3.5 transition ${
+                className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition ${
                   cfDCond[key]
-                    ? "border-red-300 bg-red-50 dark:bg-red-950/30 dark:border-red-800"
-                    : "border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-dark"
+                    ? "bg-red-50 dark:bg-red-950/20"
+                    : "hover:bg-slate-50/70 dark:hover:bg-slate-800/30"
                 }`}
               >
                 <input
@@ -342,20 +341,20 @@ export default function Step2({
                   onChange={(e) => setCFDCond(p => ({ ...p, [key]: e.target.checked }))}
                   className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-500 focus:ring-red-400 shrink-0"
                 />
-                <span className={`text-xs font-medium leading-snug ${cfDCond[key] ? "text-red-800 dark:text-red-300 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+                <span className={`text-xs leading-snug mt-0.5 ${cfDCond[key] ? "text-red-800 dark:text-red-300 font-medium" : "text-slate-700 dark:text-slate-300"}`}>
                   {label}
                 </span>
               </label>
             ))}
             {isZLIVHigh && (
-              <label className={`flex cursor-pointer items-start gap-3.5 rounded-xl border p-3.5 transition ${cfDCond.highNoSeparation ? "border-red-300 bg-red-50 dark:bg-red-950/30 dark:border-red-800" : "border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-dark"}`}>
+              <label className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition ${cfDCond.highNoSeparation ? "bg-red-50 dark:bg-red-950/20" : "hover:bg-slate-50/70 dark:hover:bg-slate-800/30"}`}>
                 <input
                   type="checkbox"
                   checked={cfDCond.highNoSeparation}
                   onChange={(e) => setCFDCond(p => ({ ...p, highNoSeparation: e.target.checked }))}
                   className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-500 focus:ring-red-400 shrink-0"
                 />
-                <span className={`text-xs font-medium leading-snug ${cfDCond.highNoSeparation ? "text-red-800 dark:text-red-300 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+                <span className={`text-xs leading-snug mt-0.5 ${cfDCond.highNoSeparation ? "text-red-800 dark:text-red-300 font-medium" : "text-slate-700 dark:text-slate-300"}`}>
                   ZL IV W: korytarze przyległe NIE są oddzielone drzwiami
                 </span>
               </label>
@@ -375,39 +374,41 @@ export default function Step2({
 
         {/* Summary */}
         {validation.valid && (
-          <div className="mt-8 md:mt-10 pt-8 border-t border-slate-100 dark:border-slate-800 animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <div className="rounded-xl bg-green-50 p-5 border border-green-200 dark:bg-green-950/30 dark:border-green-800 text-green-900 dark:text-green-300 h-full flex flex-col justify-center">
-              <p className="text-sm md:text-base font-bold flex flex-wrap items-center gap-1.5">
-                Pow. obliczeniowa (<Tooltip text="AKS-O = A + B + C + D — suma biegów, spoczników, otworów i duszy. Podstawa do obliczenia Acz i strumieni.">A<sub>KS-O</sub></Tooltip>) =
-                <span className="whitespace-nowrap">{toStr(akso)} m²</span>
+          <div className="mt-8 md:mt-10 pt-6 border-t border-slate-100 dark:border-slate-800 animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="border-l-2 border-green-400 dark:border-green-600 pl-4 py-1">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex flex-wrap items-baseline gap-1.5">
+                <Tooltip text="AKS-O = A + B + C + D — suma biegów, spoczników, otworów i duszy. Podstawa do obliczenia Acz i strumieni.">A<sub>KS-O</sub></Tooltip>
+                <span className="text-slate-400 font-normal">=</span>
+                <span className="text-xl font-semibold text-green-600 dark:text-green-400 tabular-nums whitespace-nowrap">{toStr(akso)} m²</span>
               </p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 A({toStr(toNum(step2Data.A))}) + B({toStr(toNum(step2Data.B))}) + C({toStr(toNum(step2Data.C))}) + D({toStr(toNum(step2Data.D))})
               </p>
             </div>
             {anyCFD && (
-              <div className="rounded-xl bg-red-50 p-5 border-2 border-red-300 dark:bg-red-950/30 dark:border-red-700 text-red-900 dark:text-red-300">
-                <p className="mb-2.5 font-bold text-red-700 dark:text-red-300 flex items-center gap-2">
+              <div className="rounded-xl bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-4">
+                <p className="mb-2.5 text-sm font-medium text-red-700 dark:text-red-300 flex items-center gap-2">
                   <AlertTriangleIcon className="h-4 w-4 shrink-0" />
-                  Konieczność CFD (pkt 7.1 wytycznych):
+                  Konieczność CFD (pkt 7.1):
                 </p>
-                <ul className="space-y-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                <ul className="space-y-1 text-xs text-red-600 dark:text-red-400">
                   {cfnWarnings.cfnC && <li>• Otwory przelotowe C &gt; 10% (A+B)</li>}
                   {cfnWarnings.cfnD && <li>• Dusza schodów D &gt; 25% (A+B)</li>}
                   {cfnWarnings.cfnAKS && <li>• A<sub>KS</sub> = {toStr(toNum(step2Data.AKS))} m² &gt; 40 m²</li>}
-                  {extraCFD.zlIVHighAuto && <li>• ZL IV W — klatka pionowej ewakuacji (warunek bezwzgl.)</li>}
+                  {extraCFD.zlIVHighAuto && <li>• ZL IV W — klatka pionowej ewakuacji</li>}
                   {extraCFD.corrLength && <li>• Korytarz połączony z klatką &gt; 10 m</li>}
                   {extraCFD.doorDist && <li>• Odległość drzwi od granicy A<sub>KS</sub> &gt; 5 m</li>}
-                  {extraCFD.corrWidth && <li>• Szerokość korytarza wspólnego &gt; 3 m</li>}
+                  {extraCFD.corrWidth && <li>• Szerokość korytarza &gt; 3 m</li>}
                   {extraCFD.highNoSeparation && <li>• ZL IV W: korytarze nieoddzielone drzwiami</li>}
-                  {cfnWarnings.cfnSerialDoors && <li>• Napływ grawitacyjny przez dwoje drzwi w szeregu (oddalone &gt;5 m)</li>}
+                  {cfnWarnings.cfnSerialDoors && <li>• Napływ grawitacyjny przez 2 drzwi w szeregu &gt;5 m</li>}
                 </ul>
                 <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
-                  <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-1">Potrzebujesz symulacji CFD? Skontaktuj się w celu wyceny:</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-red-700 dark:text-red-300">
-                    <span><span className="font-medium">e-mail:</span>{" "}<a href="mailto:biuro@fp-solutions.pl" className="font-bold underline hover:no-underline">biuro@fp-solutions.pl</a></span>
-                    <span><span className="font-medium">tel.:</span>{" "}<a href="tel:+48790782993" className="font-bold underline hover:no-underline">+48 790 782 993</a></span>
-                  </div>
+                  <p className="text-xs text-red-700 dark:text-red-400">
+                    Wycena CFD:{" "}
+                    <a href="mailto:biuro@fp-solutions.pl" className="font-medium hover:underline">biuro@fp-solutions.pl</a>
+                    {" · "}
+                    <a href="tel:+48790782993" className="font-medium hover:underline">+48 790 782 993</a>
+                  </p>
                 </div>
               </div>
             )}

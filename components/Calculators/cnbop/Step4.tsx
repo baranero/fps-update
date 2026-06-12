@@ -106,17 +106,27 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
     { value: "acz_cv", label: <span>Pow. czynna A<sub>cz</sub> i C<sub>v</sub></span> },
   ];
 
+  const isGrav = systemType === "GRAVITATIONAL";
+
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-        <h2 className="mb-8 text-base md:text-lg font-bold text-slate-950 dark:text-white">
-          Krok 4: Specyfikacja Instalacji i Nieszczelności
-        </h2>
+      <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] px-4 py-3.5">
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${isGrav ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" : "bg-primary/10 text-primary"}`}>
+          {isGrav ? "G" : "M"}
+        </span>
+        <div>
+          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Zalecany typ systemu</p>
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">
+            {isGrav ? "Oddymianie grawitacyjne" : "System z nawiewem mechanicznym"}
+          </p>
+        </div>
+      </div>
 
+      <div>
         {/* Smoke vent selection */}
         <div className="mb-8 border-b border-slate-100 dark:border-slate-800 pb-8">
-          <div className="rounded-2xl bg-slate-50 dark:bg-[#1C213E] border border-slate-100 dark:border-slate-800 p-5 md:p-6 mt-2">
-            <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-4">Dobrana klapa dymowa</h4>
+          <div>
+            <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-5">Dobrana klapa dymowa</h4>
             <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-5">
               {ventMethods.map(({ value, label }) => (
                 <label
@@ -128,7 +138,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                   }`}
                 >
                   <input type="radio" checked={data.ventInputMethod === value} onChange={() => setData(p => ({ ...p, ventInputMethod: value as any }))} className="hidden" />
-                  <span className="text-sm font-bold text-center">{label}</span>
+                  <span className="text-sm font-medium text-center">{label}</span>
                 </label>
               ))}
             </div>
@@ -165,8 +175,8 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
         {/* Gravitational: compensation */}
         {systemType === "GRAVITATIONAL" ? (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-slate-50 dark:bg-[#1C213E] border border-slate-100 dark:border-slate-800 p-5 md:p-6">
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-4">Urządzenia do napowietrzania (Kompensacja)</h4>
+            <div>
+              <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-5">Urządzenia do napowietrzania</h4>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-5">
                 {[
@@ -203,7 +213,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                           : "border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800/50"
                       }`}
                     >
-                      <p className={`text-sm font-bold ${data.compArrangement === value ? "text-primary" : "text-slate-700 dark:text-slate-200"}`}>{label}</p>
+                      <p className={`text-sm font-semibold ${data.compArrangement === value ? "text-primary" : "text-slate-700 dark:text-slate-200"}`}>{label}</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">{desc}</p>
                     </button>
                   ))}
@@ -238,12 +248,12 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                     <div className="space-y-1">
                       {openings.map((opening, oi) => (
                         <div key={opening.id}>
-                          <div className="flex flex-wrap gap-2 items-end rounded-xl bg-white dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 px-3 py-2.5">
+                          <div className="flex flex-wrap gap-2 items-end py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
 
                             {/* Type selector — only in calculate mode */}
                             {data.compInputMethod === "calculate" && (
                               <div className="flex-none">
-                                <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-wide">Typ</label>
+                                <label className="block text-[11px] font-medium text-slate-500 mb-1">Typ</label>
                                 <select
                                   value={opening.type}
                                   onChange={(e) => changeOpeningType(opening.id, e.target.value as CompOpeningType)}
@@ -313,7 +323,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                                   placeholder="np. 3,50" className="w-40"
                                 />
                                 {toNum(distances[oi]) > 5 && (
-                                  <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-1">
+                                  <p className="text-[11px] font-medium text-red-500 flex items-center gap-1 mt-1">
                                     <AlertTriangleIcon className="w-3 h-3" /> &gt;5 m → wymagane CFD (rozdz. 7.1)
                                   </p>
                                 )}
@@ -329,7 +339,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
 
                 <button
                   onClick={addOpening}
-                  className="w-full py-2.5 text-sm font-bold border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 hover:border-primary hover:text-primary rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 text-sm font-medium border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 hover:border-primary hover:text-primary rounded-xl transition-colors flex items-center justify-center gap-2 mt-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -345,12 +355,12 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     Efektywna pow. nieszczelności (<Tooltip text="Suma nieszczelności przegród klatki.">A<sub>e</sub></Tooltip>)
                   </label>
                   <button
                     onClick={() => setAeHelper(prev => ({ ...prev, enabled: !prev.enabled }))}
-                    className="text-[10px] font-bold bg-slate-100 text-slate-700 py-2 px-3 rounded-lg dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 transition-colors self-start sm:self-auto"
+                    className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors self-start sm:self-auto"
                   >
                     {aeHelper.enabled ? "Zamknij Asystenta" : "Otwórz Asystenta Ae"}
                   </button>
@@ -366,7 +376,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                 />
               </div>
               {!step1Data.selfClosers && (
-                <div className="rounded-2xl bg-amber-50 p-5 md:p-6 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 flex flex-col justify-center">
+                <div className="rounded-xl bg-amber-50 p-5 md:p-6 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 flex flex-col justify-center">
                   <UnitInput
                     label="Pow. największego otwartego skrzydła (A_drzwi)"
                     unit="m²"
@@ -381,13 +391,13 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
 
             {/* Ae assistant */}
             {aeHelper.enabled && (
-              <div className="rounded-2xl bg-slate-50 p-5 md:p-8 border border-slate-100 dark:bg-[#1C213E] dark:border-slate-800 animate-fade-in shadow-inner">
-                <h4 className="font-bold text-base md:text-lg text-slate-900 dark:text-white mb-6 md:mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
-                  Asystent obliczania pow. nieszczelności
+              <div className="animate-fade-in border-l-2 border-slate-200 dark:border-slate-700 pl-5 space-y-8">
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Asystent obliczania pow. nieszczelności (A<sub>e</sub>)
                 </h4>
-                <div className="space-y-8 md:space-y-10">
+                <div className="space-y-6">
                   <div>
-                    <h5 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 bg-slate-200/50 dark:bg-slate-800/50 inline-block px-3 py-1.5 rounded">1. Zamknięte drzwi</h5>
+                    <h5 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">1. Zamknięte drzwi</h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
                       <UnitInput label="1-skrz. do wewnątrz" unit="szt." value={aeHelper.doorsIn} onChange={(val) => setAeHelper(p => ({ ...p, doorsIn: val }))} className="text-sm py-2 px-3" />
                       <UnitInput label="1-skrz. na zewnątrz" unit="szt." value={aeHelper.doorsOut} onChange={(val) => setAeHelper(p => ({ ...p, doorsOut: val }))} className="text-sm py-2 px-3" />
@@ -396,15 +406,15 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                     </div>
                   </div>
                   <div>
-                    <h5 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 bg-slate-200/50 dark:bg-slate-800/50 inline-block px-3 py-1.5 rounded">2. Zamknięte okna</h5>
+                    <h5 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">2. Zamknięte okna</h5>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
                       <UnitInput label="Długość szczelin (obwód)" unit="m" value={aeHelper.windowLength} onChange={(val) => setAeHelper(p => ({ ...p, windowLength: val }))} className="text-sm py-2 px-3" />
                       <div>
-                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Szczelność okien</label>
+                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Szczelność okien</label>
                         <select
                           value={aeHelper.windowType}
                           onChange={(e) => setAeHelper(p => ({ ...p, windowType: e.target.value as any }))}
-                          className="w-full text-sm rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm dark:border-slate-700 dark:bg-[#1E2342] outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                          className="w-full text-sm rounded-lg border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-[#1E2342] outline-none focus:border-primary"
                         >
                           <option value="sealed">Rozwierane z uszczelką</option>
                           <option value="unsealed">Rozwierane bez uszczelki</option>
@@ -414,14 +424,14 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                     </div>
                   </div>
                   <div>
-                    <h5 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 bg-slate-200/50 dark:bg-slate-800/50 inline-block px-3 py-1.5 rounded">3. Ściany i stropy</h5>
+                    <h5 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">3. Ściany i stropy</h5>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8">
                       {([
                         { key: "wallExtArea", tKey: "wallExtTightness", label: "Ściany zewnętrzne", opts: [{ v: "tight", l: "Szczelna (7,0×10⁻⁵ m²/m²)" }, { v: "average", l: "Przeciętna (2,1×10⁻³ m²/m²)" }, { v: "leaky", l: "Nieszczelna (4,2×10⁻³ m²/m²)" }, { v: "very_leaky", l: "B. nieszczelna (1,3×10⁻² m²/m²)" }] },
                         { key: "wallIntArea", tKey: "wallIntTightness", label: "Ściany wewnętrzne", opts: [{ v: "tight", l: "Szczelna (1,4×10⁻⁵ m²/m²)" }, { v: "average", l: "Przeciętna (1,1×10⁻³ m²/m²)" }, { v: "leaky", l: "Nieszczelna (3,5×10⁻³ m²/m²)" }] },
                         { key: "wallElevArea", tKey: "wallElevTightness", label: "Szyby windowe", opts: [{ v: "tight", l: "Szczelna (1,8×10⁻³ m²/m²)" }, { v: "average", l: "Przeciętna (8,4×10⁻³ m²/m²)" }, { v: "leaky", l: "Nieszczelna (1,8×10⁻² m²/m²)" }] },
                       ] as { key: keyof AeHelperState; tKey: keyof AeHelperState; label: string; opts: { v: string; l: string }[] }[]).map(({ key, tKey, label, opts }) => (
-                        <div key={key} className="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div key={key} className="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                           <UnitInput label={label} unit="m²" value={aeHelper[key] as string} onChange={(val) => setAeHelper(p => ({ ...p, [key]: val }))} className="text-sm py-2 px-3 mb-2" />
                           <select
                             value={aeHelper[tKey] as string}
@@ -432,7 +442,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                           </select>
                         </div>
                       ))}
-                      <div className="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+                      <div className="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
                         <UnitInput label="Strop najwyższej kond." unit="m²" value={aeHelper.ceilingArea} onChange={(val) => setAeHelper(p => ({ ...p, ceilingArea: val }))} className="text-sm py-2 px-3" />
                       </div>
                     </div>
@@ -445,17 +455,17 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
             )}
 
             {/* Fan pressure */}
-            <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-slate-100 dark:bg-[#111827] dark:border-slate-800">
-              <h4 className="font-bold text-base md:text-lg text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-                Wyrzut i spręż wentylatora (<Tooltip text="Określa opory trasy hydraulicznej.">ΔP Sieci</Tooltip>)
+            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+              <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-5">
+                Wyrzut i spręż wentylatora (<Tooltip text="Określa opory trasy hydraulicznej.">ΔP sieci</Tooltip>)
               </h4>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Typ instalacji tłocznej</label>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Typ instalacji tłocznej</label>
                   <select
                     value={data.installationType}
                     onChange={(e) => setData(p => ({ ...p, installationType: e.target.value as any }))}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none dark:border-slate-700 dark:bg-[#1E2342]"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:border-primary dark:border-slate-700 dark:bg-[#1E2342]"
                   >
                     <option value="wall">Wyrzut Ścienny (Bezpośredni, 0 Pa)</option>
                     <option value="ducted">Wyrzut Kanałowy (Wymaga obliczenia strat)</option>
