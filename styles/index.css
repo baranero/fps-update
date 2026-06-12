@@ -8,6 +8,7 @@
   body { font-family: "Inter", sans-serif; }
 }
 
+
 @layer components {
   input[type="checkbox"]:checked ~ label span svg { @apply inline-flex; }
   .sticky .menu-scroll.active { @apply opacity-70; }
