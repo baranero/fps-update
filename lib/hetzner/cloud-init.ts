@@ -35,10 +35,10 @@ WORKDIR="/opt/fds_job"
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
 
 notify() {
-  curl -sf -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
+  curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    -d "$1" || true
+    -d "$1" -o /dev/null || true
 }
 
 on_exit() {
@@ -50,7 +50,7 @@ trap on_exit EXIT
 send_log() {
   local msg
   msg=$(tail -20 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
-  curl -sf -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
+  curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
     -d "{\"status\":\"running\",\"log\":\"$msg\"}" || true
