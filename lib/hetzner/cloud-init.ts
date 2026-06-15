@@ -147,7 +147,7 @@ done
 # ── Powiadomienie ─────────────────────────────────────────────────────────────
 STATUS="done"
 [ "$FDS_EXIT" -ne 0 ] && STATUS="failed"
-notify "{\"status\":\"$STATUS\",\"exitCode\":$FDS_EXIT}"
+notify "{\\\"status\\\":\\\"$STATUS\\\",\\\"exitCode\\\":$FDS_EXIT}"
 log "=== Job $STATUS ==="
 
 # ── Self-delete ───────────────────────────────────────────────────────────────

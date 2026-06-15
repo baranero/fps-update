@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import JSZip from "jszip";
 
 interface JobData {
   caseId: string;
@@ -89,6 +90,8 @@ export default function JobStatusPage({
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [zipping, setZipping] = useState(false);
 
   const fetchStatus = async () => {
     try {
@@ -119,6 +122,51 @@ export default function JobStatusPage({
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  const allFiles = job?.results ?? [];
+  const allSelected = allFiles.length > 0 && allFiles.every((f) => selected.has(f.name));
+  const someSelected = allFiles.some((f) => selected.has(f.name));
+
+  const toggleFile = (name: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+
+  const toggleAll = () =>
+    setSelected(allSelected ? new Set() : new Set(allFiles.map((f) => f.name)));
+
+  const downloadFile = (f: { name: string; url: string }) => {
+    const a = document.createElement("a");
+    a.href = f.url;
+    a.download = f.name;
+    a.click();
+  };
+
+  const downloadZip = async (files: Array<{ name: string; url: string }>) => {
+    if (files.length === 0) return;
+    setZipping(true);
+    try {
+      const zip = new JSZip();
+      await Promise.all(
+        files.map(async (f) => {
+          const res = await fetch(f.url);
+          const blob = await res.blob();
+          zip.file(f.name, blob);
+        })
+      );
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${caseId}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setZipping(false);
+    }
+  };
 
   if (error) return (
     <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-8 text-center">
@@ -249,26 +297,80 @@ export default function JobStatusPage({
       {/* Wyniki */}
       {job.status === "done" && job.results && job.results.length > 0 && (
         <div className="rounded-2xl border border-green-200 dark:border-green-800/40 bg-white dark:bg-[#111827] p-6">
-          <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">
-            Pliki wynikowe
-          </h2>
+          {/* Nagłówek z akcjami */}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                onChange={toggleAll}
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer"
+              />
+              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Pliki wynikowe
+                <span className="ml-1.5 text-slate-400 dark:text-slate-500 font-normal">
+                  ({job.results.length})
+                </span>
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const toDownload = allFiles.filter((f) => selected.has(f.name));
+                  toDownload.forEach(downloadFile);
+                }}
+                disabled={!someSelected}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Pobierz zaznaczone
+              </button>
+              <button
+                onClick={() => downloadZip(allFiles)}
+                disabled={zipping}
+                className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {zipping ? (
+                  <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                ) : (
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                )}
+                {zipping ? "Pakuję…" : "ZIP (wszystkie)"}
+              </button>
+            </div>
+          </div>
+
+          {/* Lista plików */}
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {job.results.map((f) => (
-              <div key={f.name} className="flex items-center justify-between py-2.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base">{fileIcon(f.name)}</span>
-                  <span className="text-sm font-mono text-slate-700 dark:text-slate-300">{f.name}</span>
-                </div>
-                <a
-                  href={f.url}
-                  download={f.name}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              <div key={f.name} className="flex items-center gap-3 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={selected.has(f.name)}
+                  onChange={() => toggleFile(f.name)}
+                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer shrink-0"
+                />
+                <span className="text-base shrink-0">{fileIcon(f.name)}</span>
+                <span className="text-sm font-mono text-slate-700 dark:text-slate-300 flex-1 truncate min-w-0">
+                  {f.name}
+                </span>
+                <button
+                  onClick={() => downloadFile(f)}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   Pobierz
-                </a>
+                </button>
               </div>
             ))}
           </div>
