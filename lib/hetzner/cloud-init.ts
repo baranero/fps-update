@@ -53,7 +53,7 @@ send_log() {
   curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    -d "{\\"status\\":\\"running\\",\\"log\\":\\"$msg\\"}" || true
+    -d "{\\"status\\":\\"running\\",\\"log\\":\\"$msg\\"}" -o /dev/null || true
 }
 
 log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="

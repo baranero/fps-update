@@ -520,7 +520,7 @@ export default function JobStatusPage({
                 <div
                   ref={termRef}
                   className="rounded-lg bg-slate-900 dark:bg-black p-3"
-                  style={{ height: "480px", overflowY: "auto" }}
+                  style={{ height: "480px", overflowY: "scroll" }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     termScrolledUpRef.current = el.scrollHeight - el.scrollTop - el.clientHeight > 60;
