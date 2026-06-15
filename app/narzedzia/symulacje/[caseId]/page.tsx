@@ -369,57 +369,64 @@ export default function JobStatusPage({
             </div>
           </div>
 
-          {/* Nagłówki kolumn */}
-          <div className="hidden sm:grid grid-cols-[auto_1fr_120px_90px_80px_auto] gap-3 items-center px-0 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <span />
-            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Plik</span>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Typ</span>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Utworzono</span>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400 text-right">Rozmiar</span>
-            <span />
-          </div>
-
-          {/* Lista plików */}
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {job.results.map((f) => (
-              <div key={f.name} className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_120px_90px_80px_auto] gap-3 items-center py-2.5">
-                <input
-                  type="checkbox"
-                  checked={selected.has(f.name)}
-                  onChange={() => toggleFile(f.name)}
-                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-mono text-slate-700 dark:text-slate-300 truncate flex items-center gap-2">
-                    <span className="shrink-0">{fileIcon(f.name)}</span>
-                    {f.name}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden">{fileType(f.name)}</p>
-                </div>
-                <span className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 truncate">{fileType(f.name)}</span>
-                <span className="hidden sm:block text-xs font-mono text-slate-400 dark:text-slate-500">
-                  {f.createdAt
-                    ? new Date(f.createdAt).toLocaleString("pl-PL", {
-                        day: "2-digit", month: "2-digit",
-                        hour: "2-digit", minute: "2-digit",
-                      })
-                    : "—"}
-                </span>
-                <span className="hidden sm:block text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
-                  {formatSize(f.size)}
-                </span>
-                <button
-                  onClick={() => downloadFile(f)}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0"
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Pobierz
-                </button>
-              </div>
-            ))}
-          </div>
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-slate-800">
+                <th className="pb-2 pr-3 w-8" />
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Plik</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Typ</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Utworzono</th>
+                <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4">Rozmiar</th>
+                <th className="pb-2 pl-4 w-24" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {job.results.map((f) => (
+                <tr key={f.name} className="group">
+                  <td className="py-2.5 pr-3 align-middle">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(f.name)}
+                      onChange={() => toggleFile(f.name)}
+                      className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer"
+                    />
+                  </td>
+                  <td className="py-2.5 align-middle min-w-0 max-w-[200px]">
+                    <div className="flex items-center gap-2">
+                      <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300 truncate">{f.name}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
+                  </td>
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">
+                    {fileType(f.name)}
+                  </td>
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:table-cell">
+                    {f.createdAt
+                      ? new Date(f.createdAt).toLocaleString("pl-PL", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })
+                      : "—"}
+                  </td>
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
+                    {formatSize(f.size)}
+                  </td>
+                  <td className="py-2.5 pl-4 align-middle text-right">
+                    <button
+                      onClick={() => downloadFile(f)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Pobierz
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
