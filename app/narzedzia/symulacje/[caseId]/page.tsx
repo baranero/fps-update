@@ -160,6 +160,7 @@ export default function JobStatusPage({
   const [zipping, setZipping] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
+  const termScrolledUpRef = useRef(false);
 
   const fetchStatus = async () => {
     try {
@@ -191,9 +192,9 @@ export default function JobStatusPage({
     return () => clearInterval(t);
   }, []);
 
-  // Auto-scroll terminala do dołu przy nowym logu
+  // Auto-scroll terminala do dołu przy nowym logu — tylko jeśli użytkownik nie scrollował w górę
   useEffect(() => {
-    if (logMode === "advanced" && termRef.current) {
+    if (logMode === "advanced" && termRef.current && !termScrolledUpRef.current) {
       termRef.current.scrollTop = termRef.current.scrollHeight;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -520,6 +521,10 @@ export default function JobStatusPage({
                   ref={termRef}
                   className="rounded-lg bg-slate-900 dark:bg-black p-3"
                   style={{ height: "480px", overflowY: "auto" }}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    termScrolledUpRef.current = el.scrollHeight - el.scrollTop - el.clientHeight > 60;
+                  }}
                 >
                   <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all m-0">
                     {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
