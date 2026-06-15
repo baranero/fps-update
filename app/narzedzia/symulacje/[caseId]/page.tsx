@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
 
@@ -362,34 +362,41 @@ export default function JobStatusPage({
       </div>
 
       {/* Postęp i logi */}
-      {job.fdsLog && (job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
-        const progress = parseFdsProgress(job.fdsLog, job.tEnd);
-        const stats = parseFdsStats(job.fdsLog);
-        const runnerLines = job.fdsLog.split("\n").filter((l) => /^\[[\d:]+\]/.test(l));
-        const allLines = job.fdsLog.split("\n");
+      {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
+        const progress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
+        const stats    = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
+
+        // Szacowany czas pozostały
+        let remainingStr = "—";
+        if (progress && job.startedAt && progress.pct > 0.5) {
+          const elapsedMs = Date.now() - new Date(job.startedAt).getTime();
+          const totalMs   = elapsedMs / (progress.pct / 100);
+          const remSec    = Math.max(0, Math.round((totalMs - elapsedMs) / 1000));
+          remainingStr = remSec < 60 ? `${remSec} s` : `${Math.ceil(remSec / 60)} min`;
+        }
+
+        const termRef = useRef<HTMLPreElement>(null);
+        useEffect(() => {
+          if (logMode === "advanced" && termRef.current) {
+            termRef.current.scrollTop = termRef.current.scrollHeight;
+          }
+        }, [job.fdsLog, logMode]);
 
         return (
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827]">
 
-            {/* Nagłówek z przełącznikiem */}
+            {/* Nagłówek */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Postęp obliczeń</span>
                 {job.status === "running" && (
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">aktualizacja co 15 s</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 15 s</span>
                 )}
               </div>
               <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-semibold">
                 {(["basic", "advanced"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setLogMode(mode)}
-                    className={`px-3 py-1.5 transition-colors ${
-                      logMode === mode
-                        ? "bg-primary text-white"
-                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                    }`}
-                  >
+                  <button key={mode} onClick={() => setLogMode(mode)}
+                    className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
                     {mode === "basic" ? "Podstawowy" : "Zaawansowany"}
                   </button>
                 ))}
@@ -398,61 +405,65 @@ export default function JobStatusPage({
 
             {logMode === "basic" ? (
               <div className="p-5 space-y-4">
-                {/* Progress bar */}
-                {progress && (
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Postęp FDS</span>
-                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                        {(stats.currentTime ?? progress.currentTime).toFixed(3)} / {job.tEnd} s
-                        <span className="ml-2 font-bold text-amber-600 dark:text-amber-400">{progress.pct.toFixed(1)}%</span>
-                      </span>
-                    </div>
-                    <div className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-amber-500 transition-all duration-700"
-                        style={{ width: `${progress.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
 
-                {/* Metryki FDS */}
+                {/* Karty czasowe — zawsze widoczne */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: "Wersja FDS",    value: stats.version ?? "—" },
-                    { label: "CHID",           value: stats.chid ?? "—" },
-                    { label: "Krok nr",        value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
-                    { label: "Rozmiar kroku",  value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
-                    { label: "Prędkość",       value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} iter/s` : "—" },
-                    { label: "Siatki (MPI)",   value: stats.meshCount != null ? String(stats.meshCount) : "—" },
-                    { label: "Komórki (log)",  value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
-                    { label: "Start FDS",      value: stats.startTime ?? "—" },
+                    { label: "Czas trwania",   value: elapsed(job.startedAt ?? job.dispatchedAt) },
+                    { label: "Postęp symulacji", value: progress ? `${progress.currentTime.toFixed(2)} / ${job.tEnd} s` : job.status === "running" ? "uruchamianie…" : "—" },
+                    { label: "Wykonano",        value: progress ? `${progress.pct.toFixed(1)}%` : "—" },
+                    { label: "Pozostało",       value: job.status === "running" ? remainingStr : job.status === "done" ? "zakończono" : "—" },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2.5">
-                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
-                      <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
+                    <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 px-4 py-3">
+                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{item.value}</p>
                     </div>
                   ))}
                 </div>
 
-                {/* Runner log (tylko nasze linie [HH:MM:SS]) */}
-                {runnerLines.length > 0 && (
+                {/* Progress bar */}
+                {progress && (
                   <div>
-                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wide">Log serwera</p>
-                    <div className="rounded-lg bg-slate-900 dark:bg-black p-3 max-h-36 overflow-auto">
-                      <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">
-                        {runnerLines.join("\n")}
-                      </pre>
+                    <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-amber-500 transition-all duration-700"
+                           style={{ width: `${progress.pct}%` }} />
                     </div>
+                    <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400">
+                      <span>0 s</span><span>{job.tEnd} s</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Szczegóły FDS (gdy już parsujemy dane) */}
+                {stats && (stats.version || stats.currentStep != null) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    {[
+                      { label: "Wersja FDS",   value: stats.version ?? "—" },
+                      { label: "CHID",         value: stats.chid ?? "—" },
+                      { label: "Krok timestep", value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
+                      { label: "Δt kroku",     value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
+                      { label: "Prędkość",     value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} it/s` : "—" },
+                      { label: "Siatki MPI",   value: stats.meshCount != null ? String(stats.meshCount) : "—" },
+                      { label: "Komórki",      value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
+                      { label: "Start FDS",    value: stats.startTime ?? "—" },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+                        <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             ) : (
+              /* Zaawansowany — pełny terminal ze scrollem */
               <div className="p-5">
-                <div className="rounded-lg bg-slate-900 dark:bg-black overflow-auto max-h-[480px] p-3">
-                  <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all">
-                    {allLines.join("\n")}
+                <div className="rounded-lg bg-slate-900 dark:bg-black" style={{ height: "480px", overflowY: "auto" }}>
+                  <pre
+                    ref={termRef}
+                    className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap p-3 h-full overflow-y-auto"
+                  >
+                    {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
                   </pre>
                 </div>
               </div>
