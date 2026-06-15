@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
 
@@ -159,6 +159,7 @@ export default function JobStatusPage({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [zipping, setZipping] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
+  const termRef = useRef<HTMLPreElement>(null);
 
   const fetchStatus = async () => {
     try {
@@ -189,6 +190,13 @@ export default function JobStatusPage({
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Auto-scroll terminala do dołu przy nowym logu
+  useEffect(() => {
+    if (logMode === "advanced" && termRef.current) {
+      termRef.current.scrollTop = termRef.current.scrollHeight;
+    }
+  }, [job?.fdsLog, logMode]);
 
   const allFiles = job?.results ?? [];
   const allSelected = allFiles.length > 0 && allFiles.every((f) => selected.has(f.name));
@@ -374,13 +382,6 @@ export default function JobStatusPage({
           const remSec    = Math.max(0, Math.round((totalMs - elapsedMs) / 1000));
           remainingStr = remSec < 60 ? `${remSec} s` : `${Math.ceil(remSec / 60)} min`;
         }
-
-        const termRef = useRef<HTMLPreElement>(null);
-        useEffect(() => {
-          if (logMode === "advanced" && termRef.current) {
-            termRef.current.scrollTop = termRef.current.scrollHeight;
-          }
-        }, [job.fdsLog, logMode]);
 
         return (
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827]">
