@@ -102,6 +102,43 @@ function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime
   return { pct: Math.min(100, (currentTime / tEnd) * 100), currentTime };
 }
 
+interface FdsStats {
+  version: string | null;
+  chid: string | null;
+  currentStep: number | null;
+  currentTime: number | null;
+  stepSize: number | null;
+  iteRate: string | null;
+  meshCount: number | null;
+  totalCells: number | null;
+  startTime: string | null;
+}
+
+function parseFdsStats(log: string): FdsStats {
+  const version   = log.match(/Revision\s*:\s*(\S+)/)?.[1] ?? null;
+  const chid      = log.match(/Job ID string\s*:\s*(.+)/)?.[1]?.trim() ?? null;
+  const startTime = log.match(/Current Date\s*:\s*(.+)/)?.[1]?.trim() ?? null;
+
+  const stepMatches = Array.from(
+    log.matchAll(/Step Size:\s*([\d.E+\-]+)\s*s,\s*Total Time:\s*([\d.E+\-]+)\s*s,\s*Ite Rate\/Proc:\s*([\d.E+\-nan]+)/g)
+  );
+  const last = stepMatches[stepMatches.length - 1];
+  const stepSize   = last ? parseFloat(last[1]) : null;
+  const currentTime = last ? parseFloat(last[2]) : null;
+  const iteRate    = last ? last[3] : null;
+
+  const stepNums = Array.from(log.matchAll(/Time Step\s+(\d+)/g));
+  const currentStep = stepNums.length ? parseInt(stepNums[stepNums.length - 1][1]) : null;
+
+  const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,]+)/g));
+  const totalCells = meshLines.length
+    ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/,/g, "")), 0)
+    : null;
+  const meshCount = meshLines.length || null;
+
+  return { version, chid, currentStep, currentTime, stepSize, iteRate, meshCount, totalCells, startTime };
+}
+
 function formatSize(bytes: number | null): string {
   if (bytes === null) return "—";
   if (bytes < 1024) return `${bytes} B`;
@@ -121,6 +158,7 @@ export default function JobStatusPage({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [zipping, setZipping] = useState(false);
+  const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
 
   const fetchStatus = async () => {
     try {
@@ -326,42 +364,99 @@ export default function JobStatusPage({
       {/* Postęp i logi */}
       {job.fdsLog && (job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
         const progress = parseFdsProgress(job.fdsLog, job.tEnd);
-        const logLines = job.fdsLog.split("\n");
+        const stats = parseFdsStats(job.fdsLog);
+        const runnerLines = job.fdsLog.split("\n").filter((l) => /^\[[\d:]+\]/.test(l));
+        const allLines = job.fdsLog.split("\n");
+
         return (
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] overflow-hidden">
-            {/* Progress bar (tylko gdy running i mamy dane) */}
-            {job.status === "running" && progress && (
-              <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Postęp FDS</span>
-                  <span className="text-xs font-mono text-slate-500">
-                    {progress.currentTime.toFixed(2)} / {job.tEnd} s
-                    <span className="ml-2 font-bold text-amber-600 dark:text-amber-400">{progress.pct.toFixed(1)}%</span>
-                  </span>
+
+            {/* Nagłówek z przełącznikiem */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Postęp obliczeń</span>
+                {job.status === "running" && (
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">aktualizacja co 15 s</span>
+                )}
+              </div>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-semibold">
+                {(["basic", "advanced"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setLogMode(mode)}
+                    className={`px-3 py-1.5 transition-colors ${
+                      logMode === mode
+                        ? "bg-primary text-white"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {mode === "basic" ? "Podstawowy" : "Zaawansowany"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {logMode === "basic" ? (
+              <div className="p-5 space-y-4">
+                {/* Progress bar */}
+                {progress && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Postęp FDS</span>
+                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                        {(stats.currentTime ?? progress.currentTime).toFixed(3)} / {job.tEnd} s
+                        <span className="ml-2 font-bold text-amber-600 dark:text-amber-400">{progress.pct.toFixed(1)}%</span>
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-amber-500 transition-all duration-700"
+                        style={{ width: `${progress.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Metryki FDS */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Wersja FDS",    value: stats.version ?? "—" },
+                    { label: "CHID",           value: stats.chid ?? "—" },
+                    { label: "Krok nr",        value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
+                    { label: "Rozmiar kroku",  value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
+                    { label: "Prędkość",       value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} iter/s` : "—" },
+                    { label: "Siatki (MPI)",   value: stats.meshCount != null ? String(stats.meshCount) : "—" },
+                    { label: "Komórki (log)",  value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
+                    { label: "Start FDS",      value: stats.startTime ?? "—" },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2.5">
+                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+                      <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-amber-500 transition-all duration-500"
-                    style={{ width: `${progress.pct}%` }}
-                  />
+
+                {/* Runner log (tylko nasze linie [HH:MM:SS]) */}
+                {runnerLines.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wide">Log serwera</p>
+                    <div className="rounded-lg bg-slate-900 dark:bg-black p-3 max-h-36 overflow-auto">
+                      <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">
+                        {runnerLines.join("\n")}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-5">
+                <div className="rounded-lg bg-slate-900 dark:bg-black overflow-auto max-h-[480px] p-3">
+                  <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all">
+                    {allLines.join("\n")}
+                  </pre>
                 </div>
               </div>
             )}
-
-            {/* Terminal */}
-            <div className="px-5 py-4">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
-                Log serwera
-                {job.status === "running" && (
-                  <span className="ml-2 text-[10px] font-normal text-slate-400">aktualizacja co 30 s</span>
-                )}
-              </p>
-              <div className="rounded-lg bg-slate-900 dark:bg-black overflow-auto max-h-64 p-3">
-                <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all">
-                  {logLines.slice(-40).join("\n")}
-                </pre>
-              </div>
-            </div>
           </div>
         );
       })()}
