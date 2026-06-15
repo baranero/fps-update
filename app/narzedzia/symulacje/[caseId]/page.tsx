@@ -18,7 +18,7 @@ interface JobData {
   dispatchedAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
-  results: Array<{ name: string; url: string; size: number | null }> | null;
+  results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
 }
 
 const STATUS_CONFIG = {
@@ -381,7 +381,17 @@ export default function JobStatusPage({
                 <span className="text-base shrink-0">{fileIcon(f.name)}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-mono text-slate-700 dark:text-slate-300 truncate">{f.name}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{fileType(f.name)}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                    {fileType(f.name)}
+                    {f.createdAt && (
+                      <span className="ml-2 text-slate-300 dark:text-slate-600">
+                        {new Date(f.createdAt).toLocaleString("pl-PL", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <span className="text-xs font-mono text-slate-400 dark:text-slate-500 shrink-0 w-16 text-right">
                   {formatSize(f.size)}

@@ -37,6 +37,7 @@ export async function GET(
             name: f.name,
             url: signed?.signedUrl ?? "",
             size: (f.metadata?.size as number | undefined) ?? null,
+            createdAt: f.created_at ?? null,
           };
         })
       );
