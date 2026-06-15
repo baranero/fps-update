@@ -519,16 +519,14 @@ export default function JobStatusPage({
               <div className="p-5">
                 <div
                   ref={termRef}
-                  className="rounded-lg bg-slate-900 dark:bg-black p-3"
+                  className="rounded-lg bg-slate-900 dark:bg-black p-3 text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all"
                   style={{ height: "480px", overflowY: "scroll" }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     termScrolledUpRef.current = el.scrollHeight - el.scrollTop - el.clientHeight > 60;
                   }}
                 >
-                  <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all m-0">
-                    {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
-                  </pre>
+                  {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
                 </div>
               </div>
             )}
