@@ -60,6 +60,7 @@ log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="
 
 ${useSnapshot ? `
 # ── FDS pre-installed ze snapshotu ───────────────────────────────────────────
+export LD_LIBRARY_PATH="\${LD_LIBRARY_PATH:-}"
 source /opt/fds6/bin/FDS6VARS.sh 2>/dev/null || true
 FDS_BIN=$(find /opt/fds6/bin -maxdepth 1 -name "fds" -o -name "fds_linux*" 2>/dev/null | grep -v openmp | head -1 || echo "${fdsBin}")
 [ ! -x "$FDS_BIN" ] && { log "ERROR: FDS binary not found in snapshot"; notify '{"status":"failed","exitCode":127}'; exit 1; }
