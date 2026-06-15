@@ -338,9 +338,10 @@ export default function JobStatusPage({
               <button
                 onClick={() => {
                   const toDownload = allFiles.filter((f) => selected.has(f.name));
-                  toDownload.forEach(downloadFile);
+                  if (toDownload.length === 1) downloadFile(toDownload[0]);
+                  else downloadZip(toDownload);
                 }}
-                disabled={!someSelected}
+                disabled={!someSelected || zipping}
                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -368,32 +369,43 @@ export default function JobStatusPage({
             </div>
           </div>
 
+          {/* Nagłówki kolumn */}
+          <div className="hidden sm:grid grid-cols-[auto_1fr_120px_90px_80px_auto] gap-3 items-center px-0 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <span />
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Plik</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Typ</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Utworzono</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400 text-right">Rozmiar</span>
+            <span />
+          </div>
+
           {/* Lista plików */}
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {job.results.map((f) => (
-              <div key={f.name} className="flex items-center gap-3 py-2.5">
+              <div key={f.name} className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_120px_90px_80px_auto] gap-3 items-center py-2.5">
                 <input
                   type="checkbox"
                   checked={selected.has(f.name)}
                   onChange={() => toggleFile(f.name)}
                   className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer shrink-0"
                 />
-                <span className="text-base shrink-0">{fileIcon(f.name)}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-mono text-slate-700 dark:text-slate-300 truncate">{f.name}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                    {fileType(f.name)}
-                    {f.createdAt && (
-                      <span className="ml-2 text-slate-300 dark:text-slate-600">
-                        {new Date(f.createdAt).toLocaleString("pl-PL", {
-                          day: "2-digit", month: "2-digit", year: "numeric",
-                          hour: "2-digit", minute: "2-digit",
-                        })}
-                      </span>
-                    )}
+                <div className="min-w-0">
+                  <p className="text-sm font-mono text-slate-700 dark:text-slate-300 truncate flex items-center gap-2">
+                    <span className="shrink-0">{fileIcon(f.name)}</span>
+                    {f.name}
                   </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden">{fileType(f.name)}</p>
                 </div>
-                <span className="text-xs font-mono text-slate-400 dark:text-slate-500 shrink-0 w-16 text-right">
+                <span className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 truncate">{fileType(f.name)}</span>
+                <span className="hidden sm:block text-xs font-mono text-slate-400 dark:text-slate-500">
+                  {f.createdAt
+                    ? new Date(f.createdAt).toLocaleString("pl-PL", {
+                        day: "2-digit", month: "2-digit",
+                        hour: "2-digit", minute: "2-digit",
+                      })
+                    : "—"}
+                </span>
+                <span className="hidden sm:block text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
                   {formatSize(f.size)}
                 </span>
                 <button
