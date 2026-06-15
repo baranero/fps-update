@@ -159,7 +159,7 @@ export default function JobStatusPage({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [zipping, setZipping] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
-  const termRef = useRef<HTMLDivElement>(null);
+  const termRef = useRef<HTMLPreElement>(null);
 
   const fetchStatus = async () => {
     try {
@@ -196,6 +196,7 @@ export default function JobStatusPage({
     if (logMode === "advanced" && termRef.current) {
       termRef.current.scrollTop = termRef.current.scrollHeight;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.fdsLog, logMode]);
 
   const allFiles = job?.results ?? [];
@@ -515,15 +516,13 @@ export default function JobStatusPage({
             ) : (
               /* Zaawansowany — pełny terminal ze scrollem */
               <div className="p-5">
-                <div
+                <pre
                   ref={termRef}
-                  className="rounded-lg bg-slate-900 dark:bg-black p-3"
-                  style={{ height: "480px", overflowY: "auto" }}
+                  className="rounded-lg bg-slate-900 dark:bg-black text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all p-3"
+                  style={{ height: "480px", overflowY: "scroll" }}
                 >
-                  <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">
-                    {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
-                  </pre>
-                </div>
+                  {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
+                </pre>
               </div>
             )}
           </div>
