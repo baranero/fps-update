@@ -31,6 +31,7 @@ APP_URL="${p.appUrl}"
 WEBHOOK_SECRET="${p.webhookSecret}"
 HETZNER_TOKEN="${p.hetznerToken}"
 WORKDIR="/opt/fds_job"
+BYTES_SENT=0
 
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
 
@@ -48,12 +49,16 @@ on_exit() {
 trap on_exit EXIT
 
 send_log() {
-  local msg
-  msg=$(tail -500 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
+  local fsize
+  fsize=$(wc -c < /var/log/fds-runner.log 2>/dev/null || echo 0)
+  [ "$fsize" -le "$BYTES_SENT" ] && return 0
+  local chunk
+  chunk=$(tail -c +"$((BYTES_SENT + 1))" /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
+  BYTES_SENT=$fsize
   curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    -d "{\\"status\\":\\"running\\",\\"log\\":\\"$msg\\"}" -o /dev/null || true
+    -d "{\\"status\\":\\"running\\",\\"log\\":\\"$chunk\\",\\"append\\":true}" -o /dev/null || true
 }
 
 log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="

@@ -15,7 +15,12 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode, log } = body as { status: string; exitCode?: number; log?: string };
+  const { status, exitCode, log, append } = body as {
+    status: string;
+    exitCode?: number;
+    log?: string;
+    append?: boolean;
+  };
 
   const supabase = createAdminClient();
 
@@ -23,7 +28,17 @@ export async function POST(
 
   if (log) {
     try {
-      updates.fds_log = Buffer.from(log, "base64").toString("utf8");
+      const newData = Buffer.from(log, "base64").toString("utf8");
+      if (append) {
+        const { data: current } = await supabase
+          .from("fds_submissions")
+          .select("fds_log")
+          .eq("case_id", caseId)
+          .single();
+        updates.fds_log = (current?.fds_log ?? "") + newData;
+      } else {
+        updates.fds_log = newData;
+      }
     } catch { /* ignore */ }
   }
 
