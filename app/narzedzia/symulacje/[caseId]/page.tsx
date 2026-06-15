@@ -159,7 +159,7 @@ export default function JobStatusPage({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [zipping, setZipping] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
-  const termRef = useRef<HTMLPreElement>(null);
+  const termRef = useRef<HTMLDivElement>(null);
 
   const fetchStatus = async () => {
     try {
@@ -371,17 +371,35 @@ export default function JobStatusPage({
 
       {/* Postęp i logi */}
       {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
-        const progress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
-        const stats    = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
+        const fdsProgress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
+        const stats       = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
 
-        // Szacowany czas pozostały
+        // Szacunek z wallHours gdy FDS jeszcze nie wysłał timestepów
+        const elapsedSec = job.startedAt
+          ? (Date.now() - new Date(job.startedAt).getTime()) / 1000
+          : null;
+        const wallEstPct =
+          !fdsProgress && elapsedSec != null && job.wallHours > 0
+            ? Math.min(90, (elapsedSec / (job.wallHours * 3600)) * 100)
+            : null;
+
+        const displayPct  = fdsProgress?.pct ?? wallEstPct;
+        const isEstimate  = !fdsProgress && wallEstPct != null;
+
+        // Czas pozostały
         let remainingStr = "—";
-        if (progress && job.startedAt && progress.pct > 0.5) {
-          const elapsedMs = Date.now() - new Date(job.startedAt).getTime();
-          const totalMs   = elapsedMs / (progress.pct / 100);
-          const remSec    = Math.max(0, Math.round((totalMs - elapsedMs) / 1000));
+        if (fdsProgress && elapsedSec && fdsProgress.pct > 1) {
+          const remSec = Math.max(0, Math.round(elapsedSec / fdsProgress.pct * (100 - fdsProgress.pct)));
           remainingStr = remSec < 60 ? `${remSec} s` : `${Math.ceil(remSec / 60)} min`;
+        } else if (wallEstPct && elapsedSec && wallEstPct > 1) {
+          const remSec = Math.max(0, Math.round(elapsedSec / wallEstPct * (100 - wallEstPct)));
+          remainingStr = remSec < 60 ? `~${remSec} s` : `~${Math.ceil(remSec / 60)} min`;
         }
+
+        // Ostatnie linie logu do miniaturowego podglądu
+        const logTail = job.fdsLog
+          ? job.fdsLog.split("\n").filter(Boolean).slice(-6).join("\n")
+          : null;
 
         return (
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827]">
@@ -407,13 +425,27 @@ export default function JobStatusPage({
             {logMode === "basic" ? (
               <div className="p-5 space-y-4">
 
-                {/* Karty czasowe — zawsze widoczne */}
+                {/* Karty czasowe */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: "Czas trwania",   value: elapsed(job.startedAt ?? job.dispatchedAt) },
-                    { label: "Postęp symulacji", value: progress ? `${progress.currentTime.toFixed(2)} / ${job.tEnd} s` : job.status === "running" ? "uruchamianie…" : "—" },
-                    { label: "Wykonano",        value: progress ? `${progress.pct.toFixed(1)}%` : "—" },
-                    { label: "Pozostało",       value: job.status === "running" ? remainingStr : job.status === "done" ? "zakończono" : "—" },
+                    {
+                      label: "Czas trwania",
+                      value: elapsed(job.startedAt ?? job.dispatchedAt),
+                    },
+                    {
+                      label: "Postęp symulacji",
+                      value: fdsProgress
+                        ? `${fdsProgress.currentTime.toFixed(2)} / ${job.tEnd} s`
+                        : job.status === "running" ? "inicjalizacja FDS…" : "—",
+                    },
+                    {
+                      label: isEstimate ? "Wykonano (szac.)" : "Wykonano",
+                      value: displayPct != null ? `${displayPct.toFixed(1)}%` : "—",
+                    },
+                    {
+                      label: "Pozostało",
+                      value: job.status === "done" ? "zakończono" : remainingStr,
+                    },
                   ].map((item) => (
                     <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 px-4 py-3">
                       <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
@@ -423,30 +455,36 @@ export default function JobStatusPage({
                 </div>
 
                 {/* Progress bar */}
-                {progress && (
+                {displayPct != null && (
                   <div>
                     <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div className="h-full rounded-full bg-amber-500 transition-all duration-700"
-                           style={{ width: `${progress.pct}%` }} />
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${fdsProgress ? "bg-amber-500" : "bg-slate-400"}`}
+                        style={{ width: `${displayPct}%` }}
+                      />
                     </div>
                     <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400">
-                      <span>0 s</span><span>{job.tEnd} s</span>
+                      <span>0 s</span>
+                      <span className="text-slate-300 dark:text-slate-600 italic">
+                        {isEstimate ? "szacunkowy postęp" : ""}
+                      </span>
+                      <span>{job.tEnd} s</span>
                     </div>
                   </div>
                 )}
 
-                {/* Szczegóły FDS (gdy już parsujemy dane) */}
+                {/* Szczegóły FDS */}
                 {stats && (stats.version || stats.currentStep != null) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: "Wersja FDS",   value: stats.version ?? "—" },
-                      { label: "CHID",         value: stats.chid ?? "—" },
+                      { label: "Wersja FDS",    value: stats.version ?? "—" },
+                      { label: "CHID",          value: stats.chid ?? "—" },
                       { label: "Krok timestep", value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
-                      { label: "Δt kroku",     value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
-                      { label: "Prędkość",     value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} it/s` : "—" },
-                      { label: "Siatki MPI",   value: stats.meshCount != null ? String(stats.meshCount) : "—" },
-                      { label: "Komórki",      value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
-                      { label: "Start FDS",    value: stats.startTime ?? "—" },
+                      { label: "Δt kroku",      value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
+                      { label: "Prędkość",      value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} it/s` : "—" },
+                      { label: "Siatki MPI",    value: stats.meshCount != null ? String(stats.meshCount) : "—" },
+                      { label: "Komórki",       value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
+                      { label: "Start FDS",     value: stats.startTime ?? "—" },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
@@ -455,15 +493,34 @@ export default function JobStatusPage({
                     ))}
                   </div>
                 )}
+
+                {/* Podgląd ostatnich linii logu */}
+                {logTail && (
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
+                      Ostatnie zdarzenia
+                    </p>
+                    <div className="rounded-lg bg-slate-900 dark:bg-black p-3">
+                      <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">{logTail}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {!job.fdsLog && job.status === "running" && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
+                    Oczekiwanie na pierwsze dane z serwera… (pojawią się po ~15 s od startu FDS)
+                  </p>
+                )}
               </div>
             ) : (
               /* Zaawansowany — pełny terminal ze scrollem */
               <div className="p-5">
-                <div className="rounded-lg bg-slate-900 dark:bg-black" style={{ height: "480px", overflowY: "auto" }}>
-                  <pre
-                    ref={termRef}
-                    className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap p-3 h-full overflow-y-auto"
-                  >
+                <div
+                  ref={termRef}
+                  className="rounded-lg bg-slate-900 dark:bg-black p-3"
+                  style={{ height: "480px", overflowY: "auto" }}
+                >
+                  <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">
                     {job.fdsLog ?? "Oczekiwanie na dane z serwera…"}
                   </pre>
                 </div>
