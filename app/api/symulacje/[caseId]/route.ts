@@ -33,7 +33,11 @@ export async function GET(
           const { data: signed } = await supabase.storage
             .from("fds-files")
             .createSignedUrl(`results/${caseId}/${f.name}`, 3600);
-          return { name: f.name, url: signed?.signedUrl ?? "" };
+          return {
+            name: f.name,
+            url: signed?.signedUrl ?? "",
+            size: (f.metadata?.size as number | undefined) ?? null,
+          };
         })
       );
       results = urls.filter((u) => u.url);

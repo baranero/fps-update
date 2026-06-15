@@ -18,7 +18,7 @@ interface JobData {
   dispatchedAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
-  results: Array<{ name: string; url: string }> | null;
+  results: Array<{ name: string; url: string; size: number | null }> | null;
 }
 
 const STATUS_CONFIG = {
@@ -78,6 +78,26 @@ function fileIcon(name: string) {
   if (name.endsWith(".csv")) return "📄";
   if (name.endsWith(".log")) return "📋";
   return "📁";
+}
+
+function fileType(name: string): string {
+  if (name.endsWith(".smv"))  return "Scena Smokeview";
+  if (name.endsWith(".csv"))  return "Dane urządzeń";
+  if (name.endsWith(".log"))  return "Log obliczeń";
+  if (name.endsWith(".s3d"))  return "Dym 3D";
+  if (name.endsWith(".q"))    return "Dane 3D";
+  if (name.endsWith(".sf"))   return "Przekrój";
+  if (name.endsWith(".bf"))   return "Granica";
+  if (name.endsWith(".prt5")) return "Cząsteczki";
+  if (name.endsWith(".fds"))  return "Plik FDS";
+  return name.split(".").pop()?.toUpperCase() ?? "Plik";
+}
+
+function formatSize(bytes: number | null): string {
+  if (bytes === null) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default function JobStatusPage({
@@ -359,8 +379,12 @@ export default function JobStatusPage({
                   className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer shrink-0"
                 />
                 <span className="text-base shrink-0">{fileIcon(f.name)}</span>
-                <span className="text-sm font-mono text-slate-700 dark:text-slate-300 flex-1 truncate min-w-0">
-                  {f.name}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-mono text-slate-700 dark:text-slate-300 truncate">{f.name}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{fileType(f.name)}</p>
+                </div>
+                <span className="text-xs font-mono text-slate-400 dark:text-slate-500 shrink-0 w-16 text-right">
+                  {formatSize(f.size)}
                 </span>
                 <button
                   onClick={() => downloadFile(f)}
