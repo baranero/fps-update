@@ -15,13 +15,23 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode } = body as { status: string; exitCode?: number };
+  const { status, exitCode, log } = body as { status: string; exitCode?: number; log?: string };
 
   const supabase = createAdminClient();
 
-  const updates: Record<string, unknown> = { status };
-  if (status === "running") updates.started_at = new Date().toISOString();
-  if (status === "done" || status === "failed") {
+  const updates: Record<string, unknown> = {};
+
+  if (log) {
+    try {
+      updates.fds_log = Buffer.from(log, "base64").toString("utf8");
+    } catch { /* ignore */ }
+  }
+
+  if (status === "running" && !log) {
+    updates.status = status;
+    updates.started_at = new Date().toISOString();
+  } else if (status === "done" || status === "failed") {
+    updates.status = status;
     updates.completed_at = new Date().toISOString();
     updates.fds_exit_code = exitCode ?? null;
   }

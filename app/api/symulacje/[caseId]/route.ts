@@ -59,6 +59,7 @@ export async function GET(
     dispatchedAt: data.dispatched_at,
     startedAt: data.started_at,
     completedAt: data.completed_at,
+    fdsLog: data.fds_log ?? null,
     results,
   });
 }

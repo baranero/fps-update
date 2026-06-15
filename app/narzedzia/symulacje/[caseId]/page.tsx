@@ -18,6 +18,7 @@ interface JobData {
   dispatchedAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
+  fdsLog: string | null;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
 }
 
@@ -91,6 +92,14 @@ function fileType(name: string): string {
   if (name.endsWith(".prt5")) return "Cząsteczki";
   if (name.endsWith(".fds"))  return "Plik FDS";
   return name.split(".").pop()?.toUpperCase() ?? "Plik";
+}
+
+function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime: number } | null {
+  const matches = Array.from(log.matchAll(/Total Time:\s+([\d.E+\-]+)\s*s/g));
+  if (!matches.length || !tEnd) return null;
+  const currentTime = parseFloat(matches[matches.length - 1][1]);
+  if (isNaN(currentTime)) return null;
+  return { pct: Math.min(100, (currentTime / tEnd) * 100), currentTime };
 }
 
 function formatSize(bytes: number | null): string {
@@ -313,6 +322,49 @@ export default function JobStatusPage({
           </div>
         ))}
       </div>
+
+      {/* Postęp i logi */}
+      {job.fdsLog && (job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
+        const progress = parseFdsProgress(job.fdsLog, job.tEnd);
+        const logLines = job.fdsLog.split("\n");
+        return (
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] overflow-hidden">
+            {/* Progress bar (tylko gdy running i mamy dane) */}
+            {job.status === "running" && progress && (
+              <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Postęp FDS</span>
+                  <span className="text-xs font-mono text-slate-500">
+                    {progress.currentTime.toFixed(2)} / {job.tEnd} s
+                    <span className="ml-2 font-bold text-amber-600 dark:text-amber-400">{progress.pct.toFixed(1)}%</span>
+                  </span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                    style={{ width: `${progress.pct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Terminal */}
+            <div className="px-5 py-4">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                Log serwera
+                {job.status === "running" && (
+                  <span className="ml-2 text-[10px] font-normal text-slate-400">aktualizacja co 30 s</span>
+                )}
+              </p>
+              <div className="rounded-lg bg-slate-900 dark:bg-black overflow-auto max-h-64 p-3">
+                <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all">
+                  {logLines.slice(-40).join("\n")}
+                </pre>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Wyniki */}
       {job.status === "done" && job.results && job.results.length > 0 && (
