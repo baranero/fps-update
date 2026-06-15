@@ -53,7 +53,7 @@ send_log() {
   curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    -d "{\"status\":\"running\",\"log\":\"$msg\"}" || true
+    -d "{\\"status\\":\\"running\\",\\"log\\":\\"$msg\\"}" || true
 }
 
 log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="
@@ -111,8 +111,10 @@ log "Starting FDS: $NCORES MPI processes..."
 LOG_PID=$!
 
 export OMP_NUM_THREADS="$OMP_THREADS"
-mpiexec -n "$NCORES" "$FDS_BIN" "$FILE_NAME" 2>&1 | tee fds_output.log
-FDS_EXIT=$?
+set +eo pipefail
+mpiexec -n "\${NCORES}" "$FDS_BIN" "$FILE_NAME" 2>&1 | tee fds_output.log
+FDS_EXIT=\${PIPESTATUS[0]}
+set -eo pipefail
 
 kill $LOG_PID 2>/dev/null || true
 log "FDS finished (exit: $FDS_EXIT)"
