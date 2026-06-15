@@ -49,7 +49,7 @@ trap on_exit EXIT
 
 send_log() {
   local msg
-  msg=$(tail -20 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
+  msg=$(tail -500 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
   curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
