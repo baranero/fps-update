@@ -17,10 +17,11 @@ export interface HetznerServer {
 // TODO: przywrócić CCX po zatwierdzeniu limitu dedicated_core przez Hetzner
 export function selectServerType(totalCores: number): { type: string; cores: number } {
   const n = Math.max(1, totalCores);
-  if (n <= 2)  return { type: "cx22", cores: 2  };
-  if (n <= 4)  return { type: "cx32", cores: 4  };
-  if (n <= 8)  return { type: "cx42", cores: 8  };
-  return       { type: "cx52", cores: 16 };
+  if (n <= 2)  return { type: "cpx11", cores: 2  };
+  if (n <= 3)  return { type: "cpx21", cores: 3  };
+  if (n <= 4)  return { type: "cpx31", cores: 4  };
+  if (n <= 8)  return { type: "cpx41", cores: 8  };
+  return       { type: "cpx51", cores: 16 };
 }
 
 export async function createServer(

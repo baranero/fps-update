@@ -190,20 +190,22 @@ export function parseFds(content: string): FdsParseResult {
   return result;
 }
 
-// ─── Hetzner CX shared vCPU — tymczasowo do testów (EUR/h, Norymberga) ───────
+// ─── Hetzner CPX shared AMD EPYC — tymczasowo do testów (EUR/h, Norymberga) ──
 // TODO: przywrócić CCX po zatwierdzeniu limitu dedicated_core przez Hetzner
 const HETZNER_CCX: Record<string, { cores: number; eurPerHour: number }> = {
-  cx22: { cores: 2,  eurPerHour: 0.007 },
-  cx32: { cores: 4,  eurPerHour: 0.013 },
-  cx42: { cores: 8,  eurPerHour: 0.023 },
-  cx52: { cores: 16, eurPerHour: 0.046 },
+  cpx11: { cores: 2,  eurPerHour: 0.006 },
+  cpx21: { cores: 3,  eurPerHour: 0.011 },
+  cpx31: { cores: 4,  eurPerHour: 0.019 },
+  cpx41: { cores: 8,  eurPerHour: 0.035 },
+  cpx51: { cores: 16, eurPerHour: 0.067 },
 };
 
 function pickServerType(meshCount: number): string {
-  if (meshCount <= 2)  return "cx22";
-  if (meshCount <= 4)  return "cx32";
-  if (meshCount <= 8)  return "cx42";
-  return "cx52";
+  if (meshCount <= 2)  return "cpx11";
+  if (meshCount <= 3)  return "cpx21";
+  if (meshCount <= 4)  return "cpx31";
+  if (meshCount <= 8)  return "cpx41";
+  return "cpx51";
 }
 
 // ─── Algorytm kalibrowany z trzech punktów pomiarowych ───────────────────────
