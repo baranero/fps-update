@@ -14,14 +14,13 @@ export interface HetznerServer {
 }
 
 // Dobiera najmniejszy serwer mieszczący wymaganą liczbę rdzeni (meshCount × ompThreads).
+// TODO: przywrócić CCX po zatwierdzeniu limitu dedicated_core przez Hetzner
 export function selectServerType(totalCores: number): { type: string; cores: number } {
   const n = Math.max(1, totalCores);
-  if (n <= 2)  return { type: "ccx13", cores: 2  };
-  if (n <= 4)  return { type: "ccx23", cores: 4  };
-  if (n <= 8)  return { type: "ccx33", cores: 8  };
-  if (n <= 16) return { type: "ccx43", cores: 16 };
-  if (n <= 32) return { type: "ccx53", cores: 32 };
-  return       { type: "ccx63", cores: 48 };
+  if (n <= 2)  return { type: "cx22", cores: 2  };
+  if (n <= 4)  return { type: "cx32", cores: 4  };
+  if (n <= 8)  return { type: "cx42", cores: 8  };
+  return       { type: "cx52", cores: 16 };
 }
 
 export async function createServer(

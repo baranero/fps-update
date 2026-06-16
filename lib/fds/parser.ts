@@ -190,23 +190,20 @@ export function parseFds(content: string): FdsParseResult {
   return result;
 }
 
-// ─── Hetzner CCX dedicated vCPU — cennik 2025 (EUR/h, Norymberga) ────────────
+// ─── Hetzner CX shared vCPU — tymczasowo do testów (EUR/h, Norymberga) ───────
+// TODO: przywrócić CCX po zatwierdzeniu limitu dedicated_core przez Hetzner
 const HETZNER_CCX: Record<string, { cores: number; eurPerHour: number }> = {
-  ccx13: { cores: 2,  eurPerHour: 0.035 },
-  ccx23: { cores: 4,  eurPerHour: 0.069 },
-  ccx33: { cores: 8,  eurPerHour: 0.139 },
-  ccx43: { cores: 16, eurPerHour: 0.272 },
-  ccx53: { cores: 32, eurPerHour: 0.544 },
-  ccx63: { cores: 48, eurPerHour: 0.816 },
+  cx22: { cores: 2,  eurPerHour: 0.007 },
+  cx32: { cores: 4,  eurPerHour: 0.013 },
+  cx42: { cores: 8,  eurPerHour: 0.023 },
+  cx52: { cores: 16, eurPerHour: 0.046 },
 };
 
 function pickServerType(meshCount: number): string {
-  if (meshCount <= 2)  return "ccx13";
-  if (meshCount <= 4)  return "ccx23";
-  if (meshCount <= 8)  return "ccx33";
-  if (meshCount <= 16) return "ccx43";
-  if (meshCount <= 32) return "ccx53";
-  return "ccx63";
+  if (meshCount <= 2)  return "cx22";
+  if (meshCount <= 4)  return "cx32";
+  if (meshCount <= 8)  return "cx42";
+  return "cx52";
 }
 
 // ─── Algorytm kalibrowany z trzech punktów pomiarowych ───────────────────────
