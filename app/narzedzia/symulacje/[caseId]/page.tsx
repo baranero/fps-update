@@ -373,34 +373,39 @@ export default function JobStatusPage({
 
       {/* Postęp i logi */}
       {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
+        const isDone      = job.status === "done";
         const fdsProgress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
         const stats       = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
 
-        // Szacunek z wallHours gdy FDS jeszcze nie wysłał timestepów
+        // Czas trwania — dla done: od startu do zakończenia; dla running: od startu do teraz
         const elapsedSec = job.startedAt
-          ? (Date.now() - new Date(job.startedAt).getTime()) / 1000
+          ? ((isDone && job.completedAt ? new Date(job.completedAt) : new Date()).getTime()
+             - new Date(job.startedAt).getTime()) / 1000
           : null;
+
+        // Szacunek z wallHours gdy FDS jeszcze nie wysłał timestepów (tylko podczas running)
         const wallEstPct =
-          !fdsProgress && elapsedSec != null && job.wallHours > 0
+          !isDone && !fdsProgress && elapsedSec != null && job.wallHours > 0
             ? Math.min(90, (elapsedSec / (job.wallHours * 3600)) * 100)
             : null;
 
-        const displayPct  = fdsProgress?.pct ?? wallEstPct;
-        const isEstimate  = !fdsProgress && wallEstPct != null;
+        const displayPct = isDone ? 100 : (fdsProgress?.pct ?? wallEstPct);
+        const isEstimate = !isDone && !fdsProgress && wallEstPct != null;
 
         // Czas pozostały
         let remainingStr = "—";
-        if (fdsProgress && elapsedSec && fdsProgress.pct > 1) {
+        if (!isDone && fdsProgress && elapsedSec && fdsProgress.pct > 1) {
           const remSec = Math.max(0, Math.round(elapsedSec / fdsProgress.pct * (100 - fdsProgress.pct)));
           remainingStr = remSec < 60 ? `${remSec} s` : `${Math.ceil(remSec / 60)} min`;
-        } else if (wallEstPct && elapsedSec && wallEstPct > 1) {
+        } else if (!isDone && wallEstPct && elapsedSec && wallEstPct > 1) {
           const remSec = Math.max(0, Math.round(elapsedSec / wallEstPct * (100 - wallEstPct)));
           remainingStr = remSec < 60 ? `~${remSec} s` : `~${Math.ceil(remSec / 60)} min`;
         }
 
-        // Ostatnie linie logu do miniaturowego podglądu
+        // Ostatnie linie logu — filtruj tylko linie FDS (nie linie runnera "[HH:MM:SS]")
         const logTail = job.fdsLog
-          ? job.fdsLog.split("\n").filter(Boolean).slice(-6).join("\n")
+          ? job.fdsLog.split("\n").filter(l => l.trim() && !/^\[?\d{2}:\d{2}:\d{2}\]?/.test(l)).slice(-6).join("\n")
+            || job.fdsLog.split("\n").filter(Boolean).slice(-6).join("\n")
           : null;
 
         return (
@@ -432,13 +437,19 @@ export default function JobStatusPage({
                   {[
                     {
                       label: "Czas trwania",
-                      value: elapsed(job.startedAt ?? job.dispatchedAt),
+                      value: elapsedSec != null
+                        ? elapsedSec < 60 ? `${Math.round(elapsedSec)} s`
+                          : elapsedSec < 3600 ? `${Math.floor(elapsedSec / 60)} min`
+                          : `${(elapsedSec / 3600).toFixed(1)} h`
+                        : "—",
                     },
                     {
                       label: "Postęp symulacji",
-                      value: fdsProgress
-                        ? `${fdsProgress.currentTime.toFixed(2)} / ${job.tEnd} s`
-                        : job.status === "running" ? "inicjalizacja FDS…" : "—",
+                      value: isDone
+                        ? `${job.tEnd} / ${job.tEnd} s`
+                        : fdsProgress
+                          ? `${fdsProgress.currentTime.toFixed(2)} / ${job.tEnd} s`
+                          : job.status === "running" ? "inicjalizacja FDS…" : "—",
                     },
                     {
                       label: isEstimate ? "Wykonano (szac.)" : "Wykonano",
@@ -446,7 +457,7 @@ export default function JobStatusPage({
                     },
                     {
                       label: "Pozostało",
-                      value: job.status === "done" ? "zakończono" : remainingStr,
+                      value: isDone ? "zakończono" : remainingStr,
                     },
                   ].map((item) => (
                     <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 px-4 py-3">
@@ -461,7 +472,7 @@ export default function JobStatusPage({
                   <div>
                     <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${fdsProgress ? "bg-amber-500" : "bg-slate-400"}`}
+                        className={`h-full rounded-full transition-all duration-700 ${isDone ? "bg-green-500" : fdsProgress ? "bg-amber-500" : "bg-slate-400"}`}
                         style={{ width: `${displayPct}%` }}
                       />
                     </div>
