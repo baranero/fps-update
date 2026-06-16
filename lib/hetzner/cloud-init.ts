@@ -44,7 +44,11 @@ notify() {
 
 on_exit() {
   local code=$?
-  [ $code -ne 0 ] && notify "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
+  if [ $code -ne 0 ]; then
+    log "=== Script exited with error: $code ==="
+    send_log 2>/dev/null || true
+    notify "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
+  fi
 }
 trap on_exit EXIT
 
@@ -124,6 +128,7 @@ set -eo pipefail
 
 kill $LOG_PID 2>/dev/null || true
 log "FDS finished (exit: $FDS_EXIT)"
+send_log
 
 # ── Upload wyników ────────────────────────────────────────────────────────────
 log "Uploading results..."
@@ -152,8 +157,9 @@ done
 # ── Powiadomienie ─────────────────────────────────────────────────────────────
 STATUS="done"
 [ "$FDS_EXIT" -ne 0 ] && STATUS="failed"
-notify "{\\\"status\\\":\\\"$STATUS\\\",\\\"exitCode\\\":$FDS_EXIT}"
 log "=== Job $STATUS ==="
+send_log
+notify "{\\\"status\\\":\\\"$STATUS\\\",\\\"exitCode\\\":$FDS_EXIT}"
 
 # ── Self-delete ───────────────────────────────────────────────────────────────
 INSTANCE_ID=$(curl -sf http://169.254.169.254/hetzner/v1/metadata/instance-id || echo "")
