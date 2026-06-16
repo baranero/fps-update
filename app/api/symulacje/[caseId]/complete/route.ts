@@ -15,11 +15,10 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode, log, append } = body as {
+  const { status, exitCode, log } = body as {
     status: string;
     exitCode?: number;
     log?: string;
-    append?: boolean;
   };
 
   const supabase = createAdminClient();
@@ -28,13 +27,7 @@ export async function POST(
 
   if (log) {
     try {
-      const newData = Buffer.from(log, "base64").toString("utf8");
-      if (append) {
-        // Atomyczne dopisanie — bez race condition
-        await supabase.rpc("append_fds_log", { p_case_id: caseId, p_chunk: newData });
-      } else {
-        updates.fds_log = newData;
-      }
+      updates.fds_log = Buffer.from(log, "base64").toString("utf8");
     } catch { /* ignore */ }
   }
 
