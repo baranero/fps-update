@@ -95,7 +95,8 @@ function fileType(name: string): string {
 }
 
 function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime: number } | null {
-  const matches = Array.from(log.matchAll(/Total Time:\s+([\d.E+\-]+)\s*s/g));
+  // FDS stdout (mpiexec): "Time Step:   N, Simulation Time:   X.XX s"
+  const matches = Array.from(log.matchAll(/Simulation Time:\s*([\d.E+\-]+)\s*s/g));
   if (!matches.length || !tEnd) return null;
   const currentTime = parseFloat(matches[matches.length - 1][1]);
   if (isNaN(currentTime)) return null;
@@ -119,20 +120,26 @@ function parseFdsStats(log: string): FdsStats {
   const chid      = log.match(/Job ID string\s*:\s*(.+)/)?.[1]?.trim() ?? null;
   const startTime = log.match(/Current Date\s*:\s*(.+)/)?.[1]?.trim() ?? null;
 
-  const stepMatches = Array.from(
-    log.matchAll(/Step Size:\s*([\d.E+\-]+)\s*s,\s*Total Time:\s*([\d.E+\-]+)\s*s,\s*Ite Rate\/Proc:\s*([\d.E+\-nan]+)/g)
+  // "Time Step:   N, Simulation Time:   X.XX s" — główny format stdout mpiexec
+  const tsMatches = Array.from(
+    log.matchAll(/Time Step:\s*(\d+),\s*Simulation Time:\s*([\d.E+\-]+)\s*s/g)
   );
-  const last = stepMatches[stepMatches.length - 1];
-  const stepSize   = last ? parseFloat(last[1]) : null;
-  const currentTime = last ? parseFloat(last[2]) : null;
-  const iteRate    = last ? last[3] : null;
+  const lastTs      = tsMatches[tsMatches.length - 1];
+  const currentStep = lastTs ? parseInt(lastTs[1]) : null;
+  const currentTime = lastTs ? parseFloat(lastTs[2]) : null;
 
-  const stepNums = Array.from(log.matchAll(/Time Step\s+(\d+)/g));
-  const currentStep = stepNums.length ? parseInt(stepNums[stepNums.length - 1][1]) : null;
+  // "Step Size: X s, Total Time: Y s, Ite Rate/Proc: Z" — format szczegółowy (plik .out per mesh)
+  const detailMatches = Array.from(
+    log.matchAll(/Step Size:\s*([\d.E+\-]+)\s*s[^]*?Ite Rate\/Proc:\s*([\d.E+\-nan]+)/g)
+  );
+  const lastDetail = detailMatches[detailMatches.length - 1];
+  const stepSize   = lastDetail ? parseFloat(lastDetail[1]) : null;
+  const iteRate    = lastDetail ? lastDetail[2] : null;
 
-  const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,]+)/g));
+  // "Number of Grid Cells   16384" lub "Number of Grid Cells  16,384"
+  const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,\s]+)/g));
   const totalCells = meshLines.length
-    ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/,/g, "")), 0)
+    ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/[\s,]/g, "")), 0)
     : null;
   const meshCount = meshLines.length || null;
 
@@ -181,7 +188,7 @@ export default function JobStatusPage({
     intervalRef.current = setInterval(() => {
       setTick((t) => t + 1);
       fetchStatus();
-    }, 10_000);
+    }, 3_000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
@@ -416,7 +423,7 @@ export default function JobStatusPage({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Postęp obliczeń</span>
                 {job.status === "running" && (
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 15 s</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 5 s</span>
                 )}
               </div>
               <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-semibold">

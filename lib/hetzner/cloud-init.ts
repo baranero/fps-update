@@ -112,8 +112,8 @@ log "Input ready: $(wc -c < "$FILE_NAME") bytes"
 notify '{"status":"running"}'
 log "Starting FDS: $NCORES MPI processes..."
 
-# Wysyłaj logi co 15s w tle
-(while true; do sleep 15; send_log; done) &
+# Wysyłaj logi co 5s w tle
+(while true; do sleep 5; send_log; done) &
 LOG_PID=$!
 
 export OMP_NUM_THREADS="$OMP_THREADS"
