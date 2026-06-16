@@ -130,19 +130,27 @@ send_log
 log "Uploading results..."
 RESULTS_PREFIX="results/$CASE_ID"
 
+url_encode() {
+  python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$1"
+}
+
 upload_file() {
   local f="$1"
   [ -f "$f" ] || return 0
-  log "  → $(basename "$f")"
+  local bname
+  bname=$(basename "$f")
+  local encoded
+  encoded=$(url_encode "$bname")
+  log "  → $bname"
   curl -sf -X PUT \\
     -H "Authorization: Bearer $SUPABASE_KEY" \\
     -H "Content-Type: application/octet-stream" \\
-    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$(basename "$f")" \\
+    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$encoded" \\
     --data-binary "@$f" > /dev/null || \\
   curl -sf -X POST \\
     -H "Authorization: Bearer $SUPABASE_KEY" \\
     -H "Content-Type: application/octet-stream" \\
-    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$(basename "$f")" \\
+    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$encoded" \\
     --data-binary "@$f" > /dev/null || true
 }
 

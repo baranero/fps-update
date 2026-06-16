@@ -368,21 +368,33 @@ export default function SymulacjePage() {
           {/* Estimate card */}
           <div className="rounded-2xl border border-amber-200/60 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/20 p-6">
             <h2 className="text-xs font-medium text-amber-700 dark:text-amber-500 mb-3">Szacunkowa wycena</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Czas obliczeń (zegar ścienny)</p>
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Serwer obliczeniowy</p>
+                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200 uppercase">
+                  {estimate.serverType}
+                </p>
+                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
+                  {estimate.serverCores} dedykowane vCPU (AMD EPYC)
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Szacowany czas obliczeń</p>
                 <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
                   {formatHours(estimate.wallHours)}
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">przy {parseResult.totalCores} rdzeniach obliczeniowych</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">vCPU-hours</p>
+                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Krok czasowy Δt</p>
                 <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
-                  {estimate.vcpuHours.toFixed(1)}
+                  {estimate.dtEstimate < 0.01
+                    ? `${(estimate.dtEstimate * 1000).toFixed(1)} ms`
+                    : `${estimate.dtEstimate.toFixed(3)} s`}
                 </p>
                 <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
-                  ≈ {estimate.cloudCostEur.toFixed(1)} € koszt chmury
+                  {estimate.cellDimSource === "file"
+                    ? `z pliku (dx=${(parseResult.minCellDim! * 100).toFixed(1)} cm)`
+                    : "założono dx = 10 cm"}
                 </p>
               </div>
               <div>
@@ -390,11 +402,11 @@ export default function SymulacjePage() {
                 <p className="text-3xl font-bold text-amber-900 dark:text-amber-200">
                   {estimate.price.toLocaleString("pl-PL")} zł
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">cena zawiera konfigurację i weryfikację</p>
+                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">zawiera obsługę i weryfikację</p>
               </div>
             </div>
             <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
-              Cena obliczona na podstawie liczby komórek i czasu symulacji. Potwierdzamy ją przed uruchomieniem obliczeń.
+              Czas obliczeń szacowany z warunku CFL i wydajności ~240&nbsp;000 cell-timesteps/s per rdzeń (AMD EPYC). Koszt = czas × cennik Hetzner × 2. Potwierdzamy przed uruchomieniem.
             </p>
           </div>
 

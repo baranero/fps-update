@@ -13,14 +13,15 @@ export interface HetznerServer {
   ipv4: string;
 }
 
-// Dobiera serwer na podstawie łącznej liczby wymaganych rdzeni (meshCount × ompThreads).
-// ccx33=8 vCPU, ccx53=32 vCPU, ccx63=48 vCPU — dedykowane AMD EPYC.
+// Dobiera najmniejszy serwer mieszczący wymaganą liczbę rdzeni (meshCount × ompThreads).
 export function selectServerType(totalCores: number): { type: string; cores: number } {
   const n = Math.max(1, totalCores);
-  if (n <= 8)  return { type: "ccx33", cores: n };
-  if (n <= 32) return { type: "ccx53", cores: n };
-  if (n <= 48) return { type: "ccx63", cores: n };
-  return { type: "ccx63", cores: 48 };
+  if (n <= 2)  return { type: "ccx13", cores: 2  };
+  if (n <= 4)  return { type: "ccx23", cores: 4  };
+  if (n <= 8)  return { type: "ccx33", cores: 8  };
+  if (n <= 16) return { type: "ccx43", cores: 16 };
+  if (n <= 32) return { type: "ccx53", cores: 32 };
+  return       { type: "ccx63", cores: 48 };
 }
 
 export async function createServer(

@@ -1,13 +1,14 @@
 export interface FdsMeshDetail {
   ijk: [number, number, number];
   cells: number;
+  minCellDim: number | null; // najmniejszy wymiar komórki [m], null gdy brak XB
 }
 
 export interface FdsParseResult {
   chid: string | null;
   meshCount: number;
-  ompThreads: number;   // OMP_NUM_THREADS z &MISC (domyślnie 1)
-  totalCores: number;   // meshCount × ompThreads
+  ompThreads: number;
+  totalCores: number;
   totalCells: number;
   meshDetails: FdsMeshDetail[];
   tEnd: number | null;
@@ -15,6 +16,7 @@ export interface FdsParseResult {
   obstCount: number;
   ventCount: number;
   devcCount: number;
+  minCellDim: number | null; // min z wszystkich siatek [m], null gdy brak XB
   valid: boolean;
   error?: string;
 }
@@ -24,8 +26,14 @@ export interface FdsEstimate {
   wallHours: number;
   price: number;
   cloudCostEur: number;
+  serverType: string;
+  serverCores: number;
+  dtEstimate: number;       // szacowany krok czasowy Δt [s]
+  cellDimSource: "file" | "assumed"; // czy minCellDim pochodzi z XB czy założony
   complexity: "mała" | "średnia" | "duża" | "bardzo duża";
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function parseNamelists(content: string): Array<{ name: string; body: string }> {
   const cleaned = content
@@ -62,6 +70,15 @@ function getParamArray(body: string, key: string): number[] | null {
   return nums.length > 0 ? nums : null;
 }
 
+// XB może mieć wartości ujemne i notację naukową — dedykowany parser
+function getMeshXB(body: string): [number, number, number, number, number, number] | null {
+  const m = body.match(/\bXB\s*=\s*([-\d.eE+\s,]+)/i);
+  if (!m) return null;
+  const nums = m[1].split(",").map((s) => parseFloat(s.trim())).filter((n) => !isNaN(n));
+  if (nums.length < 6) return null;
+  return [nums[0], nums[1], nums[2], nums[3], nums[4], nums[5]];
+}
+
 function getStringParam(body: string, key: string): string | null {
   const regex = new RegExp(`\\b${key}\\s*=\\s*['"]([^'"]+)['"]`, "i");
   const m = body.match(regex);
@@ -81,6 +98,7 @@ export function parseFds(content: string): FdsParseResult {
     obstCount: 0,
     ventCount: 0,
     devcCount: 0,
+    minCellDim: null,
     valid: false,
   };
 
@@ -112,7 +130,20 @@ export function parseFds(content: string): FdsParseResult {
         if (ijk && ijk.length >= 3) {
           const cells = ijk[0] * ijk[1] * ijk[2];
           result.totalCells += cells;
-          result.meshDetails.push({ ijk: [ijk[0], ijk[1], ijk[2]], cells });
+
+          let minDim: number | null = null;
+          const xb = getMeshXB(nl.body);
+          if (xb) {
+            const dx = Math.abs(xb[1] - xb[0]) / ijk[0];
+            const dy = Math.abs(xb[3] - xb[2]) / ijk[1];
+            const dz = Math.abs(xb[5] - xb[4]) / ijk[2];
+            minDim = Math.min(dx, dy, dz);
+            if (result.minCellDim === null || minDim < result.minCellDim) {
+              result.minCellDim = minDim;
+            }
+          }
+
+          result.meshDetails.push({ ijk: [ijk[0], ijk[1], ijk[2]], cells, minCellDim: minDim });
         }
         break;
       }
@@ -159,61 +190,87 @@ export function parseFds(content: string): FdsParseResult {
   return result;
 }
 
-// ─── Stałe kalibracyjne ──────────────────────────────────────────────────────
-// Źródło: rzeczywisty job na CloudHPC (n2highcpu-32):
-//   1,1M komórek × 720 s → 557,8 vCPU-h → €44,5
+// ─── Hetzner CCX dedicated vCPU — cennik 2025 (EUR/h, Norymberga) ────────────
+const HETZNER_CCX: Record<string, { cores: number; eurPerHour: number }> = {
+  ccx13: { cores: 2,  eurPerHour: 0.035 },
+  ccx23: { cores: 4,  eurPerHour: 0.069 },
+  ccx33: { cores: 8,  eurPerHour: 0.139 },
+  ccx43: { cores: 16, eurPerHour: 0.272 },
+  ccx53: { cores: 32, eurPerHour: 0.544 },
+  ccx63: { cores: 48, eurPerHour: 0.816 },
+};
+
+function pickServerType(meshCount: number): string {
+  if (meshCount <= 2)  return "ccx13";
+  if (meshCount <= 4)  return "ccx23";
+  if (meshCount <= 8)  return "ccx33";
+  if (meshCount <= 16) return "ccx43";
+  if (meshCount <= 32) return "ccx53";
+  return "ccx63";
+}
+
+// ─── Algorytm kalibrowany z trzech punktów pomiarowych ───────────────────────
 //
-// Stała K [vCPU-h / (1M komórek × 300 s)]:
-//   K = 557,8 / (1,1 × 720/300) = 557,8 / 2,64 ≈ 211,3
-const VCPU_H_PER_1M_300S = 211.3;
+// Fundament: wydajność FDS na Hetzner CCX (AMD EPYC) wynosi ~240 000
+// cell-timesteps na sekundę na rdzeń MPI.
+//
+// Kalibracja z danych rzeczywistych:
+//   test.fds  (Hetzner):    16k  komórek, 60s, dt=0.019s, 1 rdzeń → 3.5 min → 246k ct/s
+//   model 15.3M (local):   15.3M komórek, 1200s, dt=0.016s, 15 proc → 91h → 234k ct/s
+//   CloudHPC 1.33M (Google): 1.33M, 720s, 32 proc → 17.43h → ~240k ct/s przy dt=0.002s
+//
+// Krok czasowy Δt wyznaczany z warunku CFL:
+//   dt = CFL × min_dx / V_fire   (CFL=0.8, V_fire=5 m/s dla typowego pożaru)
+//
+// Gdy XB niedostępne w pliku: zakładamy min_dx = 10 cm (typowe w inżynierii pożarowej).
 
-// Liczba rdzeni standardowej instancji (do przeliczenia na czas zegarowy)
-const CORES = 32;
-
-// Stawka za vCPU-h w EUR (cel: nieco taniej niż CloudHPC ~€0,08)
-const EUR_PER_VCPU_H = 0.06;
-
-// Kurs EUR/PLN
-const EUR_PLN = 4.3;
-// ─────────────────────────────────────────────────────────────────────────────
+const THROUGHPUT    = 240_000; // cell-timesteps/s per rdzeń MPI (Hetzner CCX)
+const FIRE_VEL      = 5.0;     // m/s — zakładana prędkość charakterystyczna przepływu
+const CFL_FACTOR    = 0.8;     // współczynnik CFL (domyślny w FDS)
+const DEFAULT_DX    = 0.10;    // m — zakładany rozmiar komórki gdy brak XB
+const MARKUP        = 2;       // 100% marża na koszcie serwera
+const EUR_PLN       = 4.3;
+const OVERHEAD_H    = 10 / 60; // ~10 min: boot + upload wyników + auto-delete
 
 export function estimateCost(parsed: FdsParseResult): FdsEstimate {
-  const cells = parsed.totalCells || 0;
-  const tEnd = parsed.tEnd || 300;
+  const cells     = parsed.totalCells || 1;
+  const tEnd      = parsed.tEnd || 300;
   const meshCount = parsed.meshCount || 1;
-  const totalCores = parsed.totalCores || meshCount;
 
-  // 1. Bazowe vCPU-h z kalibracji
-  const baseVcpuH = (cells / 1_000_000) * (tEnd / 300) * VCPU_H_PER_1M_300S;
+  // 1. Serwer
+  const serverType = pickServerType(meshCount);
+  const server     = HETZNER_CCX[serverType];
 
-  // 2. Narzut komunikacyjny przy wielu siatkach (+5% za każdą dodatkową)
-  const meshFactor = 1 + Math.max(0, meshCount - 1) * 0.05;
+  // 2. Krok czasowy Δt z warunku CFL
+  //    Gdy XB dostępne: używamy rzeczywistego min_dx
+  //    Gdy nie: zakładamy DEFAULT_DX = 10 cm
+  const cellDimSource: "file" | "assumed" = parsed.minCellDim ? "file" : "assumed";
+  const minDx   = parsed.minCellDim ?? DEFAULT_DX;
+  const dtEst   = Math.max(0.001, Math.min(CFL_FACTOR * minDx / FIRE_VEL, 0.5));
+  const steps   = tEnd / dtEst;
 
-  const vcpuHours = Math.max(1, baseVcpuH * meshFactor);
+  // 3. Czas zegarowy
+  //    wallH = kroki × komórek_na_rdzeń × narzut_MPI / THROUGHPUT / 3600
+  const cellsPerProc = cells / meshCount;
+  const mpiOverhead  = 1 + 0.024 * Math.max(0, meshCount - 1);
+  const wallHours    = Math.max(1 / 60, (steps * cellsPerProc * mpiOverhead) / THROUGHPUT / 3600);
+  const billedHours  = wallHours + OVERHEAD_H;
 
-  // 3. Czas zegarowy — na faktycznej liczbie rdzeni z pliku (meshCount × ompThreads)
-  const effectiveCores = Math.max(totalCores, CORES);
-  const wallHours = vcpuHours / effectiveCores;
-
-  // 4. Koszt chmury w EUR i PLN
-  const cloudCostEur = vcpuHours * EUR_PER_VCPU_H;
-  const cloudCostPln = cloudCostEur * EUR_PLN;
-
-  // 5. Minimalna cena według rozmiaru modelu
-  let minimum: number;
-  if (cells < 500_000) minimum = 250;
-  else if (cells < 2_000_000) minimum = 400;
-  else if (cells < 5_000_000) minimum = 700;
-  else minimum = 1_200;
-
-  // 6. Cena końcowa: max(koszt chmury, minimum), zaokrąglona do 10 zł
-  const price = Math.round(Math.max(cloudCostPln, minimum) / 10) * 10;
+  // 4. Koszty
+  const cloudCostEur = billedHours * server.eurPerHour;
+  const vcpuHours    = billedHours * server.cores;
+  const price        = Math.max(1, Math.round(cloudCostEur * MARKUP * EUR_PLN));
 
   let complexity: FdsEstimate["complexity"];
-  if (cells < 500_000) complexity = "mała";
+  if (cells < 500_000)        complexity = "mała";
   else if (cells < 2_000_000) complexity = "średnia";
   else if (cells < 5_000_000) complexity = "duża";
-  else complexity = "bardzo duża";
+  else                        complexity = "bardzo duża";
 
-  return { vcpuHours, wallHours, price, cloudCostEur, complexity };
+  return {
+    vcpuHours, wallHours, price, cloudCostEur,
+    serverType, serverCores: server.cores,
+    dtEstimate: dtEst, cellDimSource,
+    complexity,
+  };
 }

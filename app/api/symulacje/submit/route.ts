@@ -23,8 +23,9 @@ function generateCaseId(): string {
   return `FDS-${ts}-${rnd}`;
 }
 
-function emailUser(to: string, name: string, caseId: string, fileName: string, price: number, vcpuHours: number, appUrl: string) {
+function emailUser(to: string, name: string, caseId: string, fileName: string, price: number, wallHours: number, serverType: string, appUrl: string) {
   const statusUrl = `${appUrl}/narzedzia/symulacje/${caseId}`;
+  const wallStr = wallHours < 1 ? `${Math.round(wallHours * 60)} min` : `${wallHours.toFixed(1)} h`;
   return {
     from: "FP Solutions <noreply@fp-solutions.pl>",
     to,
@@ -44,7 +45,8 @@ function emailUser(to: string, name: string, caseId: string, fileName: string, p
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <tr><td style="padding:6px 0;color:#64748b;width:50%">Numer zlecenia</td><td style="font-weight:700;font-family:monospace">${caseId}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Plik</td><td style="font-weight:600">${fileName}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b">Szacowane vCPU-hours</td><td style="font-weight:600">${vcpuHours.toFixed(1)} h</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Serwer</td><td style="font-weight:600;text-transform:uppercase">${serverType}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Szacowany czas obliczeń</td><td style="font-weight:600">${wallStr}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Cena netto</td><td style="font-weight:700;color:#DC3545;font-size:15px">${price.toLocaleString("pl-PL")} zł</td></tr>
       </table>
     </div>
@@ -72,7 +74,8 @@ function emailAdmin(
   filePath: string,
   parsed: Record<string, unknown>,
   price: number,
-  vcpuHours: number,
+  serverType: string,
+  wallHours: number,
   appUrl: string
 ) {
   const statusUrl = `${appUrl}/narzedzia/symulacje/${caseId}`;
@@ -110,7 +113,8 @@ function emailAdmin(
 
     <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;margin:0 0 10px">Wycena</h3>
     <table style="font-size:13px;border-collapse:collapse">
-      <tr><td style="padding:4px 16px 4px 0;color:#64748b">vCPU-hours</td><td>${vcpuHours.toFixed(1)}</td></tr>
+      <tr><td style="padding:4px 16px 4px 0;color:#64748b">Serwer</td><td style="text-transform:uppercase">${serverType}</td></tr>
+      <tr><td style="padding:4px 16px 4px 0;color:#64748b">Czas obliczeń (est.)</td><td>${wallHours < 1 ? `${Math.round(wallHours * 60)} min` : `${wallHours.toFixed(1)} h`}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Cena netto</td><td style="font-weight:700;font-size:15px">${price.toLocaleString("pl-PL")} zł</td></tr>
     </table>
   </div>
@@ -226,8 +230,8 @@ export async function POST(req: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL ?? "biuro@fp-solutions.pl";
 
     await Promise.allSettled([
-      resend.emails.send(emailUser(email, name, caseId, file.name, estimate.price, estimate.vcpuHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
-      resend.emails.send(emailAdmin(adminEmail, caseId, name, email, notes, file.name, filePath, parsed, estimate.price, estimate.vcpuHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
+      resend.emails.send(emailUser(email, name, caseId, file.name, estimate.price, estimate.wallHours, estimate.serverType ?? "ccx33", process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
+      resend.emails.send(emailAdmin(adminEmail, caseId, name, email, notes, file.name, filePath, parsed, estimate.price, estimate.serverType ?? "ccx33", estimate.wallHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
     ]);
 
     // Dispatch Hetzner server
