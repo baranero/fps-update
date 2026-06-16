@@ -163,6 +163,19 @@ function formatSize(bytes: number | null): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function formatDt(s: number | null): string {
+  if (s === null) return "—";
+  if (s >= 1)    return `${s.toFixed(3)} s`;
+  if (s >= 0.01) return `${(s * 1000).toFixed(1)} ms`;
+  return `${(s * 1000).toFixed(2)} ms`;
+}
+
+function formatDuration(sec: number): string {
+  if (sec < 60)   return `${Math.round(sec)} s`;
+  if (sec < 3600) return `${Math.ceil(sec / 60)} min`;
+  return `${(sec / 3600).toFixed(1)} h`;
+}
+
 export default function JobStatusPage({
   params,
 }: {
@@ -504,25 +517,32 @@ export default function JobStatusPage({
                 )}
 
                 {/* Szczegóły FDS */}
-                {stats && (stats.version || stats.currentStep != null) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: "Wersja FDS",    value: stats.version ?? "—" },
-                      { label: "CHID",          value: stats.chid ?? "—" },
-                      { label: "Krok timestep", value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
-                      { label: "Δt kroku",      value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
-                      { label: "Prędkość",      value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} it/s` : "—" },
-                      { label: "Siatki MPI",    value: (stats.meshCount ?? job.meshCount) != null ? String(stats.meshCount ?? job.meshCount) : "—" },
-                      { label: "Komórki",       value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString("pl-PL") : "—" },
-                      { label: "Start FDS",     value: stats.startTime ?? "—" },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
-                        <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {stats && (stats.version || stats.currentStep != null || job.meshCount != null) && (() => {
+                  const estimatedTotalSec =
+                    !isDone && fdsProgress && elapsedSec && fdsProgress.pct > 2
+                      ? elapsedSec / (fdsProgress.pct / 100)
+                      : null;
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { label: "Wersja FDS",         value: stats.version ?? "—" },
+                        { label: "CHID",               value: stats.chid ?? "—" },
+                        { label: "Krok timestep",      value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
+                        { label: "Δt kroku",           value: formatDt(stats.stepSize) },
+                        { label: "Przewidywany czas",  value: isDone ? "zakończono" : estimatedTotalSec ? formatDuration(estimatedTotalSec) : "—" },
+                        { label: "Siatki MPI",         value: (stats.meshCount ?? job.meshCount) != null ? String(stats.meshCount ?? job.meshCount) : "—" },
+                        { label: "Komórki",            value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString("pl-PL") : "—" },
+                        { label: "Start FDS",          value: stats.startTime ?? "—" },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+                          <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* Podgląd ostatnich linii logu */}
                 {logTail && (
