@@ -30,12 +30,8 @@ export async function POST(
     try {
       const newData = Buffer.from(log, "base64").toString("utf8");
       if (append) {
-        const { data: current } = await supabase
-          .from("fds_submissions")
-          .select("fds_log")
-          .eq("case_id", caseId)
-          .single();
-        updates.fds_log = (current?.fds_log ?? "") + newData;
+        // Atomyczne dopisanie — bez race condition
+        await supabase.rpc("append_fds_log", { p_case_id: caseId, p_chunk: newData });
       } else {
         updates.fds_log = newData;
       }
