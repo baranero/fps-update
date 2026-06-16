@@ -50,6 +50,7 @@ export async function GET(
     status: data.status,
     fileName: data.file_name,
     totalCells: data.total_cells,
+    meshCount: data.mesh_count ?? null,
     tEnd: data.t_end,
     complexity: data.complexity,
     vcpuHours: data.vcpu_hours,

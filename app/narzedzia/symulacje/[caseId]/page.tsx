@@ -9,6 +9,7 @@ interface JobData {
   status: "pending" | "dispatched" | "running" | "done" | "failed";
   fileName: string;
   totalCells: number;
+  meshCount: number | null;
   tEnd: number;
   complexity: string;
   vcpuHours: number;
@@ -128,15 +129,24 @@ function parseFdsStats(log: string): FdsStats {
   const currentStep = lastTs ? parseInt(lastTs[1]) : null;
   const currentTime = lastTs ? parseFloat(lastTs[2]) : null;
 
-  // "Step Size: X s, Total Time: Y s, Ite Rate/Proc: Z" — format szczegółowy (plik .out per mesh)
-  const detailMatches = Array.from(
-    log.matchAll(/Step Size:\s*([\d.E+\-]+)\s*s[^]*?Ite Rate\/Proc:\s*([\d.E+\-nan]+)/g)
-  );
-  const lastDetail = detailMatches[detailMatches.length - 1];
-  const stepSize   = lastDetail ? parseFloat(lastDetail[1]) : null;
-  const iteRate    = lastDetail ? lastDetail[2] : null;
+  // Δt z różnicy między kolejnymi timestepami (FDS nie wypisuje Step Size do stdout w MPI)
+  let stepSize: number | null = null;
+  if (tsMatches.length >= 2) {
+    const prev = tsMatches[tsMatches.length - 2];
+    const last = tsMatches[tsMatches.length - 1];
+    const dTime  = parseFloat(last[2]) - parseFloat(prev[2]);
+    const dSteps = parseInt(last[1]) - parseInt(prev[1]);
+    if (dSteps > 0 && dTime > 0) stepSize = dTime / dSteps;
+  }
 
-  // "Number of Grid Cells   16384" lub "Number of Grid Cells  16,384"
+  // "Step Size:" z pliku .out (dostępny tylko w trybie single-mesh / -o flag)
+  const detailMatch = log.match(/Step Size:\s*([\d.E+\-]+)\s*s/);
+  if (detailMatch) stepSize = parseFloat(detailMatch[1]);
+
+  const iteRateMatch = log.match(/Ite Rate\/Proc:\s*([\d.E+\-nan]+)/);
+  const iteRate = iteRateMatch?.[1] ?? null;
+
+  // "Number of Grid Cells   16384"
   const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,\s]+)/g));
   const totalCells = meshLines.length
     ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/[\s,]/g, "")), 0)
@@ -502,8 +512,8 @@ export default function JobStatusPage({
                       { label: "Krok timestep", value: stats.currentStep != null ? `#${stats.currentStep}` : "—" },
                       { label: "Δt kroku",      value: stats.stepSize != null ? `${stats.stepSize.toExponential(2)} s` : "—" },
                       { label: "Prędkość",      value: stats.iteRate && stats.iteRate !== "nan" ? `${parseFloat(stats.iteRate).toFixed(1)} it/s` : "—" },
-                      { label: "Siatki MPI",    value: stats.meshCount != null ? String(stats.meshCount) : "—" },
-                      { label: "Komórki",       value: stats.totalCells != null ? stats.totalCells.toLocaleString("pl-PL") : "—" },
+                      { label: "Siatki MPI",    value: (stats.meshCount ?? job.meshCount) != null ? String(stats.meshCount ?? job.meshCount) : "—" },
+                      { label: "Komórki",       value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString("pl-PL") : "—" },
                       { label: "Start FDS",     value: stats.startTime ?? "—" },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
