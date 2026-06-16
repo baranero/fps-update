@@ -131,7 +131,7 @@ async function dispatchHetzner(
 ) {
   const supabase = createAdminClient();
   const totalCores = meshCount * ompThreads;
-  const { type: serverType, cores } = selectServerType(totalCores);
+  const { type: serverType, cores, location } = await selectServerType(totalCores);
 
   const userData = generateCloudInit({
     caseId,
@@ -147,7 +147,7 @@ async function dispatchHetzner(
     fdsDownloadUrl: process.env.FDS_DOWNLOAD_URL ?? "",
   });
 
-  const server = await createServer(caseId, serverType, userData);
+  const server = await createServer(caseId, serverType, location, userData);
 
   await supabase.from("fds_submissions").update({
     status: "dispatched",

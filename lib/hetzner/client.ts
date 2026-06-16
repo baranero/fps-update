@@ -13,20 +13,60 @@ export interface HetznerServer {
   ipv4: string;
 }
 
-// Dobiera najmniejszy serwer mieszczący wymaganą liczbę rdzeni (meshCount × ompThreads).
-// TODO: przywrócić CCX po zatwierdzeniu limitu dedicated_core przez Hetzner
-export function selectServerType(totalCores: number): { type: string; cores: number } {
+interface HetznerServerTypeRaw {
+  name: string;
+  cores: number;
+  cpu_type: string;       // "shared" | "dedicated"
+  architecture: string;   // "x86" | "arm"
+  deprecated: boolean;
+  prices: Array<{ location: string; price_hourly: { net: string } }>;
+}
+
+// Pyta Hetzner API o dostępne typy serwerów i wybiera najmniejszy pasujący.
+// Filtruje: tylko x86 shared (nie dedicated CCX, nie ARM CAX), nie deprecated.
+// TODO: gdy zostanie zatwierdzony limit dedicated_core — dodać "dedicated" do cpu_type
+export async function selectServerType(
+  totalCores: number,
+  location = process.env.HETZNER_LOCATION ?? "nbg1"
+): Promise<{ type: string; cores: number; location: string }> {
   const n = Math.max(1, totalCores);
-  if (n <= 2)  return { type: "cpx11", cores: 2  };
-  if (n <= 3)  return { type: "cpx21", cores: 3  };
-  if (n <= 4)  return { type: "cpx31", cores: 4  };
-  if (n <= 8)  return { type: "cpx41", cores: 8  };
-  return       { type: "cpx51", cores: 16 };
+
+  const res = await fetch(`${API}/server_types?per_page=50`, { headers: headers() });
+  if (!res.ok) throw new Error(`Hetzner server_types error: ${res.status}`);
+  const { server_types }: { server_types: HetznerServerTypeRaw[] } = await res.json();
+
+  const LOCATIONS = [location, "fsn1", "hel1", "nbg1"].filter(
+    (v, i, a) => a.indexOf(v) === i
+  );
+
+  for (const loc of LOCATIONS) {
+    const candidates = server_types
+      .filter(
+        (t) =>
+          !t.deprecated &&
+          t.architecture === "x86" &&
+          t.cpu_type === "shared" &&
+          t.cores >= n &&
+          t.prices.some((p) => p.location === loc)
+      )
+      .sort((a, b) => {
+        const price = (t: HetznerServerTypeRaw) =>
+          parseFloat(t.prices.find((p) => p.location === loc)?.price_hourly.net ?? "999");
+        return price(a) - price(b) || a.cores - b.cores;
+      });
+
+    if (candidates.length > 0) {
+      return { type: candidates[0].name, cores: candidates[0].cores, location: loc };
+    }
+  }
+
+  throw new Error(`Brak dostępnego serwera dla ${n} rdzeni w lokalizacjach: ${LOCATIONS.join(", ")}`);
 }
 
 export async function createServer(
   caseId: string,
   serverType: string,
+  location: string,
   userData: string
 ): Promise<HetznerServer> {
   const res = await fetch(`${API}/servers`, {
@@ -35,11 +75,10 @@ export async function createServer(
     body: JSON.stringify({
       name: `fds-${caseId.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`,
       server_type: serverType,
-      // Używamy snapshotu z pre-installed FDS jeśli dostępny, wpp. czysty Ubuntu
       ...(process.env.HETZNER_SNAPSHOT_ID
         ? { image: process.env.HETZNER_SNAPSHOT_ID }
         : { image: "ubuntu-22.04" }),
-      location: "nbg1",
+      location,
       user_data: userData,
       public_net: { enable_ipv4: true, enable_ipv6: false },
     }),
