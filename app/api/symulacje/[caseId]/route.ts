@@ -25,21 +25,26 @@ export async function GET(
   if (data.status === "done") {
     const { data: files } = await supabase.storage
       .from("fds-files")
-      .list(`results/${caseId}`);
+      .list(`results/${caseId}`, {
+        limit: 1000,
+        sortBy: { column: "name", order: "asc" },
+      });
 
     if (files && files.length > 0) {
       const urls = await Promise.all(
-        files.map(async (f) => {
-          const { data: signed } = await supabase.storage
-            .from("fds-files")
-            .createSignedUrl(`results/${caseId}/${f.name}`, 3600);
-          return {
-            name: f.name,
-            url: signed?.signedUrl ?? "",
-            size: (f.metadata?.size as number | undefined) ?? null,
-            createdAt: f.created_at ?? null,
-          };
-        })
+        files
+          .filter((f) => f.name !== ".emptyFolderPlaceholder")
+          .map(async (f) => {
+            const { data: signed } = await supabase.storage
+              .from("fds-files")
+              .createSignedUrl(`results/${caseId}/${f.name}`, 86400); // 24h
+            return {
+              name: f.name,
+              url: signed?.signedUrl ?? "",
+              size: (f.metadata?.size as number | undefined) ?? null,
+              createdAt: f.created_at ?? null,
+            };
+          })
       );
       results = urls.filter((u) => u.url);
     }

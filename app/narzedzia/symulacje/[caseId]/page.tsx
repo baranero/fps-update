@@ -244,11 +244,19 @@ export default function JobStatusPage({
   const toggleAll = () =>
     setSelected(allSelected ? new Set() : new Set(allFiles.map((f) => f.name)));
 
-  const downloadFile = (f: { name: string; url: string }) => {
-    const a = document.createElement("a");
-    a.href = f.url;
-    a.download = f.name;
-    a.click();
+  const downloadFile = async (f: { name: string; url: string }) => {
+    try {
+      const res = await fetch(f.url);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = f.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(f.url, "_blank");
+    }
   };
 
   const downloadZip = async (files: Array<{ name: string; url: string }>) => {

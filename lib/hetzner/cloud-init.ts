@@ -154,7 +154,7 @@ upload_file() {
     --data-binary "@$f" > /dev/null || true
 }
 
-for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 fds_output.log; do
+for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do
   upload_file "$f"
 done
 
