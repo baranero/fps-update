@@ -14,6 +14,7 @@ export interface HetznerServer {
 }
 
 interface HetznerServerTypeRaw {
+  id: number;
   name: string;
   cores: number;
   cpu_type: string;       // "shared" | "dedicated"
@@ -22,24 +23,40 @@ interface HetznerServerTypeRaw {
   prices: Array<{ location: string; price_hourly: { net: string } }>;
 }
 
-// Pyta Hetzner API o dostępne typy serwerów i wybiera najmniejszy pasujący.
-// Filtruje: tylko x86 shared (nie dedicated CCX, nie ARM CAX), nie deprecated.
-// TODO: gdy zostanie zatwierdzony limit dedicated_core — dodać "dedicated" do cpu_type
+interface HetznerDatacenter {
+  location: { name: string };
+  server_types: { available: number[] };
+}
+
+// Używa GET /datacenters (pole server_types.available) jako pewnego źródła dostępności,
+// zamiast polegać na prices[] w /server_types, które bywa rozbieżne z faktyczną możliwością tworzenia.
 export async function selectServerType(
   totalCores: number,
   location = process.env.HETZNER_LOCATION ?? "nbg1"
 ): Promise<{ type: string; cores: number; location: string }> {
   const n = Math.max(1, totalCores);
 
-  const res = await fetch(`${API}/server_types?per_page=50`, { headers: headers() });
-  if (!res.ok) throw new Error(`Hetzner server_types error: ${res.status}`);
-  const { server_types }: { server_types: HetznerServerTypeRaw[] } = await res.json();
-
   const LOCATIONS = [location, "fsn1", "hel1", "nbg1"].filter(
     (v, i, a) => a.indexOf(v) === i
   );
 
+  const [stRes, dcRes] = await Promise.all([
+    fetch(`${API}/server_types?per_page=100`, { headers: headers() }),
+    fetch(`${API}/datacenters?per_page=50`, { headers: headers() }),
+  ]);
+  if (!stRes.ok) throw new Error(`Hetzner server_types error: ${stRes.status}`);
+  if (!dcRes.ok) throw new Error(`Hetzner datacenters error: ${dcRes.status}`);
+
+  const { server_types }: { server_types: HetznerServerTypeRaw[] } = await stRes.json();
+  const { datacenters }: { datacenters: HetznerDatacenter[] } = await dcRes.json();
+
   for (const loc of LOCATIONS) {
+    const availableIds = new Set<number>(
+      datacenters
+        .filter((dc) => dc.location.name === loc)
+        .flatMap((dc) => dc.server_types.available)
+    );
+
     const candidates = server_types
       .filter(
         (t) =>
@@ -47,7 +64,7 @@ export async function selectServerType(
           t.architecture === "x86" &&
           t.cpu_type === "shared" &&
           t.cores >= n &&
-          t.prices.some((p) => p.location === loc)
+          availableIds.has(t.id)
       )
       .sort((a, b) => {
         const price = (t: HetznerServerTypeRaw) =>

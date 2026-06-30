@@ -145,6 +145,29 @@ export default function Step1({ data, onChange, allowedBuildingTypes }: Step1Pro
             </div>
           )}
 
+          {/* CNBOP inapplicability warning */}
+          {toNum(data.buildingHeightValue) > 0 && (
+            (data.buildingHeightGroup === "WW") ||
+            (data.buildingHeightGroup === "W" && !["ZL_IV", "PM"].includes(data.categoryZL))
+          ) && (
+            <div className="rounded-xl border border-red-300 dark:border-red-700/50 bg-red-50 dark:bg-red-950/30 p-4 md:p-5 flex items-start gap-3.5 animate-fade-in">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40 mt-0.5">
+                <AlertTriangleIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                  Wytyczne CNBOP-PIB W-0003:2016 nie mają tu zastosowania
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-400 leading-relaxed">
+                  Klatki schodowe w budynku{" "}
+                  {data.buildingHeightGroup === "WW" ? "wysokościowym (WW)" : `wysokim (W) kategorii ${data.categoryZL.replace("_", " ")}`}{" "}
+                  powinny być wyposażone w urządzenia zapobiegające zadymieniu wg odrębnych przepisów{" "}
+                  (§ 245 WT, rozdz. 1 CNBOP). Obliczenia na niniejszym kalkulatorze mają charakter poglądowy.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Stairwell enclosure */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { listResults, signedResultUrl } from "@/lib/hetzner/storage";
 
 export async function GET(
   _req: NextRequest,
@@ -20,33 +21,19 @@ export async function GET(
     return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
   }
 
-  // Jeśli done — wygeneruj signed URLs dla plików wynikowych
+  // Jeśli done — wygeneruj signed URLs dla plików wynikowych z Hetzner Object Storage
   let results: Array<{ name: string; url: string }> | null = null;
   if (data.status === "done") {
-    const { data: files } = await supabase.storage
-      .from("fds-files")
-      .list(`results/${caseId}`, {
-        limit: 1000,
-        sortBy: { column: "name", order: "asc" },
-      });
-
-    if (files && files.length > 0) {
-      const urls = await Promise.all(
-        files
-          .filter((f) => f.name !== ".emptyFolderPlaceholder")
-          .map(async (f) => {
-            const { data: signed } = await supabase.storage
-              .from("fds-files")
-              .createSignedUrl(`results/${caseId}/${f.name}`, 86400); // 24h
-            return {
-              name: f.name,
-              url: signed?.signedUrl ?? "",
-              size: (f.metadata?.size as number | undefined) ?? null,
-              createdAt: f.created_at ?? null,
-            };
-          })
+    const files = await listResults(caseId);
+    if (files.length > 0) {
+      results = await Promise.all(
+        files.map(async (f) => ({
+          name: f.Key!.split("/").pop()!,
+          url: await signedResultUrl(f.Key!),
+          size: f.Size ?? null,
+          createdAt: f.LastModified?.toISOString() ?? null,
+        }))
       );
-      results = urls.filter((u) => u.url);
     }
   }
 

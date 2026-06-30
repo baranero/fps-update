@@ -145,6 +145,11 @@ async function dispatchHetzner(
     webhookSecret: process.env.WEBHOOK_SECRET ?? "",
     hetznerToken: process.env.HETZNER_API_TOKEN ?? "",
     fdsDownloadUrl: process.env.FDS_DOWNLOAD_URL ?? "",
+    storageAccessKey: process.env.HETZNER_STORAGE_ACCESS_KEY ?? "",
+    storageSecretKey: process.env.HETZNER_STORAGE_SECRET_KEY ?? "",
+    storageBucket: process.env.HETZNER_STORAGE_BUCKET ?? "",
+    storageEndpoint: process.env.HETZNER_STORAGE_ENDPOINT ?? "",
+    storageRegion: process.env.HETZNER_STORAGE_REGION ?? "eu-central-003",
   });
 
   const server = await createServer(caseId, serverType, location, userData);

@@ -219,22 +219,11 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                   ))}
                 </div>
 
-                {/* PN norm note for series >2 */}
-                {data.compArrangement === "series" && (() => {
-                  const count = data.compGroups[0]?.openings.length ?? 0;
-                  return count > 2 ? (
-                    <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 p-3">
-                      <AlertTriangleIcon className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
-                        Dla więcej niż 2 otworów w szeregu wytyczne CNBOP nie mają zastosowania — obliczenia prowadzone wg <strong>PN-B-02877-4:2020-07</strong> (ta sama formuła hydrauliczna).
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                      Do 2 otworów — wytyczne CNBOP-PIB W-0003:2016. Powyżej — PN-B-02877-4:2020-07.
-                    </p>
-                  );
-                })()}
+                {data.compArrangement === "series" && (
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Efektywna pow. szeregu = najmniejszy z otworów (wg CNBOP-PIB W-0003:2016)
+                  </p>
+                )}
 
                 {/* Opening rows */}
                 {(() => {
@@ -380,8 +369,8 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                   <UnitInput
                     label="Pow. największego otwartego skrzydła (A_drzwi)"
                     unit="m²"
-                    value={data.openDoorArea}
-                    onChange={(val) => setData(p => ({ ...p, openDoorArea: val }))}
+                    value={data.Adrzwi}
+                    onChange={(val) => setData(p => ({ ...p, Adrzwi: val }))}
                     placeholder="np. 1,80"
                     required
                   />

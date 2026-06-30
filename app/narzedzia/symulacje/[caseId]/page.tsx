@@ -28,35 +28,35 @@ const STATUS_CONFIG = {
     label: "Przyjęte",
     desc: "Zlecenie zapisane, uruchamiam serwer obliczeniowy…",
     color: "text-slate-500",
-    bg: "bg-slate-100 dark:bg-slate-800",
+    bg: "bg-slate-100",
     dot: "bg-slate-400 animate-pulse",
   },
   dispatched: {
     label: "Serwer uruchamiany",
     desc: "Maszyna obliczeniowa startuje, instalacja FDS…",
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-950/30",
+    color: "text-blue-600",
+    bg: "bg-blue-50",
     dot: "bg-blue-500 animate-pulse",
   },
   running: {
     label: "Obliczenia w toku",
     desc: "FDS działa na serwerze chmurowym.",
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-950/30",
+    color: "text-amber-600",
+    bg: "bg-amber-50",
     dot: "bg-amber-500 animate-pulse",
   },
   done: {
     label: "Gotowe",
     desc: "Obliczenia zakończone. Wyniki dostępne poniżej.",
-    color: "text-green-600 dark:text-green-400",
-    bg: "bg-green-50 dark:bg-green-950/30",
+    color: "text-green-600",
+    bg: "bg-green-50",
     dot: "bg-green-500",
   },
   failed: {
     label: "Błąd",
     desc: "Obliczenia zakończyły się błędem. Skontaktuj się z nami.",
-    color: "text-red-600 dark:text-red-400",
-    bg: "bg-red-50 dark:bg-red-950/30",
+    color: "text-red-600",
+    bg: "bg-red-50",
     dot: "bg-red-500",
   },
 };
@@ -96,7 +96,6 @@ function fileType(name: string): string {
 }
 
 function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime: number } | null {
-  // FDS stdout (mpiexec): "Time Step:   N, Simulation Time:   X.XX s"
   const matches = Array.from(log.matchAll(/Simulation Time:\s*([\d.E+\-]+)\s*s/g));
   if (!matches.length || !tEnd) return null;
   const currentTime = parseFloat(matches[matches.length - 1][1]);
@@ -121,7 +120,6 @@ function parseFdsStats(log: string): FdsStats {
   const chid      = log.match(/Job ID string\s*:\s*(.+)/)?.[1]?.trim() ?? null;
   const startTime = log.match(/Current Date\s*:\s*(.+)/)?.[1]?.trim() ?? null;
 
-  // "Time Step:   N, Simulation Time:   X.XX s" — główny format stdout mpiexec
   const tsMatches = Array.from(
     log.matchAll(/Time Step:\s*(\d+),\s*Simulation Time:\s*([\d.E+\-]+)\s*s/g)
   );
@@ -129,7 +127,6 @@ function parseFdsStats(log: string): FdsStats {
   const currentStep = lastTs ? parseInt(lastTs[1]) : null;
   const currentTime = lastTs ? parseFloat(lastTs[2]) : null;
 
-  // Δt z różnicy między kolejnymi timestepami (FDS nie wypisuje Step Size do stdout w MPI)
   let stepSize: number | null = null;
   if (tsMatches.length >= 2) {
     const prev = tsMatches[tsMatches.length - 2];
@@ -139,14 +136,12 @@ function parseFdsStats(log: string): FdsStats {
     if (dSteps > 0 && dTime > 0) stepSize = dTime / dSteps;
   }
 
-  // "Step Size:" z pliku .out (dostępny tylko w trybie single-mesh / -o flag)
   const detailMatch = log.match(/Step Size:\s*([\d.E+\-]+)\s*s/);
   if (detailMatch) stepSize = parseFloat(detailMatch[1]);
 
   const iteRateMatch = log.match(/Ite Rate\/Proc:\s*([\d.E+\-nan]+)/);
   const iteRate = iteRateMatch?.[1] ?? null;
 
-  // "Number of Grid Cells   16384"
   const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,\s]+)/g));
   const totalCells = meshLines.length
     ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/[\s,]/g, "")), 0)
@@ -216,13 +211,11 @@ export default function JobStatusPage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
-  // Odświeżaj licznik czasu co sekundę
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Auto-scroll terminala do dołu przy nowym logu — tylko jeśli użytkownik nie scrollował w górę
   useEffect(() => {
     if (logMode === "advanced" && termRef.current && !termScrolledUpRef.current) {
       termRef.current.scrollTop = termRef.current.scrollHeight;
@@ -284,8 +277,8 @@ export default function JobStatusPage({
   };
 
   if (error) return (
-    <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-8 text-center">
-      <p className="font-bold text-red-700 dark:text-red-400">{error}</p>
+    <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
+      <p className="font-bold text-red-700">{error}</p>
       <Link href="/narzedzia/symulacje" className="mt-4 inline-block text-sm text-primary hover:underline">← Wróć</Link>
     </div>
   );
@@ -293,7 +286,7 @@ export default function JobStatusPage({
   if (!job) return (
     <div className="space-y-4">
       {[1, 2, 3].map(i => (
-        <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div key={i} className="h-20 rounded-lg bg-slate-100 animate-pulse" />
       ))}
     </div>
   );
@@ -311,7 +304,7 @@ export default function JobStatusPage({
           <Link href="/narzedzia/symulacje" className="text-xs text-slate-400 hover:text-primary transition-colors">
             ← Symulacje FDS
           </Link>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-white mt-1">{job.fileName}</h1>
+          <h1 className="text-xl font-semibold text-slate-900 mt-1">{job.fileName}</h1>
           <p className="text-xs font-mono text-slate-400 mt-0.5">{job.caseId}</p>
         </div>
         <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${cfg.bg} ${cfg.color} shrink-0`}>
@@ -321,10 +314,10 @@ export default function JobStatusPage({
       </div>
 
       {/* Status card */}
-      <div className={`rounded-2xl border p-5 ${cfg.bg}`}>
+      <div className={`rounded-lg border p-5 ${cfg.bg}`}>
         <p className={`text-sm font-semibold ${cfg.color}`}>{cfg.desc}</p>
         {isActive && activeFrom && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+          <p className="text-xs text-slate-500 mt-1.5">
             Czas od startu: <span className="font-mono font-bold">{elapsed(activeFrom)}</span>
             {job.wallHours > 0 && (
               <span className="ml-2 text-slate-400">
@@ -334,7 +327,7 @@ export default function JobStatusPage({
           </p>
         )}
         {job.status === "done" && job.completedAt && job.dispatchedAt && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+          <p className="text-xs text-slate-500 mt-1.5">
             Czas całkowity:{" "}
             <span className="font-mono font-bold">
               {elapsed(job.dispatchedAt)}
@@ -344,7 +337,7 @@ export default function JobStatusPage({
       </div>
 
       {/* Timeline */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-5">
+      <div className="rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="text-xs font-medium text-slate-500 mb-3">Postęp</h2>
         <div className="space-y-3">
           {(
@@ -365,22 +358,22 @@ export default function JobStatusPage({
             return (
               <div key={step.key} className="flex items-center gap-3">
                 <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                  failed ? "bg-red-100 dark:bg-red-900/30" :
-                  done ? "bg-green-100 dark:bg-green-900/30" :
+                  failed ? "bg-red-100" :
+                  done ? "bg-green-100" :
                   active ? "bg-primary/10" :
-                  "bg-slate-100 dark:bg-slate-800"
+                  "bg-slate-100"
                 }`}>
                   {done ? (
-                    <svg className="h-3 w-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-3 w-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : active ? (
                     <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   ) : (
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
                   )}
                 </div>
-                <span className={`text-sm ${done || active ? "font-semibold text-slate-900 dark:text-white" : "text-slate-400"}`}>
+                <span className={`text-sm ${done || active ? "font-semibold text-slate-900" : "text-slate-400"}`}>
                   {step.label}
                 </span>
                 {step.time && (
@@ -402,9 +395,9 @@ export default function JobStatusPage({
           { label: "vCPU-hours", value: job.vcpuHours.toFixed(1) },
           { label: "Cena netto", value: `${job.price.toLocaleString("pl-PL")} zł` },
         ].map((item) => (
-          <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 p-4">
-            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
+          <div key={item.label} className="rounded bg-slate-50 border border-slate-100 p-4">
+            <p className="text-[11px] font-medium text-slate-400 mb-1">{item.label}</p>
+            <p className="text-lg font-semibold text-slate-900">{item.value}</p>
           </div>
         ))}
       </div>
@@ -415,13 +408,11 @@ export default function JobStatusPage({
         const fdsProgress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
         const stats       = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
 
-        // Czas trwania — dla done: od startu do zakończenia; dla running: od startu do teraz
         const elapsedSec = job.startedAt
           ? ((isDone && job.completedAt ? new Date(job.completedAt) : new Date()).getTime()
              - new Date(job.startedAt).getTime()) / 1000
           : null;
 
-        // Szacunek z wallHours gdy FDS jeszcze nie wysłał timestepów (tylko podczas running)
         const wallEstPct =
           !isDone && !fdsProgress && elapsedSec != null && job.wallHours > 0
             ? Math.min(90, (elapsedSec / (job.wallHours * 3600)) * 100)
@@ -430,7 +421,6 @@ export default function JobStatusPage({
         const displayPct = isDone ? 100 : (fdsProgress?.pct ?? wallEstPct);
         const isEstimate = !isDone && !fdsProgress && wallEstPct != null;
 
-        // Czas pozostały
         let remainingStr = "—";
         if (!isDone && fdsProgress && elapsedSec && fdsProgress.pct > 1) {
           const remSec = Math.max(0, Math.round(elapsedSec / fdsProgress.pct * (100 - fdsProgress.pct)));
@@ -440,27 +430,26 @@ export default function JobStatusPage({
           remainingStr = remSec < 60 ? `~${remSec} s` : `~${Math.ceil(remSec / 60)} min`;
         }
 
-        // Ostatnie linie logu — filtruj tylko linie FDS (nie linie runnera "[HH:MM:SS]")
         const logTail = job.fdsLog
           ? job.fdsLog.split("\n").filter(l => l.trim() && !/^\[?\d{2}:\d{2}:\d{2}\]?/.test(l)).slice(-6).join("\n")
             || job.fdsLog.split("\n").filter(Boolean).slice(-6).join("\n")
           : null;
 
         return (
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827]">
+          <div className="rounded-lg border border-slate-200 bg-white">
 
             {/* Nagłówek */}
-            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Postęp obliczeń</span>
+                <span className="text-sm font-semibold text-slate-700">Postęp obliczeń</span>
                 {job.status === "running" && (
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 5 s</span>
+                  <span className="text-[10px] text-slate-400">odświeżanie co 5 s</span>
                 )}
               </div>
-              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-semibold">
+              <div className="flex rounded border border-slate-200 overflow-hidden text-xs font-semibold">
                 {(["basic", "advanced"] as const).map((mode) => (
                   <button key={mode} onClick={() => setLogMode(mode)}
-                    className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+                    className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-50"}`}>
                     {mode === "basic" ? "Podstawowy" : "Zaawansowany"}
                   </button>
                 ))}
@@ -498,9 +487,9 @@ export default function JobStatusPage({
                       value: isDone ? "zakończono" : remainingStr,
                     },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 px-4 py-3">
-                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{item.value}</p>
+                    <div key={item.label} className="rounded bg-slate-50 border border-slate-100 px-4 py-3">
+                      <p className="text-[10px] font-medium text-slate-400 mb-1">{item.label}</p>
+                      <p className="text-sm font-bold text-slate-800">{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -508,7 +497,7 @@ export default function JobStatusPage({
                 {/* Progress bar */}
                 {displayPct != null && (
                   <div>
-                    <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${isDone ? "bg-green-500" : fdsProgress ? "bg-amber-500" : "bg-slate-400"}`}
                         style={{ width: `${displayPct}%` }}
@@ -516,7 +505,7 @@ export default function JobStatusPage({
                     </div>
                     <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400">
                       <span>0 s</span>
-                      <span className="text-slate-300 dark:text-slate-600 italic">
+                      <span className="text-slate-300 italic">
                         {isEstimate ? "szacunkowy postęp" : ""}
                       </span>
                       <span>{job.tEnd} s</span>
@@ -543,9 +532,9 @@ export default function JobStatusPage({
                         { label: "Komórki",            value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString("pl-PL") : "—" },
                         { label: "Start FDS",          value: stats.startTime ?? "—" },
                       ].map((item) => (
-                        <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2">
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
-                          <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
+                        <div key={item.label} className="rounded bg-slate-50 px-3 py-2">
+                          <p className="text-[10px] text-slate-400 mb-0.5">{item.label}</p>
+                          <p className="text-xs font-mono font-semibold text-slate-700 truncate">{item.value}</p>
                         </div>
                       ))}
                     </div>
@@ -555,17 +544,17 @@ export default function JobStatusPage({
                 {/* Podgląd ostatnich linii logu */}
                 {logTail && (
                   <div>
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 mb-1.5">
                       Ostatnie zdarzenia
                     </p>
-                    <div className="rounded-lg bg-slate-900 dark:bg-black p-3">
+                    <div className="rounded bg-slate-900 p-3">
                       <pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">{logTail}</pre>
                     </div>
                   </div>
                 )}
 
                 {!job.fdsLog && job.status === "running" && (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
+                  <p className="text-xs text-slate-400 text-center py-2">
                     Oczekiwanie na pierwsze dane z serwera… (pojawią się po ~15 s od startu FDS)
                   </p>
                 )}
@@ -575,7 +564,7 @@ export default function JobStatusPage({
               <div className="p-5">
                 <div
                   ref={termRef}
-                  className="rounded-lg bg-slate-900 dark:bg-black p-3 text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all"
+                  className="rounded bg-slate-900 p-3 text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all"
                   style={{ height: "480px", overflowY: "scroll" }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
@@ -592,7 +581,7 @@ export default function JobStatusPage({
 
       {/* Wyniki */}
       {job.status === "done" && job.results && job.results.length > 0 && (
-        <div className="rounded-2xl border border-green-200 dark:border-green-800/40 bg-white dark:bg-[#111827] p-6">
+        <div className="rounded-lg border border-green-200 bg-white p-6">
           {/* Nagłówek z akcjami */}
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2.5">
@@ -601,11 +590,11 @@ export default function JobStatusPage({
                 checked={allSelected}
                 ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
                 onChange={toggleAll}
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer"
+                className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer"
               />
-              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <h2 className="text-sm font-medium text-slate-700">
                 Pliki wynikowe
-                <span className="ml-1.5 text-slate-400 dark:text-slate-500 font-normal">
+                <span className="ml-1.5 text-slate-400 font-normal">
                   ({job.results.length})
                 </span>
               </h2>
@@ -618,7 +607,7 @@ export default function JobStatusPage({
                   else downloadZip(toDownload);
                 }}
                 disabled={!someSelected || zipping}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 rounded border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -628,7 +617,7 @@ export default function JobStatusPage({
               <button
                 onClick={() => downloadZip(allFiles)}
                 disabled={zipping}
-                className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 rounded bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {zipping ? (
                   <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -647,16 +636,16 @@ export default function JobStatusPage({
 
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-800">
+              <tr className="border-b border-slate-100">
                 <th className="pb-2 pr-3 w-8" />
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Plik</th>
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Typ</th>
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Utworzono</th>
-                <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4">Rozmiar</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">Plik</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4 hidden sm:table-cell">Typ</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4 hidden sm:table-cell">Utworzono</th>
+                <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4">Rozmiar</th>
                 <th className="pb-2 pl-4 w-24" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {job.results.map((f) => (
                 <tr key={f.name} className="group">
                   <td className="py-2.5 pr-3 align-middle">
@@ -664,20 +653,20 @@ export default function JobStatusPage({
                       type="checkbox"
                       checked={selected.has(f.name)}
                       onChange={() => toggleFile(f.name)}
-                      className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary cursor-pointer"
+                      className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer"
                     />
                   </td>
                   <td className="py-2.5 align-middle min-w-0 max-w-[200px]">
                     <div className="flex items-center gap-2">
                       <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
-                      <span className="font-mono text-slate-700 dark:text-slate-300 truncate">{f.name}</span>
+                      <span className="font-mono text-slate-700 truncate">{f.name}</span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 hidden sm:table-cell">
                     {fileType(f.name)}
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:table-cell">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 hidden sm:table-cell">
                     {f.createdAt
                       ? new Date(f.createdAt).toLocaleString("pl-PL", {
                           day: "2-digit", month: "2-digit", year: "numeric",
@@ -685,13 +674,13 @@ export default function JobStatusPage({
                         })
                       : "—"}
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 text-right">
                     {formatSize(f.size)}
                   </td>
                   <td className="py-2.5 pl-4 align-middle text-right">
                     <button
                       onClick={() => downloadFile(f)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -708,13 +697,13 @@ export default function JobStatusPage({
 
       {/* Kontakt przy błędzie */}
       {job.status === "failed" && (
-        <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-5 flex items-start gap-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-5 flex items-start gap-4">
           <svg className="h-5 w-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-red-700 dark:text-red-400">Obliczenia zakończyły się błędem.</p>
-            <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
+            <p className="text-sm font-semibold text-red-700">Obliczenia zakończyły się błędem.</p>
+            <p className="text-xs text-red-600/80 mt-1">
               Skontaktuj się z nami podając numer zlecenia:{" "}
               <a href="mailto:biuro@fp-solutions.pl" className="underline">biuro@fp-solutions.pl</a>
             </p>

@@ -10,6 +10,11 @@ export interface CloudInitParams {
   webhookSecret: string;
   hetznerToken: string;
   fdsDownloadUrl: string;
+  storageAccessKey: string;
+  storageSecretKey: string;
+  storageBucket: string;
+  storageEndpoint: string;
+  storageRegion: string;
 }
 
 export function generateCloudInit(p: CloudInitParams): string {
@@ -30,6 +35,11 @@ SUPABASE_KEY="${p.supabaseServiceKey}"
 APP_URL="${p.appUrl}"
 WEBHOOK_SECRET="${p.webhookSecret}"
 HETZNER_TOKEN="${p.hetznerToken}"
+STORAGE_ACCESS_KEY="${p.storageAccessKey}"
+STORAGE_SECRET_KEY="${p.storageSecretKey}"
+STORAGE_BUCKET="${p.storageBucket}"
+STORAGE_ENDPOINT="${p.storageEndpoint}"
+STORAGE_REGION="${p.storageRegion}"
 WORKDIR="/opt/fds_job"
 
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
@@ -126,32 +136,28 @@ kill $LOG_PID 2>/dev/null || true
 log "FDS finished (exit: $FDS_EXIT)"
 send_log
 
-# ── Upload wyników ────────────────────────────────────────────────────────────
-log "Uploading results..."
+# ── Upload wyników do Hetzner Object Storage ──────────────────────────────────
+log "Uploading results to Hetzner Object Storage..."
 RESULTS_PREFIX="results/$CASE_ID"
 
-url_encode() {
-  python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$1"
-}
+export AWS_ACCESS_KEY_ID="$STORAGE_ACCESS_KEY"
+export AWS_SECRET_ACCESS_KEY="$STORAGE_SECRET_KEY"
+
+if ! command -v aws &>/dev/null; then
+  apt-get update -qq
+  apt-get install -y awscli 2>/dev/null
+fi
 
 upload_file() {
   local f="$1"
   [ -f "$f" ] || return 0
   local bname
   bname=$(basename "$f")
-  local encoded
-  encoded=$(url_encode "$bname")
   log "  → $bname"
-  curl -sf -X PUT \\
-    -H "Authorization: Bearer $SUPABASE_KEY" \\
-    -H "Content-Type: application/octet-stream" \\
-    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$encoded" \\
-    --data-binary "@$f" > /dev/null || \\
-  curl -sf -X POST \\
-    -H "Authorization: Bearer $SUPABASE_KEY" \\
-    -H "Content-Type: application/octet-stream" \\
-    "$SUPABASE_URL/storage/v1/object/fds-files/$RESULTS_PREFIX/$encoded" \\
-    --data-binary "@$f" > /dev/null || true
+  aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$bname" \\
+    --endpoint-url "$STORAGE_ENDPOINT" \\
+    --region "$STORAGE_REGION" \\
+    --quiet 2>/dev/null || true
 }
 
 for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do

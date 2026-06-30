@@ -90,8 +90,8 @@ export function generateXLSX(data: CNBOPReportData, fileName = "Raport_CNBOP.xls
     add("Efektywna pow. nieszczelności przegród klatki (Ae) [m²]", `${data.step4.Ae} m²`);
     add("Sposób montażu i wyrzutu wentylatora", data.step4.installationType === "wall" ? "Wyrzut ścienny (0 Pa strat na instalacji)" : "Wyrzut kanałowy");
     if (data.step4.installationType === "ducted") add("Strata ciśnienia na instalacji kanałowej [Pa]", `${data.step4.ductPressureLoss} Pa`);
-    if (!data.step1.selfClosers && data.step4.openDoorArea) {
-      add("Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza) [m²]", `${data.step4.openDoorArea} m²`);
+    if (!data.step1.selfClosers && data.step4.Adrzwi) {
+      add("Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza) [m²]", `${data.step4.Adrzwi} m²`);
     }
     sep();
   }
@@ -106,8 +106,8 @@ export function generateXLSX(data: CNBOPReportData, fileName = "Raport_CNBOP.xls
       add("Vn,v — strumień ucieczki przez otwarte drzwi [m³/h]", `${data.results.vn_v} m³/h`);
       add("Vn2 — wymagany wydatek dla otwartych drzwi [m³/h]", `${data.results.vn2} m³/h`);
     }
-    add("V,went — projektowy strumień nawiewu wentylatora [m³/h]", `${data.results.v_went} m³/h`);
-    add("ΔP — wymagany spręż dyspozycyjny wentylatora [Pa]", `${data.results.totalPressure} Pa`);
+    add("Vwent — projektowy strumień nawiewu wentylatora [m³/h]", `${data.results.vWent} m³/h`);
+    add("ΔP — wymagany spręż dyspozycyjny wentylatora [Pa]", `${data.results.sprez} Pa`);
     add("Acz,min — minimalna wymagana pow. czynna klapy dymowej [m²]", `${data.results.Acz?.toFixed(2).replace(".", ",")} m²`);
   } else {
     add("Wymagany typ systemu oddymiania", "Grawitacyjny — klapy dymowe");

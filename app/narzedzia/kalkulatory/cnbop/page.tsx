@@ -51,7 +51,7 @@ const initialStep4: Step4Data = {
     openings: [{ id: 2, type: "door_single", w: "", h: "", area: "" }],
     distances: [],
   }],
-  Ae: "", openDoorArea: "",
+  Ae: "", Adrzwi: "",
   installationType: "wall", ductPressureLoss: "",
 };
 
@@ -195,9 +195,10 @@ export default function CNBOPWizardPage() {
 
   const cfnWarnings = useMemo(() => {
     if (!step2Validation.valid) return { cfnC: false, cfnD: false, cfnAKS: false, cfnSerialDoors: false };
-    const { hasSerialsOverFiveM } = calculateCompGroups(step4Data.compGroups);
+    const isGrav = systemType === "GRAVITATIONAL";
+    const hasSerialsOverFiveM = isGrav ? calculateCompGroups(step4Data.compGroups).hasSerialsOverFiveM : false;
     return calculateCFDWarnings(toNum(step2Data.AKS), abSum, toNum(step2Data.C), toNum(step2Data.D), hasSerialsOverFiveM);
-  }, [step2Data, step2Validation, abSum, step4Data]);
+  }, [step2Data, step2Validation, abSum, step4Data, systemType]);
 
   const extraCFD = useMemo(() => ({
     corrLength:       cfDCond.corrLength,
@@ -241,8 +242,7 @@ export default function CNBOPWizardPage() {
         if (step4Data.compArrangement === "parallel") {
           totalAeff = areas.reduce((s, a) => s + a, 0);
         } else {
-          const sumInvSq = areas.reduce((s, a) => s + 1 / (a * a), 0);
-          totalAeff = sumInvSq > 0 ? 1 / Math.sqrt(sumInvSq) : 0;
+          totalAeff = Math.min(...areas);
         }
       }
       return { providedAcz: totalAeff, providedAgeom: 0, providedAeff: totalAeff };
@@ -365,7 +365,7 @@ export default function CNBOPWizardPage() {
     <div>
 
       {/* ── HEADER BLOCK ── */}
-      <div className="rounded-xl bg-slate-900 dark:bg-[#0D1117] mb-8 overflow-hidden">
+      <div className="rounded-xl bg-slate-900 dark:bg-[#0D1117] mb-8">
 
         {/* top row: breadcrumb + step tabs */}
         <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-slate-800">
@@ -470,11 +470,13 @@ export default function CNBOPWizardPage() {
         </div>
 
         {/* progress bar */}
-        <div className="h-0.5 bg-slate-800">
-          <div
-            className="h-full bg-primary transition-[width] duration-500 ease-out"
-            style={{ width: `${(step / 4) * 100}%` }}
-          />
+        <div className="rounded-b-xl overflow-hidden">
+          <div className="h-0.5 bg-slate-800">
+            <div
+              className="h-full bg-primary transition-[width] duration-500 ease-out"
+              style={{ width: `${(step / 4) * 100}%` }}
+            />
+          </div>
         </div>
 
       </div>

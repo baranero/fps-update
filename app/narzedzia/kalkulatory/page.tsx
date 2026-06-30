@@ -77,8 +77,8 @@ export default function CalculatorsPage() {
     <div className="space-y-8">
 
       <div>
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Kalkulatory</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-xl font-semibold text-slate-900">Kalkulatory</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Wszystkie algorytmy opierają się na aktualnych normach. Każde obliczenie możesz wyeksportować do PDF lub DOCX.
         </p>
       </div>
@@ -88,23 +88,23 @@ export default function CalculatorsPage() {
           <Link
             key={calc.id}
             href={calc.href}
-            className="group flex items-start gap-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200"
+            className="group flex items-start gap-5 rounded-md border border-slate-200 bg-white p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors mt-0.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors mt-0.5">
               {calc.icon}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5 mb-1.5">
-                <span className="text-[11px] font-semibold text-primary">{calc.norm}</span>
+                <span className="text-[11px] font-mono font-semibold text-primary">{calc.norm}</span>
                 {calc.badge && (
                   <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary/10 text-primary">{calc.badge}</span>
                 )}
               </div>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">{calc.title}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{calc.description}</p>
+              <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{calc.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">{calc.description}</p>
             </div>
             <svg
-              className="mt-1 h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-primary transition-colors"
+              className="mt-1 h-4 w-4 shrink-0 text-slate-300 group-hover:text-primary transition-colors"
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
@@ -114,16 +114,16 @@ export default function CalculatorsPage() {
       </div>
 
       <div>
-        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-3">W przygotowaniu</p>
+        <p className="text-xs font-medium text-slate-400 mb-3">W przygotowaniu</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {soon.map((calc, i) => (
             <div
               key={i}
-              className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#111827] p-4 opacity-50"
+              className="rounded border border-slate-100 bg-white p-4 opacity-50"
             >
-              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mb-1">{calc.norm}</p>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{calc.title}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 leading-relaxed">{calc.description}</p>
+              <p className="text-[11px] font-mono font-semibold text-slate-400 mb-1">{calc.norm}</p>
+              <p className="text-sm font-medium text-slate-600">{calc.title}</p>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{calc.description}</p>
             </div>
           ))}
         </div>

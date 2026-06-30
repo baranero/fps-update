@@ -55,7 +55,7 @@ export interface Step4Data {
   compGroups: CompGroup[];
 
   Ae: string;
-  openDoorArea: string;
+  Adrzwi: string;
   installationType: 'wall' | 'ducted';
   ductPressureLoss: string;
 }
@@ -79,8 +79,8 @@ export interface CalculationResults {
     vn_v?: number;
     vn2?: number;
     vn_max?: number;
-    v_went?: number;
-    totalPressure?: number;
+    vWent?: number;
+    sprez?: number;
   };
 }
 
@@ -181,7 +181,7 @@ export function calculateCompGroups(groups: CompGroup[]): {
     } else {
       const valid = effs.filter(a => a > 0);
       if (valid.length > 0) {
-        totalAeff += 1 / Math.sqrt(valid.reduce((s, a) => s + 1 / (a * a), 0));
+        totalAeff += Math.min(...valid);
       }
     }
   }
@@ -220,7 +220,7 @@ export function calculateMechanical(
   const A = toNum(step2.A); const B = toNum(step2.B); const C = toNum(step2.C); const D = toNum(step2.D);
   const floors = Number(step1.numberOfFloorsTotal) || 1;
   const Ae = toNum(step4.Ae);
-  const openDoorArea = toNum(step4.openDoorArea);
+  const Adrzwi = toNum(step4.Adrzwi);
 
   const AKS_O = A + B + C + D;
   const vn_min = 0.2 * AKS_O * 3600;
@@ -231,17 +231,17 @@ export function calculateMechanical(
   let vn_v: number | undefined = undefined;
   let vn2: number | undefined = undefined;
 
-  if (!step1.selfClosers && openDoorArea > 0) {
-    vn_v = 1.0 * openDoorArea * 3600;
+  if (!step1.selfClosers && Adrzwi > 0) {
+    vn_v = 1.0 * Adrzwi * 3600;
     vn2 = vn_min + vn_v;
     vn_max = Math.max(vn1, vn2);
   }
 
   const leakageFactor = step4.installationType === 'ducted' ? 1.15 : 1.0;
-  const v_went = vn_max * leakageFactor;
+  const vWent = vn_max * leakageFactor;
 
-  const pressureLossValue = step4.installationType === 'ducted' ? toNum(step4.ductPressureLoss) : 0;
-  const totalPressure = 15 + 6 + (3 * floors) + pressureLossValue;
+  const dPKanaly = step4.installationType === 'ducted' ? toNum(step4.ductPressureLoss) : 0;
+  const sprez = 6 + (3 * floors) + dPKanaly;
 
   const isHighZL_IV_W = step1.categoryZL === 'ZL_IV' && step1.buildingHeightGroup === 'W';
   const factor = isHighZL_IV_W ? 0.075 : 0.05;
@@ -262,8 +262,8 @@ export function calculateMechanical(
       vn_v: vn_v ? Number(vn_v.toFixed(0)) : undefined,
       vn2: vn2 ? Number(vn2.toFixed(0)) : undefined,
       vn_max: Number(vn_max.toFixed(0)),
-      v_went: Number(v_went.toFixed(0)),
-      totalPressure: Number(totalPressure.toFixed(0)),
+      vWent: Number(vWent.toFixed(0)),
+      sprez: Number(sprez.toFixed(0)),
     },
   };
 }

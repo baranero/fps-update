@@ -23,7 +23,7 @@ export interface CNBOPReportData {
   results: {
     systemType: "GRAVITATIONAL" | "MECHANICAL";
     cfnWarnings: { cfnC: boolean; cfnD: boolean; cfnAKS: boolean; cfnSerialDoors: boolean; };
-    vn_min?: number; vn_p?: number; vn1?: number; vn_v?: number; vn2?: number; vn_max?: number; v_went?: number; totalPressure?: number; Acz?: number;
+    vn_min?: number; vn_p?: number; vn1?: number; vn_v?: number; vn2?: number; vn_max?: number; vWent?: number; sprez?: number; Acz?: number;
     Aodd_geom?: number; Akomp_eff?: number;
   };
 }
@@ -255,8 +255,8 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
         ["Sposób montażu i wyrzutu z wentylatora", data.step4.installationType === "wall" ? "Wyrzut ścienny — montaż bezpośredni (0 Pa strat)" : "Wyrzut kanałowy — wymaga obliczenia strat ciśnienia"],
         ["Zadeklarowana strata ciśnienia na instalacji kanałowej", `${data.step4.ductPressureLoss || '0'} Pa`],
       ];
-      if (!data.step1.selfClosers && data.step4.openDoorArea) {
-        leakBody.push(["Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza)", `${data.step4.openDoorArea} m²`]);
+      if (!data.step1.selfClosers && data.step4.Adrzwi) {
+        leakBody.push(["Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza)", `${data.step4.Adrzwi} m²`]);
       }
       autoTable(doc, {
         startY: (doc as any).lastAutoTable.finalY + 10, theme: "plain", styles: commonTableStyles, headStyles: headerStyles,
@@ -283,8 +283,8 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
           ["Strumień ucieczki przez otwarte drzwi bez samozamykacza (Vₙ_v)", `${data.results.vn_v} m³/h`],
           ["Wymagany wydatek wentylatora dla otwartych drzwi (Vₙ₂)", `${data.results.vn2} m³/h`]
         ] : []),
-        ["Ostateczny projektowy strumień nawiewu wentylatora (V_went)", `${data.results.v_went} m³/h`],
-        ["Wymagany spręż dyspozycyjny wentylatora (ΔP)", `${data.results.totalPressure} Pa`],
+        ["Ostateczny projektowy strumień nawiewu wentylatora (Vwent)", `${data.results.vWent} m³/h`],
+        ["Wymagany spręż dyspozycyjny wentylatora (ΔP)", `${data.results.sprez} Pa`],
         ["Minimalna wymagana pow. czynna klapy dymowej (Aᴄᴢ, min)", `${data.results.Acz?.toFixed(2).replace('.', ',')} m²`],
       ] : [
         ["Wymagany typ systemu oddymiania", "Grawitacyjny — klapy dymowe"],

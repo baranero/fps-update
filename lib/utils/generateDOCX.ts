@@ -202,7 +202,7 @@ export async function generateDOCX(data: CNBOPReportData, fileName = "Raport_CNB
       ["Sposób montażu i wyrzutu wentylatora", data.step4.installationType === "wall" ? "Wyrzut ścienny (0 Pa strat na instalacji)" : "Wyrzut kanałowy"],
     ];
     if (data.step4.installationType === "ducted") leakRows.push(["Strata ciśnienia na instalacji kanałowej", `${data.step4.ductPressureLoss} Pa`]);
-    if (!data.step1.selfClosers && data.step4.openDoorArea) leakRows.push(["Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza)", `${data.step4.openDoorArea} m²`]);
+    if (!data.step1.selfClosers && data.step4.Adrzwi) leakRows.push(["Pow. ucieczki przez otwarte skrzydło drzwi (brak samozamykacza)", `${data.step4.Adrzwi} m²`]);
     children.push(infoTable(leakRows));
     children.push(spacer());
   }
@@ -220,8 +220,8 @@ export async function generateDOCX(data: CNBOPReportData, fileName = "Raport_CNB
       resultRows.push(resultRow("Vn,v — strumień ucieczki przez otwarte drzwi bez samozamykacza", `${data.results.vn_v} m³/h`));
       resultRows.push(resultRow("Vn2 — wymagany wydatek wentylatora dla otwartych drzwi", `${data.results.vn2} m³/h`));
     }
-    resultRows.push(resultRow("V,went — projektowy strumień nawiewu wentylatora", `${data.results.v_went} m³/h`, true));
-    resultRows.push(resultRow("ΔP — wymagany spręż dyspozycyjny wentylatora", `${data.results.totalPressure} Pa`, true));
+    resultRows.push(resultRow("Vwent — projektowy strumień nawiewu wentylatora", `${data.results.vWent} m³/h`, true));
+    resultRows.push(resultRow("ΔP — wymagany spręż dyspozycyjny wentylatora", `${data.results.sprez} Pa`, true));
     resultRows.push(resultRow("Acz,min — minimalna wymagana pow. czynna klapy dymowej", `${data.results.Acz?.toFixed(2).replace(".", ",")} m²`, true));
   } else {
     resultRows.push(resultRow("Wymagany typ systemu oddymiania", "Grawitacyjny — klapy dymowe"));

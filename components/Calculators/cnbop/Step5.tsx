@@ -7,15 +7,6 @@ import {
 } from "@/lib/calculations/cnbop";
 import { AlertTriangleIcon, InfoCircleIcon } from "@/components/Calculators/ui/Icons";
 
-const categories = [
-  { value: "ZL_I", label: "ZL I (Użyteczność publ. >50 os.)" },
-  { value: "ZL_II", label: "ZL II (Zdrowie, Przedszkola)" },
-  { value: "ZL_III", label: "ZL III (Inne użyteczności publ.)" },
-  { value: "ZL_IV", label: "ZL IV (Mieszkalne)" },
-  { value: "ZL_V", label: "ZL V (Zamieszkania zbiorowego)" },
-  { value: "PM", label: "PM (Produkcyjno-Magazynowe)" },
-];
-
 interface Step5Props {
   results: CalculationResults;
   step1Data: Step1Data;
@@ -33,6 +24,82 @@ interface Step5Props {
   onDownloadDOCX: () => void;
   onReset: () => void;
   onCopyLink?: () => void;
+}
+
+const categoryLabels: Record<string, string> = {
+  ZL_I: "ZL I", ZL_II: "ZL II", ZL_III: "ZL III",
+  ZL_IV: "ZL IV", ZL_V: "ZL V", PM: "PM",
+};
+
+const heightLabels: Record<string, string> = {
+  N: "niski", SW: "śr.-wysoki", W: "wysoki", WW: "wysokościowy",
+};
+
+function ComplianceCard({
+  title,
+  requiredLabel,
+  requiredValue,
+  actualLabel,
+  actualValue,
+  unit,
+  ok,
+  okLabel,
+  failLabel,
+}: {
+  title: string;
+  requiredLabel: string;
+  requiredValue: string;
+  actualLabel: string;
+  actualValue: string;
+  unit: string;
+  ok: boolean;
+  okLabel?: string;
+  failLabel?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 flex items-center justify-between">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</p>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+          ok
+            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+        }`}>
+          {ok ? (okLabel ?? "✓ Spełnia") : (failLabel ?? "✗ Nie spełnia")}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800">
+        <div className="p-5">
+          <p className="text-xs text-slate-400 mb-2">{requiredLabel}</p>
+          <p className="text-3xl font-bold text-slate-700 dark:text-slate-200 tabular-nums leading-none">
+            {requiredValue}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">{unit}</p>
+        </div>
+        <div className={`p-5 ${ok ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
+          <p className="text-xs text-slate-400 mb-2">{actualLabel}</p>
+          <p className={`text-3xl font-bold tabular-nums leading-none ${
+            ok ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"
+          }`}>
+            {actualValue}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">{unit}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricPill({ label, value, unit }: { label: string; value: React.ReactNode; unit: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+      <p className="text-xs text-slate-400 mb-2 leading-tight">{label}</p>
+      <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none">
+        {value}
+      </p>
+      <p className="text-xs text-slate-400 mt-1">{unit}</p>
+    </div>
+  );
 }
 
 export default function Step5({
@@ -61,19 +128,18 @@ export default function Step5({
     return () => document.removeEventListener("mousedown", handler);
   }, [downloadMenuOpen]);
 
-  const heightGroupLabels: Record<string, string> = {
-    N: "N — niski", SW: "SW — średniowysoki", W: "W — wysoki", WW: "WW — wysokościowy",
-  };
-
   const isGrav = results.systemType === "GRAVITATIONAL";
   const requiredAcz = results.outputs.Acz || 0;
   const ventOk = actualVent.Acz >= requiredAcz;
 
-  return (
-    <div id="cnbop-results" className="space-y-8 animate-fade-in">
+  const compReq = results.outputs.Akomp_eff || 0;
+  const compOkCalc = compCalc.providedAeff >= compReq;
 
-      {/* ── HEADER ROW ── */}
-      <div className="flex items-start justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800">
+  return (
+    <div id="cnbop-results" className="space-y-6 animate-fade-in">
+
+      {/* ── HEADER ── */}
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <p className="text-xs text-slate-400 mb-1">Krok 4 z 4</p>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Wyniki obliczeń</h2>
@@ -82,7 +148,7 @@ export default function Step5({
           {onCopyLink && (
             <button
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
             >
               {copied ? (
                 <>
@@ -102,99 +168,42 @@ export default function Step5({
             </button>
           )}
           <div ref={downloadMenuRef} className="relative">
-          <button
-            onClick={() => setDownloadMenuOpen(o => !o)}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Pobierz raport
-            <svg className={`h-3 w-3 transition-transform ${downloadMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {downloadMenuOpen && (
-            <div className="absolute top-full mt-2 right-0 w-56 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-[#111827] overflow-hidden z-50">
-              {[
-                { label: "PDF", sub: "Gotowy do druku", ext: ".pdf", onClick: () => { onDownloadPDF(); setDownloadMenuOpen(false); } },
-                { label: "Excel", sub: "Dane do edycji", ext: ".xlsx", onClick: () => { onDownloadXLSX(); setDownloadMenuOpen(false); } },
-                { label: "Word", sub: "Raport edytowalny", ext: ".docx", onClick: () => { onDownloadDOCX(); setDownloadMenuOpen(false); } },
-              ].map(({ label, sub, ext, onClick }) => (
-                <button
-                  key={ext}
-                  onClick={onClick}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
-                >
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{label}</span>
-                    <span className="text-xs text-slate-400">{sub}</span>
-                  </div>
-                  <span className="text-xs text-slate-400">{ext}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── INPUT SUMMARY ── */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-4">Dane wejściowe</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-5 gap-x-6">
-          <div className="border-l-2 border-slate-200 dark:border-slate-700 pl-4">
-            <p className="text-[11px] text-slate-400 mb-2">Budynek</p>
-            <p className="text-sm font-medium text-slate-800 dark:text-slate-300">
-              {categories.find(c => c.value === step1Data.categoryZL)?.label.split(" (")[0]}
-            </p>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-400 mt-0.5">
-              {heightGroupLabels[step1Data.buildingHeightGroup]}
-            </p>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-400 mt-0.5">
-              {step1Data.numberOfFloorsTotal} kond. ({step1Data.numberOfFloorsAbove}+{step1Data.numberOfFloorsBelow})
-            </p>
-          </div>
-          <div className="border-l-2 border-slate-200 dark:border-slate-700 pl-4">
-            <p className="text-[11px] text-slate-400 mb-2">Zabezpieczenia</p>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-400">
-              EI 30:{" "}
-              <span className={step1Data.stairwellEnclosure === "ppoż" ? "text-green-600 dark:text-green-400" : "text-red-500"}>
-                {step1Data.stairwellEnclosure === "ppoż" ? "tak" : "nie"}
-              </span>
-            </p>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-400 mt-0.5">
-              Samozamykacze:{" "}
-              <span className={step1Data.selfClosers ? "text-green-600 dark:text-green-400" : "text-red-500"}>
-                {step1Data.selfClosers ? "tak" : "nie"}
-              </span>
-            </p>
-          </div>
-          <div className="border-l-2 border-primary/30 dark:border-primary/50 pl-4 sm:col-span-2">
-            <p className="text-[11px] text-slate-400 mb-2">Powierzchnia klatki</p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              A<sub>KS</sub> = <span className="font-semibold text-slate-800 dark:text-slate-200">{toStr(toNum(step2Data.AKS))} m²</span>
-            </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-              A<sub>KS-O</sub> = <span className="font-semibold text-primary">{toStr(results.AKS_O)} m²</span>
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-2 text-xs text-slate-400 dark:text-slate-500">
-              {(["A", "B", "C", "D"] as const).map((sym, i) => {
-                const labels = ["biegi", "spoczniki", "otwory", "dusza"];
-                const vals = [step2Data.A, step2Data.B, step2Data.C, step2Data.D];
-                return (
-                  <span key={sym}>
-                    {sym} ({labels[i]}): <strong className="text-slate-600 dark:text-slate-400">{toStr(toNum(vals[i]))} m²</strong>
-                  </span>
-                );
-              })}
-            </div>
+            <button
+              onClick={() => setDownloadMenuOpen(o => !o)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Pobierz raport
+              <svg className={`h-3 w-3 transition-transform ${downloadMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {downloadMenuOpen && (
+              <div className="absolute top-full mt-2 right-0 w-52 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-[#111827] overflow-hidden z-50">
+                {[
+                  { label: "PDF", sub: "Gotowy do druku", ext: ".pdf", onClick: () => { onDownloadPDF(); setDownloadMenuOpen(false); } },
+                  { label: "Excel", sub: "Dane do edycji", ext: ".xlsx", onClick: () => { onDownloadXLSX(); setDownloadMenuOpen(false); } },
+                  { label: "Word", sub: "Raport edytowalny", ext: ".docx", onClick: () => { onDownloadDOCX(); setDownloadMenuOpen(false); } },
+                ].map(({ label, sub, ext, onClick }) => (
+                  <button key={ext} onClick={onClick} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">{label}</span>
+                      <span className="block text-xs text-slate-400">{sub}</span>
+                    </div>
+                    <span className="text-xs text-slate-400">{ext}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── SYSTEM TYPE ── */}
-      <div className="flex items-center gap-3 py-4 border-t border-b border-slate-100 dark:border-slate-800">
-        <span className={`flex h-7 w-7 items-center justify-center rounded text-xs font-bold shrink-0 ${
+      {/* ── SYSTEM BADGE ── */}
+      <div className="flex items-center gap-3">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold shrink-0 ${
           isGrav
             ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
             : "bg-primary/10 text-primary"
@@ -202,242 +211,228 @@ export default function Step5({
           {isGrav ? "G" : "M"}
         </span>
         <div>
-          <p className="text-[11px] text-slate-400">Zalecany typ systemu</p>
           <p className="text-sm font-semibold text-slate-900 dark:text-white">
             {isGrav ? "Oddymianie grawitacyjne" : "System z nawiewem mechanicznym"}
           </p>
-        </div>
-      </div>
-
-      {/* ── SMOKE VENT REQUIREMENTS ── */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-4">Wymagania — klapa dymowa</p>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-800">
-            <div className="p-5">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Wymagane minimum<br /><span className="text-slate-400">(A<sub>cz,min</sub>)</span></p>
-              <p className="text-2xl font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
-                {toStr(requiredAcz)}{" "}
-                <span className="text-sm font-medium text-slate-400">m²</span>
-              </p>
-            </div>
-            <div className={`p-5 ${ventOk ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Zadeklarowana klapa<br /><span className="text-slate-400">(A<sub>cz,rz.</sub>)</span></p>
-              <p className={`text-2xl font-semibold tabular-nums ${ventOk ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                {toStr(actualVent.Acz)}{" "}
-                <span className="text-sm font-medium">m²</span>
-              </p>
-              <p className={`text-xs mt-1.5 font-medium ${ventOk ? "text-green-600 dark:text-green-500" : "text-red-500"}`}>
-                {ventOk ? "✓ Spełnia wymogi" : "✗ Nie spełnia wymogów"}
-              </p>
-            </div>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs text-slate-400">
+            <span>{categoryLabels[step1Data.categoryZL]}</span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span>{heightLabels[step1Data.buildingHeightGroup]}</span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span>{step1Data.numberOfFloorsTotal} kondygnacji</span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span>A<sub>KS-O</sub> = {toStr(results.AKS_O)} m²</span>
           </div>
         </div>
       </div>
 
-      {/* ── COMPENSATION (gravitational) ── */}
+      {/* ── GRAVITATIONAL RESULTS ── */}
       {isGrav && (
-        <div>
-          <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-4">Wymagania — napowietrzanie</p>
+        <div className="space-y-4">
+
+          <ComplianceCard
+            title="Klapa dymowa"
+            requiredLabel="Wymagana minimalna Acz,min"
+            requiredValue={toStr(requiredAcz)}
+            actualLabel="Dobrana klapa Acz,rz."
+            actualValue={toStr(actualVent.Acz)}
+            unit="m²"
+            ok={ventOk}
+          />
+
+          <ComplianceCard
+            title="Napowietrzanie (kompensacja)"
+            requiredLabel="Wymagana Akomp,min = 1,3 · Aodd,geom"
+            requiredValue={toStr(compReq)}
+            actualLabel={
+              step4Data.compArrangement === "series"
+                ? "Zapewniona Aeff — układ szeregowy (min. z otworów)"
+                : step4Data.compInputMethod === "calculate"
+                  ? "Zapewniona Akomp (geom. dla drzwi / czynna dla innych)"
+                  : "Zapewniona Akomp,eff (pow. czynna sumaryczna)"
+            }
+            actualValue={toStr(compCalc.providedAeff)}
+            unit="m²"
+            ok={compOkCalc}
+            okLabel="✓ Otwory wystarczające"
+            failLabel="✗ Otwory za małe"
+          />
+        </div>
+      )}
+
+      {/* ── MECHANICAL RESULTS ── */}
+      {!isGrav && (
+        <div className="space-y-4">
+
+          {/* Key outputs */}
+          <div className="grid grid-cols-3 gap-3">
+            <MetricPill
+              label="Strumień wymagany Vn,max"
+              value={results.outputs.vn_max}
+              unit="m³/h"
+            />
+            <div className="rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 dark:border-primary/30 p-4">
+              <p className="text-xs text-slate-400 mb-2 leading-tight">Wydajność wentylatora V<sub>went</sub></p>
+              <p className="text-2xl font-bold text-primary tabular-nums leading-none">{results.outputs.vWent}</p>
+              <p className="text-xs text-slate-400 mt-1">m³/h</p>
+            </div>
+            <MetricPill
+              label="Spręż dyspozycyjny"
+              value={results.outputs.sprez}
+              unit="Pa"
+            />
+          </div>
+
+          {/* Flow breakdown */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            {step4Data.compInputMethod === "calculate" ? (
-              <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-800">
-                <div className="p-5">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                    Wymagana pow. efektywna<br /><span className="text-slate-400">(A<sub>cz,komp,min</sub>)</span>
-                  </p>
-                  <p className="text-2xl font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
-                    {toStr(results.outputs.Akomp_eff || 0)}{" "}
-                    <span className="text-sm font-medium text-slate-400">m²</span>
-                  </p>
-                </div>
-                {(() => {
-                  const req = results.outputs.Akomp_eff || 0;
-                  const ok = compCalc.providedAeff >= req;
-                  return (
-                    <div className={`p-5 ${ok ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                        Dobrana pow. efektywna<br /><span className="text-slate-400">(A<sub>eff,komp</sub>)</span>
-                      </p>
-                      <p className={`text-2xl font-semibold tabular-nums ${ok ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                        {toStr(compCalc.providedAeff)}{" "}
-                        <span className="text-sm font-medium">m²</span>
-                      </p>
-                      <p className={`text-xs mt-1.5 font-medium ${ok ? "text-green-600 dark:text-green-500" : "text-red-500"}`}>
-                        {ok ? "✓ Otwory spełniają wymóg" : "✗ Otwory są za małe"}
-                      </p>
-                    </div>
-                  );
-                })()}
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Obliczenia strumienia nawiewu</p>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <span className="text-slate-500 dark:text-slate-400">V<sub>n,min</sub> = 0,2 · A<sub>KS-O</sub> · 3600</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200 tabular-nums">{results.outputs.vn_min} m³/h</span>
               </div>
-            ) : (
-              (() => {
-                const ok = compCalc.providedAcz >= actualVent.Acz;
-                return (
-                  <div className={`p-5 ${ok ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                      A<sub>cz</sub> otworów kompensacyjnych vs. A<sub>cz</sub> klapy
-                    </p>
-                    <p className={`text-2xl font-semibold tabular-nums flex items-baseline gap-2 flex-wrap ${ok ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                      {toStr(compCalc.providedAcz)} <span className="text-sm">m²</span>
-                      <span className="text-base text-slate-400 font-normal">vs</span>
-                      {toStr(actualVent.Acz)} <span className="text-sm">m²</span>
-                    </p>
-                    <p className={`text-xs mt-1.5 font-medium ${ok ? "text-green-600 dark:text-green-500" : "text-red-500"}`}>
-                      {ok ? "✓ Spełnia warunek" : "✗ Zbyt mała pow. czynna kompensacji"}
-                    </p>
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <span className="text-slate-500 dark:text-slate-400">Nieszczelności przy Δp = 15 Pa &nbsp;<span className="text-slate-400">(V<sub>n_p</sub>)</span></span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200 tabular-nums">{results.outputs.vn_p} m³/h</span>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3.5 bg-primary/5 dark:bg-primary/10">
+                <span className="font-semibold text-primary">Kryterium I &nbsp;— V<sub>n1</sub> = V<sub>n_min</sub> + V<sub>n_p</sub></span>
+                <span className="font-bold text-primary tabular-nums">{results.outputs.vn1} m³/h</span>
+              </div>
+              {results.outputs.vn_v !== undefined && (
+                <>
+                  <div className="flex items-center justify-between px-5 py-3.5">
+                    <span className="text-slate-500 dark:text-slate-400">Ucieczka przez otwarte drzwi &nbsp;<span className="text-slate-400">(V<sub>n_v</sub>)</span></span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-200 tabular-nums">{results.outputs.vn_v} m³/h</span>
                   </div>
-                );
-              })()
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── FAN PERFORMANCE (mechanical) ── */}
-      {!isGrav && (
-        <div className="space-y-5">
-          <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Parametry wentylatora</p>
-
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <table className="w-full text-sm">
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                <tr>
-                  <td className="px-5 py-3 text-slate-500">1. Strumień bazowy 0,2 m/s (V<sub>n_min</sub>)</td>
-                  <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 text-right whitespace-nowrap">{results.outputs.vn_min} m³/h</td>
-                </tr>
-                <tr>
-                  <td className="px-5 py-3 text-slate-500">2. Strumień ucieczki nieszczelnościami przy 15 Pa (V<sub>n_p</sub>)</td>
-                  <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 text-right whitespace-nowrap">{results.outputs.vn_p} m³/h</td>
-                </tr>
-                <tr className="bg-primary/5 dark:bg-primary/10">
-                  <td className="px-5 py-3 font-medium text-primary">→ Kryterium I (V<sub>n1</sub>)</td>
-                  <td className="px-5 py-3 font-semibold text-primary text-right whitespace-nowrap">{results.outputs.vn1} m³/h</td>
-                </tr>
-                {results.outputs.vn_v !== undefined && (
-                  <>
-                    <tr>
-                      <td className="px-5 py-3 text-slate-500">3. Strumień ucieczki przez otwarte drzwi (V<sub>n_v</sub>)</td>
-                      <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 text-right whitespace-nowrap">{results.outputs.vn_v} m³/h</td>
-                    </tr>
-                    <tr className="bg-primary/5 dark:bg-primary/10">
-                      <td className="px-5 py-3 font-medium text-primary">→ Kryterium II (V<sub>n2</sub>)</td>
-                      <td className="px-5 py-3 font-semibold text-primary text-right whitespace-nowrap">{results.outputs.vn2} m³/h</td>
-                    </tr>
-                  </>
-                )}
-                <tr className="bg-slate-800 dark:bg-slate-700">
-                  <td className="px-5 py-3.5 font-medium text-slate-200">Strumień nawiewu (V<sub>n,max</sub>)</td>
-                  <td className="px-5 py-3.5 font-bold text-white text-right whitespace-nowrap text-base">{results.outputs.vn_max} m³/h</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="rounded-xl border border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-950/20 p-6">
-            <div className="grid grid-cols-2 gap-6 divide-x divide-green-200 dark:divide-green-800/50">
-              <div>
-                <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">
-                  Wydajność wentylatora (V<sub>went</sub>)
-                </p>
-                <p className="text-2xl font-semibold text-green-700 dark:text-green-300 tabular-nums">
-                  {results.outputs.v_went}{" "}
-                  <span className="text-sm font-medium">m³/h</span>
-                </p>
-              </div>
-              <div className="pl-6">
-                <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Spręż dyspozycyjny</p>
-                <p className="text-2xl font-semibold text-green-700 dark:text-green-300 tabular-nums">
-                  {results.outputs.totalPressure}{" "}
-                  <span className="text-sm font-medium">Pa</span>
-                </p>
+                  <div className="flex items-center justify-between px-5 py-3.5 bg-primary/5 dark:bg-primary/10">
+                    <span className="font-semibold text-primary">Kryterium II — V<sub>n2</sub> = V<sub>n_min</sub> + V<sub>n_v</sub></span>
+                    <span className="font-bold text-primary tabular-nums">{results.outputs.vn2} m³/h</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between px-5 py-4 bg-slate-800 dark:bg-slate-700">
+                <span className="font-semibold text-slate-100">V<sub>n,max</sub> = max(Kryterium I{results.outputs.vn_v !== undefined ? ", II" : ""})</span>
+                <span className="font-bold text-white tabular-nums text-base">{results.outputs.vn_max} m³/h</span>
               </div>
             </div>
           </div>
 
+          {/* Supply point guidelines */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-5">
-            <p className="text-xs font-medium text-slate-500 mb-3 flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
               <InfoCircleIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-              Wytyczne lokalizacji punktów nawiewnych (rozdz. 6.4 CNBOP)
+              Lokalizacja punktów nawiewnych — rozdz. 6.4 CNBOP
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 dark:text-slate-400">
-              <div className="space-y-1.5">
-                <p className="font-medium text-slate-500">Prędkość nawiewu</p>
-                <p>• Prędkość z kratki nawiewnej <strong>≤ 8 m/s</strong></p>
-                <p>• Strumień nie może być skierowany bezpośrednio na drzwi (min. <strong>4 m</strong> odstępu)</p>
-              </div>
-              <div className="space-y-1.5">
-                <p className="font-medium text-slate-500">Lokalizacja</p>
-                <p>• <strong>1-punkt:</strong> poniżej stropu nad 1. kond. nadziemną</p>
-                <p>• <strong>Rozproszony:</strong> ≥50% poniżej stropu 1. kond., reszta pod stropem 2. kond.</p>
-                <p>• <strong>Wysoki:</strong> można podzielić na 3 kondygnacje (40% / 1., reszta na 2. i 3.)</p>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+              <p>• Prędkość z kratki nawiewnej ≤ <strong>8 m/s</strong></p>
+              <p>• Min. <strong>4 m</strong> odstępu od drzwi</p>
+              <p>• <strong>1-punkt:</strong> poniżej stropu nad 1. kond. nadz.</p>
+              <p>• <strong>Rozproszony:</strong> ≥50% na 1. kond., reszta na 2.</p>
+              <p>• <strong>Wysoki:</strong> 40% / 1. kond., reszta na 2. i 3.</p>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* ── CFD OPTIMIZATION (mechanical) ── */}
-      {!isGrav && (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-            <InfoCircleIcon className="h-4 w-4 text-blue-500 shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Optymalizacja wg rozdz. 7.2 — Symulacja CFD</p>
-              <p className="text-xs text-slate-400">Możliwe obniżenie wymaganej wydajności wentylatora</p>
-            </div>
-          </div>
-          <div className="p-5">
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-              Wytyczne CNBOP-PIB W-0003:2016 (rozdz. 7.2) dopuszczają weryfikację symulacją CFD.
-              W praktyce pozwala to na{" "}
-              <strong className="text-slate-800 dark:text-slate-200">obniżenie wymaganej wydajności wentylatora nawet o 50–60%</strong>.
-            </p>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="rounded-lg bg-slate-50 dark:bg-[#1C213E] border border-slate-200 dark:border-slate-700 p-3">
-                <p className="text-xs text-slate-400 mb-1">Wg obliczeń</p>
-                <p className="text-base font-semibold text-slate-800 dark:text-white">{results.outputs.v_went} m³/h</p>
-              </div>
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-800/50 p-3">
-                <p className="text-xs text-slate-400 mb-1">Po CFD (est.)</p>
-                <p className="text-base font-semibold text-blue-700 dark:text-blue-400">~{Math.round((results.outputs.v_went || 0) * 0.50)} m³/h</p>
-              </div>
-              <div className="rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-800/50 p-3">
-                <p className="text-xs text-slate-400 mb-1">Redukcja</p>
-                <p className="text-base font-semibold text-green-600 dark:text-green-400">50–60%</p>
+          {/* CFD optimization hint */}
+          <div className="rounded-xl border border-blue-200 dark:border-blue-800/40 bg-blue-50/60 dark:bg-blue-950/20 p-5">
+            <div className="flex items-start gap-3">
+              <InfoCircleIcon className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
+                  Optymalizacja przez symulację CFD (rozdz. 7.2)
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-400 mb-3 leading-relaxed">
+                  Weryfikacja CFD może obniżyć wymaganą wydajność wentylatora nawet o <strong>50–60%</strong>.
+                </p>
+                <div className="flex items-center gap-3 flex-wrap text-xs">
+                  <span className="text-blue-600 dark:text-blue-400">
+                    Wg obliczeń: <strong className="text-blue-800 dark:text-blue-200">{results.outputs.vWent} m³/h</strong>
+                  </span>
+                  <span className="text-blue-300 dark:text-blue-600">→</span>
+                  <span className="text-blue-600 dark:text-blue-400">
+                    Po CFD (est.): <strong className="text-blue-800 dark:text-blue-200">~{Math.round((results.outputs.vWent || 0) * 0.5)} m³/h</strong>
+                  </span>
+                </div>
+                <p className="mt-3 text-xs text-blue-600 dark:text-blue-500">
+                  Zapytaj o wycenę:{" "}
+                  <a href="mailto:biuro@fp-solutions.pl" className="underline hover:text-blue-800 dark:hover:text-blue-300">biuro@fp-solutions.pl</a>
+                  {" · "}
+                  <a href="tel:+48790782993" className="underline hover:text-blue-800 dark:hover:text-blue-300">+48 790 782 993</a>
+                </p>
               </div>
             </div>
-            <p className="text-xs text-slate-400">
-              Zapytaj o wycenę:{" "}
-              <a href="mailto:biuro@fp-solutions.pl" className="text-primary hover:underline">biuro@fp-solutions.pl</a>
-              {" · "}
-              <a href="tel:+48790782993" className="text-primary hover:underline">+48 790 782 993</a>
-            </p>
           </div>
         </div>
       )}
 
       {/* ── CFD WARNING ── */}
       {anyCFD && (
-        <div className="rounded-xl border border-red-200 dark:border-red-800/50 overflow-hidden">
-          <div className="px-5 py-3.5 bg-red-50 dark:bg-red-950/20 border-b border-red-200 dark:border-red-800/40 flex items-center gap-2.5">
-            <AlertTriangleIcon className="h-4 w-4 text-red-500 shrink-0" />
-            <p className="text-sm font-medium text-red-800 dark:text-red-400">Konieczna weryfikacja CFD</p>
+        <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-700/40">
+            <AlertTriangleIcon className="h-4 w-4 text-amber-500 shrink-0" />
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">Wymagana weryfikacja CFD</p>
           </div>
           <div className="p-5">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
-              Warunki stosowania metody obliczeniowej nie są w pełni spełnione (rozdz. 7.1):
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              Następujące warunki metody obliczeniowej (rozdz. 7.1) nie są spełnione:
             </p>
-            <ul className="space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
-              {cfnWarnings.cfnC && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Otwory przelotowe C = {toStr(toNum(step2Data.C))} m² &gt; 10% (A+B = {toStr(abSum)} m²)</li>}
-              {cfnWarnings.cfnD && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Dusza schodów D = {toStr(toNum(step2Data.D))} m² &gt; 25% (A+B = {toStr(abSum)} m²)</li>}
-              {cfnWarnings.cfnAKS && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Rzeczywista powierzchnia A<sub>KS</sub> = {toStr(toNum(step2Data.AKS))} m² przekracza 40 m² na kondygnacji</li>}
-              {extraCFD.zlIVHighAuto && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Budynek ZL IV wysoki (W) — klatka stanowi pionową drogę ewakuacji (warunek bezwzględny)</li>}
-              {extraCFD.corrLength && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Korytarz połączony z klatką ma długość &gt; 10 m</li>}
-              {extraCFD.doorDist && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Odległość od najdalszych drzwi do granicy A<sub>KS-O</sub> przekracza 5 m</li>}
-              {extraCFD.corrWidth && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Szerokość korytarza stanowiącego wspólną przestrzeń z klatką przekracza 3 m</li>}
-              {cfnWarnings.cfnSerialDoors && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Napływ grawitacyjny przez dwoje drzwi w szeregu oddalonych o &gt; 5 m</li>}
-              {extraCFD.highNoSeparation && <li className="flex gap-2"><span className="text-red-400 shrink-0">•</span>Budynek ZL IV W: występują korytarze przyległe nieoddzielone drzwiami</li>}
+            <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+              {cfnWarnings.cfnC && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Otwory przelotowe C = {toStr(toNum(step2Data.C))} m² &gt; 10% (A+B = {toStr(abSum)} m²)</span>
+                </li>
+              )}
+              {cfnWarnings.cfnD && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Dusza schodów D = {toStr(toNum(step2Data.D))} m² &gt; 25% (A+B = {toStr(abSum)} m²)</span>
+                </li>
+              )}
+              {cfnWarnings.cfnAKS && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Rzeczywista A<sub>KS</sub> = {toStr(toNum(step2Data.AKS))} m² przekracza 40 m² na kondygnację</span>
+                </li>
+              )}
+              {extraCFD.zlIVHighAuto && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Budynek ZL IV wysoki — klatka jako pionowa droga ewakuacji (warunek bezwzględny)</span>
+                </li>
+              )}
+              {extraCFD.corrLength && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Korytarz połączony z klatką ma długość &gt; 10 m</span>
+                </li>
+              )}
+              {extraCFD.doorDist && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Odległość od najdalszych drzwi do granicy A<sub>KS-O</sub> przekracza 5 m</span>
+                </li>
+              )}
+              {extraCFD.corrWidth && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Szerokość korytarza stanowiącego wspólną przestrzeń z klatką przekracza 3 m</span>
+                </li>
+              )}
+              {cfnWarnings.cfnSerialDoors && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Napływ grawitacyjny przez dwoje drzwi szeregowe oddalone &gt; 5 m</span>
+                </li>
+              )}
+              {extraCFD.highNoSeparation && (
+                <li className="flex gap-2">
+                  <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                  <span>Budynek ZL IV W: korytarze przyległe bez separacji drzwiami</span>
+                </li>
+              )}
             </ul>
             <p className="mt-4 text-xs text-slate-400">
               Zapytaj o wycenę CFD:{" "}
@@ -463,7 +458,5 @@ export default function Step5({
       </div>
 
     </div>
-
-  </div>
   );
 }

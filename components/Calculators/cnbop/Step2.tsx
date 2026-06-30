@@ -219,7 +219,7 @@ export default function Step2({
                       <HoleIcon className="h-3.5 w-3.5 text-slate-500" />
                     </span>
                     <h4 className="font-semibold text-sm text-slate-800 dark:text-slate-200">
-                      Otwory zrzutowe (<Tooltip text="Otwory pionowe w stropach klatki (inne niż dusza).">C</Tooltip>)
+                      Pozostałe otwory międzykond. (<Tooltip text="Powierzchnia rzutu otworów w stropach klatki — innych niż biegi, spoczniki i dusza. Często C = 0.">C</Tooltip>)
                     </h4>
                   </div>
                   <button
@@ -301,7 +301,7 @@ export default function Step2({
               <UnitInput label="Suma rzutów biegów (A)" unit="m²" required value={step2Data.A} onChange={(val) => setStep2Data(p => ({ ...p, A: val }))} />
               <UnitInput label="Suma wymiarowych spoczników (B)" unit="m²" required value={step2Data.B} onChange={(val) => setStep2Data(p => ({ ...p, B: val }))} />
               <UnitInput label="Dusza schodów (D)" unit="m²" value={step2Data.D} onChange={(val) => setStep2Data(p => ({ ...p, D: val }))} />
-              <UnitInput label="Otwory przelotowe (C)" unit="m²" value={step2Data.C} onChange={(val) => setStep2Data(p => ({ ...p, C: val }))} />
+              <UnitInput label="Pozostałe otwory międzykond. (C)" unit="m²" value={step2Data.C} onChange={(val) => setStep2Data(p => ({ ...p, C: val }))} />
             </div>
           </div>
         )}

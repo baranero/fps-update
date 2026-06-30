@@ -19,10 +19,10 @@ function formatHours(h: number) {
 
 function complexityColor(c: FdsEstimate["complexity"]) {
   return {
-    mała: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    średnia: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    duża: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    "bardzo duża": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    mała: "bg-green-100 text-green-700",
+    średnia: "bg-blue-100 text-blue-700",
+    duża: "bg-amber-100 text-amber-700",
+    "bardzo duża": "bg-red-100 text-red-700",
   }[c];
 }
 
@@ -137,12 +137,12 @@ export default function SymulacjePage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Symulacje FDS</h1>
-          <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+          <h1 className="text-xl font-semibold text-slate-900">Symulacje FDS</h1>
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
             Beta
           </span>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500">
           Wgraj plik wejściowy FDS — system automatycznie oszacuje czas i koszt obliczeń w chmurze.
         </p>
       </div>
@@ -157,13 +157,13 @@ export default function SymulacjePage() {
             (s === "review" && step === "done");
           return (
             <div key={s} className="flex items-center gap-2">
-              {i > 0 && <div className={`h-px w-6 ${done || active ? "bg-primary" : "bg-slate-200 dark:bg-slate-700"}`} />}
+              {i > 0 && <div className={`h-px w-6 ${done || active ? "bg-primary" : "bg-slate-200"}`} />}
               <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
                 done
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  ? "bg-green-100 text-green-700"
                   : active
                   ? "bg-primary text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                  : "bg-slate-100 text-slate-400"
               }`}>
                 {done ? (
                   <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +179,7 @@ export default function SymulacjePage() {
 
       {/* Step 1: Upload */}
       {step === "upload" && (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6 space-y-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 space-y-5">
           <h2 className="text-xs font-medium text-slate-500">Wgraj plik FDS</h2>
 
           {/* Drop zone */}
@@ -188,35 +188,35 @@ export default function SymulacjePage() {
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className={`cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors ${
+            className={`cursor-pointer rounded-md border-2 border-dashed p-10 text-center transition-colors ${
               dragging
                 ? "border-primary bg-primary/5"
                 : file
-                ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-950/20"
-                : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                ? "border-green-400 bg-green-50"
+                : "border-slate-200 hover:border-slate-300"
             }`}
           >
             <input ref={inputRef} type="file" accept=".fds" className="hidden" onChange={onInputChange} />
 
             {file ? (
               <div className="space-y-1">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 mb-3">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <p className="font-bold text-slate-900 dark:text-white">{file.name}</p>
+                <p className="font-bold text-slate-900">{file.name}</p>
                 <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(1)} KB</p>
                 <p className="text-xs text-slate-400 mt-1">Kliknij, aby wybrać inny plik</p>
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-3">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
-                <p className="font-semibold text-slate-700 dark:text-slate-300">Przeciągnij plik lub kliknij, aby wybrać</p>
+                <p className="font-semibold text-slate-700">Przeciągnij plik lub kliknij, aby wybrać</p>
                 <p className="text-xs text-slate-400">Obsługiwane formaty: .fds</p>
               </div>
             )}
@@ -224,20 +224,20 @@ export default function SymulacjePage() {
 
           {/* Error */}
           {parseError && (
-            <div className="flex gap-3 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-4">
+            <div className="flex gap-3 rounded-md border border-red-200 bg-red-50 p-4">
               <svg className="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-red-700 dark:text-red-400">{parseError}</p>
+              <p className="text-sm text-red-700">{parseError}</p>
             </div>
           )}
 
           {/* Info */}
-          <div className="flex gap-3 rounded-xl border border-blue-100 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-950/20 p-4">
+          <div className="flex gap-3 rounded-md border border-blue-100 bg-blue-50 p-4">
             <svg className="h-5 w-5 shrink-0 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <div className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
+            <div className="text-xs text-blue-700 space-y-1">
               <p className="font-semibold">Co system analizuje?</p>
               <p>Sekcje &amp;MESH (liczba i rozmiar siatek), &amp;TIME (czas symulacji), &amp;REAC (paliwo) oraz elementy modelu (&amp;OBST, &amp;VENT, &amp;DEVC).</p>
               <p>Plik pozostaje lokalny — przesyłany jest dopiero po zatwierdzeniu wyceny.</p>
@@ -247,7 +247,7 @@ export default function SymulacjePage() {
           <button
             onClick={analyze}
             disabled={!file || analyzing}
-            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {analyzing ? (
               <>
@@ -273,11 +273,11 @@ export default function SymulacjePage() {
       {(step === "review" || step === "submitting") && parseResult && estimate && (
         <div className="space-y-5">
           {/* Summary card */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6">
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
             <div className="flex items-start justify-between mb-5">
               <div>
                 <h2 className="text-xs font-medium text-slate-500 mb-1">Analiza pliku</h2>
-                <p className="font-bold text-slate-900 dark:text-white">{file?.name}</p>
+                <p className="font-bold text-slate-900">{file?.name}</p>
                 {parseResult.chid && (
                   <p className="text-xs text-slate-400 mt-0.5">CHID: {parseResult.chid}</p>
                 )}
@@ -332,12 +332,12 @@ export default function SymulacjePage() {
                   ),
                 },
               ].map((item) => (
-                <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-4">
+                <div key={item.label} className="rounded bg-slate-50 p-4">
                   <div className="flex items-center gap-2 text-slate-400 mb-2">
                     {item.icon}
                     <span className="text-[11px] font-medium">{item.label}</span>
                   </div>
-                  <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
+                  <p className="text-lg font-semibold text-slate-900">{item.value}</p>
                   {item.sub && <p className="text-[10px] text-slate-400 mt-0.5">{item.sub}</p>}
                 </div>
               ))}
@@ -345,10 +345,10 @@ export default function SymulacjePage() {
 
             {parseResult.meshDetails.length > 1 && (
               <div className="mt-4">
-                <p className="text-[11px] font-mediumst text-slate-400 mb-2">Szczegóły siatek</p>
+                <p className="text-[11px] font-medium text-slate-400 mb-2">Szczegóły siatek</p>
                 <div className="flex flex-wrap gap-2">
                   {parseResult.meshDetails.map((m, i) => (
-                    <span key={i} className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-mono text-slate-600 dark:text-slate-400">
+                    <span key={i} className="rounded bg-slate-100 px-2.5 py-1 text-xs font-mono text-slate-600">
                       #{i + 1} {m.ijk[0]}×{m.ijk[1]}×{m.ijk[2]} = {formatCells(m.cells)} komórek
                     </span>
                   ))}
@@ -357,7 +357,7 @@ export default function SymulacjePage() {
             )}
 
             {(parseResult.obstCount > 0 || parseResult.ventCount > 0 || parseResult.devcCount > 0) && (
-              <div className="mt-4 flex gap-3 text-xs text-slate-500 dark:text-slate-500">
+              <div className="mt-4 flex gap-3 text-xs text-slate-500">
                 {parseResult.obstCount > 0 && <span>Przeszkody (OBST): {parseResult.obstCount}</span>}
                 {parseResult.ventCount > 0 && <span>Otwory (VENT): {parseResult.ventCount}</span>}
                 {parseResult.devcCount > 0 && <span>Czujniki (DEVC): {parseResult.devcCount}</span>}
@@ -366,56 +366,56 @@ export default function SymulacjePage() {
           </div>
 
           {/* Estimate card */}
-          <div className="rounded-2xl border border-amber-200/60 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/20 p-6">
-            <h2 className="text-xs font-medium text-amber-700 dark:text-amber-500 mb-3">Szacunkowa wycena</h2>
+          <div className="rounded-lg border border-amber-200/60 bg-amber-50 p-6">
+            <h2 className="text-xs font-medium text-amber-700 mb-3">Szacunkowa wycena</h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Serwer obliczeniowy</p>
-                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200 uppercase">
+                <p className="text-[11px] font-medium text-amber-600/70 mb-1">Serwer obliczeniowy</p>
+                <p className="text-2xl font-bold text-amber-900 uppercase">
                   {estimate.serverType}
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
+                <p className="text-[11px] text-amber-600/70 mt-0.5">
                   {estimate.serverCores} dedykowane vCPU (AMD EPYC)
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Szacowany czas obliczeń</p>
-                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
+                <p className="text-[11px] font-medium text-amber-600/70 mb-1">Szacowany czas obliczeń</p>
+                <p className="text-2xl font-bold text-amber-900">
                   {formatHours(estimate.wallHours)}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Krok czasowy Δt</p>
-                <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
+                <p className="text-[11px] font-medium text-amber-600/70 mb-1">Krok czasowy Δt</p>
+                <p className="text-2xl font-bold text-amber-900">
                   {estimate.dtEstimate < 0.01
                     ? `${(estimate.dtEstimate * 1000).toFixed(1)} ms`
                     : `${estimate.dtEstimate.toFixed(3)} s`}
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
+                <p className="text-[11px] text-amber-600/70 mt-0.5">
                   {estimate.cellDimSource === "file"
                     ? `z pliku (dx=${(parseResult.minCellDim! * 100).toFixed(1)} cm)`
                     : "założono dx = 10 cm"}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500/70 mb-1">Koszt netto</p>
-                <p className="text-3xl font-bold text-amber-900 dark:text-amber-200">
+                <p className="text-[11px] font-medium text-amber-600/70 mb-1">Koszt netto</p>
+                <p className="text-3xl font-bold text-amber-900">
                   {estimate.price.toLocaleString("pl-PL")} zł
                 </p>
-                <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">zawiera obsługę i weryfikację</p>
+                <p className="text-[11px] text-amber-600/70 mt-0.5">zawiera obsługę i weryfikację</p>
               </div>
             </div>
-            <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
+            <p className="mt-4 text-[11px] text-amber-600/70 border-t border-amber-200/60 pt-3">
               Czas obliczeń szacowany z warunku CFL i wydajności ~240&nbsp;000 cell-timesteps/s per rdzeń (AMD EPYC). Koszt = czas × cennik Hetzner × 2. Potwierdzamy przed uruchomieniem.
             </p>
           </div>
 
           {/* Form */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827] p-6 space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 space-y-4">
             <h2 className="text-xs font-medium text-slate-500">Dane kontaktowe</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-bold text-slate-600">
                   Imię i nazwisko <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -423,11 +423,11 @@ export default function SymulacjePage() {
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Jan Kowalski"
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-bold text-slate-600">
                   Adres e-mail <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -435,12 +435,12 @@ export default function SymulacjePage() {
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="jan@firma.pl"
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-400">
+              <label className="mb-1.5 block text-xs font-bold text-slate-600">
                 Uwagi do zlecenia (opcjonalnie)
               </label>
               <textarea
@@ -448,16 +448,16 @@ export default function SymulacjePage() {
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 rows={3}
                 placeholder="Np. nazwa projektu, termin, dodatkowe wymagania…"
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
             </div>
 
             {submitError && (
-              <div className="flex gap-3 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-4">
+              <div className="flex gap-3 rounded-md border border-red-200 bg-red-50 p-4">
                 <svg className="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-sm text-red-700 dark:text-red-400">{submitError}</p>
+                <p className="text-sm text-red-700">{submitError}</p>
               </div>
             )}
 
@@ -465,7 +465,7 @@ export default function SymulacjePage() {
               <button
                 onClick={submit}
                 disabled={!canSubmit || step === "submitting"}
-                className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {step === "submitting" ? (
                   <>
@@ -487,7 +487,7 @@ export default function SymulacjePage() {
               <button
                 onClick={reset}
                 disabled={step === "submitting"}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
+                className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40"
               >
                 Wróć
               </button>
@@ -498,24 +498,24 @@ export default function SymulacjePage() {
 
       {/* Step 3: Done */}
       {step === "done" && (
-        <div className="rounded-2xl border border-green-200 dark:border-green-800/40 bg-green-50 dark:bg-green-950/20 p-8 text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-8 text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
             <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Zlecenie przyjęte</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Numer zgłoszenia: <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{caseId}</span>
+            <h2 className="text-xl font-semibold text-slate-900">Zlecenie przyjęte</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Numer zgłoszenia: <span className="font-mono font-bold text-slate-700">{caseId}</span>
             </p>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
             Inżynier zweryfikuje plik i prześle ostateczną ofertę na adres <strong>{form.email}</strong> przed uruchomieniem obliczeń. Zazwyczaj odpowiadamy w ciągu 1 dnia roboczego.
           </p>
           <button
             onClick={reset}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-white transition-colors"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
