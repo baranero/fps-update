@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { createServer, selectServerType } from "@/lib/hetzner/client";
 import { generateCloudInit } from "@/lib/hetzner/cloud-init";
 
@@ -177,6 +177,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Brakujące dane formularza." }, { status: 400 });
     }
 
+    // Opcjonalne powiązanie z kontem — nie blokuje niezalogowanych
+    const userClient = createClient();
+    const { data: { user } } = await userClient.auth.getUser();
+    const userId = user?.id ?? null;
+
     if (!file.name.endsWith(".fds")) {
       return NextResponse.json({ error: "Akceptowane są tylko pliki .fds." }, { status: 400 });
     }
@@ -203,6 +208,7 @@ export async function POST(req: NextRequest) {
     // Insert submission record
     const { error: dbError } = await supabase.from("fds_submissions").insert({
       case_id: caseId,
+      user_id: userId,
       name,
       email,
       notes,

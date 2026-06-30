@@ -52,7 +52,7 @@ export function clearHistory(): void {
 export function buildShareUrl(snapshot: HistorySnapshot): string {
   const json = JSON.stringify(snapshot);
   const encoded = btoa(encodeURIComponent(json));
-  return `${window.location.origin}${window.location.pathname}?s=${encoded}`;
+  return `${window.location.origin}${window.location.pathname}?s=${encodeURIComponent(encoded)}`;
 }
 
 export function parseShareParam(s: string): HistorySnapshot | null {

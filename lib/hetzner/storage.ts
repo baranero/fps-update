@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 function s3() {
@@ -24,4 +24,13 @@ export async function listResults(caseId: string) {
 
 export async function signedResultUrl(key: string, expiresIn = 86400) {
   return getSignedUrl(s3(), new GetObjectCommand({ Bucket: BUCKET(), Key: key }), { expiresIn });
+}
+
+export async function deleteResults(caseId: string) {
+  const objects = await listResults(caseId);
+  if (!objects.length) return;
+  await s3().send(new DeleteObjectsCommand({
+    Bucket: BUCKET(),
+    Delete: { Objects: objects.map((o) => ({ Key: o.Key! })) },
+  }));
 }

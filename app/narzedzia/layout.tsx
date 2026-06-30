@@ -28,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     href === "#" ? false : exact ? pathname === href : pathname.startsWith(href);
 
   return (
-    <section className="bg-gray-50 dark:bg-[#0B1120] relative z-10 pb-24 pt-6 min-h-screen">
+    <section className="bg-slate-50 dark:bg-[#0B1120] relative z-10 pb-24 pt-6 min-h-screen">
       <div className="container">
 
         {/* Mobile nav */}
@@ -36,10 +36,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex gap-1.5 pb-1">
             {[
               { name: "Narzędzia", href: "/narzedzia", exact: true },
-              { name: "Symulacje FDS", href: "/narzedzia/symulacje", exact: false },
+              { name: "Symulacje FDS", href: "/narzedzia/symulacje", exact: true },
+              { name: "Historia FDS", href: "/narzedzia/symulacje/historia", exact: false },
               { name: "CNBOP", href: "/narzedzia/kalkulatory/cnbop", exact: false },
               { name: "Klatki PN-B", href: "/narzedzia/kalkulatory/oddymianie-klatek-pn", exact: false },
               { name: "Szybki Aᴄz", href: "/narzedzia/kalkulatory/oddymianie-grawitacyjne", exact: false },
+              { name: "Raporty", href: "/narzedzia/raporty", exact: false },
+              { name: "Rozliczenia", href: "/narzedzia/rozliczenia", exact: false },
+              { name: "Statystyki", href: "/narzedzia/statystyki", exact: false },
+              ...(userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+                ? [{ name: "Admin", href: "/narzedzia/admin", exact: false }]
+                : []),
             ].map((link) => (
               <Link
                 key={link.href}
@@ -76,6 +83,45 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Sidebar */}
           <aside className="hidden lg:flex lg:flex-col w-52 shrink-0 sticky top-[88px] gap-5">
 
+            {/* Użytkownik — góra */}
+            {userEmail ? (
+              <div className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-3">
+                <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-sm font-bold text-white uppercase leading-none">
+                    {userEmail[0]}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">{userEmail}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Link
+                      href="/narzedzia/profil"
+                      className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors"
+                    >
+                      Profil
+                    </Link>
+                    <span className="text-slate-200 dark:text-slate-700">·</span>
+                    <button
+                      onClick={handleLogout}
+                      className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors"
+                    >
+                      Wyloguj
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2.5">
+                <Link href="/signin" className="text-xs font-semibold text-primary hover:underline">
+                  Zaloguj się
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">·</span>
+                <Link href="/signup" className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">
+                  Zarejestruj się
+                </Link>
+              </div>
+            )}
+
             {/* Top link */}
             <Link
               href="/narzedzia"
@@ -96,24 +142,39 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   Symulacje CFD
                 </p>
-                <Link
-                  href="/narzedzia/symulacje"
-                  className={`flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm transition-colors ${
-                    active("/narzedzia/symulacje")
-                      ? "bg-slate-900 text-white font-medium"
-                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-900 hover:text-white dark:hover:bg-slate-800 dark:hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
+                <div className="flex flex-col gap-0.5">
+                  <Link
+                    href="/narzedzia/symulacje"
+                    className={`flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm transition-colors ${
+                      active("/narzedzia/symulacje") && !active("/narzedzia/symulacje/historia")
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                      </svg>
+                      <span>Obliczenia FDS</span>
+                    </div>
+                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary">
+                      Nowe
+                    </span>
+                  </Link>
+                  <Link
+                    href="/narzedzia/symulacje/historia"
+                    className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                      active("/narzedzia/symulacje/historia")
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
+                    }`}
+                  >
                     <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Obliczenia FDS</span>
-                  </div>
-                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary">
-                    Nowe
-                  </span>
-                </Link>
+                    <span>Historia symulacji</span>
+                  </Link>
+                </div>
               </div>
 
               {/* Kalkulatory */}
@@ -163,34 +224,82 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-            </nav>
-
-            {/* Użytkownik */}
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-              {userEmail ? (
-                <>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mb-2" title={userEmail}>
-                    {userEmail}
+              {/* Admin */}
+              {userEmail && userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL && (
+                <div>
+                  <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+                    Admin
                   </p>
-                  <button
-                    onClick={handleLogout}
-                    className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors"
-                  >
-                    Wyloguj się
-                  </button>
-                </>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Link href="/signin" className="text-[11px] font-medium text-primary hover:underline">
-                    Zaloguj się
-                  </Link>
-                  <span className="text-slate-300 dark:text-slate-700">·</span>
-                  <Link href="/signup" className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors">
-                    Zarejestruj się
-                  </Link>
+                  <div className="flex flex-col gap-0.5">
+                    <Link
+                      href="/narzedzia/admin"
+                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                        active("/narzedzia/admin")
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>Panel admina</span>
+                    </Link>
+                  </div>
                 </div>
               )}
-            </div>
+
+              {/* Konto */}
+              {userEmail && (
+                <div>
+                  <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    Konto
+                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    <Link
+                      href="/narzedzia/raporty"
+                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                        active("/narzedzia/raporty")
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="truncate">Historia raportów</span>
+                    </Link>
+                    <Link
+                      href="/narzedzia/rozliczenia"
+                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                        active("/narzedzia/rozliczenia")
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                      </svg>
+                      <span className="truncate">Rozliczenia</span>
+                    </Link>
+                    <Link
+                      href="/narzedzia/statystyki"
+                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                        active("/narzedzia/statystyki")
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <span className="truncate">Statystyki</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+            </nav>
 
             {/* Kontakt */}
             <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-1.5">

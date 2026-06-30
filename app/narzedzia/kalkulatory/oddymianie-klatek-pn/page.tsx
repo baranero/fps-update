@@ -154,7 +154,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
                   <select
                     value={buildingType}
                     onChange={(e) => setBuildingType(e.target.value as BuildingType)}
-                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E2342] dark:border-slate-700"
+                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E232E] dark:border-slate-700"
                   >
                     <option value="niskie_sredniowysokie">Niski / Średniowysoki (N, SW)</option>
                     <option value="wysokie">Wysoki (W)</option>
@@ -166,7 +166,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
                   </label>
                   <input
                     type="text" inputMode="decimal" required value={areaK} onChange={(e) => setAreaK(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E2342] dark:border-slate-700"
+                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E232E] dark:border-slate-700"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
             {/* URZĄDZENIA ODDYMIAJĄCE */}
             <section>
               <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-2 dark:border-slate-800">
-                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">2. Urządzenia oddymiające</h2>
+                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">2. Urządzenia oddymiające</h2>
                 <button type="button" onClick={addVent} className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg transition">+ Dodaj klapę</button>
               </div>
               <div className="space-y-3">
@@ -184,15 +184,15 @@ export default function PnStaircaseDynamicCalculatorPage() {
                     <span className="font-bold text-slate-400">{idx+1}.</span>
                     <div className="flex-1 w-full">
                       <label className="block text-xs font-medium text-slate-500 mb-1">Szerokość [m]</label>
-                      <input type="text" inputMode="decimal" value={v.width} onChange={e => updateVent(v.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                      <input type="text" inputMode="decimal" value={v.width} onChange={e => updateVent(v.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                     </div>
                     <div className="flex-1 w-full">
                       <label className="block text-xs font-medium text-slate-500 mb-1">Długość [m]</label>
-                      <input type="text" inputMode="decimal" value={v.length} onChange={e => updateVent(v.id, "length", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                      <input type="text" inputMode="decimal" value={v.length} onChange={e => updateVent(v.id, "length", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                     </div>
                     <div className="flex-1 w-full">
                       <label className="block text-xs font-medium text-slate-500 mb-1">C<sub>v</sub></label>
-                      <input type="text" inputMode="decimal" value={v.cv} onChange={e => updateVent(v.id, "cv", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                      <input type="text" inputMode="decimal" value={v.cv} onChange={e => updateVent(v.id, "cv", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                     </div>
                     <button type="button" onClick={() => removeVent(v.id)} disabled={vents.length === 1} className="text-red-500 hover:text-red-700 disabled:opacity-30 p-2"><TrashIcon /></button>
                   </div>
@@ -205,7 +205,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
               <section>
                 <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-2 dark:border-slate-800">
                   <div>
-                    <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">3. Otwory napowietrzające</h2>
+                    <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">3. Otwory napowietrzające</h2>
                     <p className="text-xs text-slate-500 mt-1">Kompensacja musi równoważyć wymaganą czynną powierzchnię oddymiania.</p>
                   </div>
                   <button type="button" onClick={addInlet} className="text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg transition">+ Dodaj otwór</button>
@@ -216,7 +216,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
                   <select
                     value={seriesOpenings}
                     onChange={(e) => setSeriesOpenings(e.target.value as SeriesOpenings)}
-                    className="w-full sm:w-1/2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E2342] dark:border-slate-700"
+                    className="w-full sm:w-1/2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:bg-[#1E232E] dark:border-slate-700"
                   >
                     <option value="1">1 otwór (bezpośrednio na zewnątrz) - req: 100%</option>
                     <option value="2">2 otwory w układzie szeregowym (np. przedsionek) - req: 130%</option>
@@ -230,31 +230,31 @@ export default function PnStaircaseDynamicCalculatorPage() {
                       <span className="font-medium text-slate-400 dark:text-slate-500">{idx+1}.</span>
                       <div className="w-full sm:w-20">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Ilość</label>
-                        <input type="number" min="1" value={i.count} onChange={e => updateInlet(i.id, "count", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                        <input type="number" min="1" value={i.count} onChange={e => updateInlet(i.id, "count", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Szer. [m]</label>
-                        <input type="text" inputMode="decimal" value={i.width} onChange={e => updateInlet(i.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                        <input type="text" inputMode="decimal" value={i.width} onChange={e => updateInlet(i.id, "width", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Wys. [m]</label>
-                        <input type="text" inputMode="decimal" value={i.height} onChange={e => updateInlet(i.id, "height", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                        <input type="text" inputMode="decimal" value={i.height} onChange={e => updateInlet(i.id, "height", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs font-medium text-slate-500 mb-1">C<sub>z</sub></label>
-                        <input type="text" inputMode="decimal" value={i.cz} onChange={e => updateInlet(i.id, "cz", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E2342] dark:border-slate-700" />
+                        <input type="text" inputMode="decimal" value={i.cz} onChange={e => updateInlet(i.id, "cz", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />
                       </div>
                       <button type="button" onClick={() => removeInlet(i.id)} disabled={inlets.length === 1} className="text-red-500 hover:text-red-700 disabled:opacity-30 p-2"><TrashIcon /></button>
                     </div>
                   ))}
-                  <p className="text-[10px] text-slate-500 italic mt-2">Wskazówka: Typowy współczynnik Cz dla otwartych drzwi wynosi 0.70. Dla okien uchylnych 0.30 - 0.65 w zależności od kąta uchyłu (Tabela 5).</p>
+                  <p className="text-[10px] text-slate-500 italic mt-2">Wskazówka: Typowy współczynnik Cz dla otwartych drzwi wynosi 0,70. Dla okien uchylnych 0,30–0,65 w zależności od kąta uchyłu (Tabela 5).</p>
                 </div>
               </section>
             )}
 
             <div className="pt-6">
-              <button type="submit" className="flex w-full items-center justify-center rounded-xl bg-primary px-9 py-4 text-base font-semibold text-white transition hover:bg-opacity-90">
-                Weryfikuj Projekt
+              <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90">
+                Weryfikuj projekt
               </button>
             </div>
           </form>

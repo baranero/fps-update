@@ -22,6 +22,7 @@ interface Step5Props {
   onDownloadPDF: () => void;
   onDownloadXLSX: () => void;
   onDownloadDOCX: () => void;
+  onSave: (projectName: string) => Promise<boolean>;
   onReset: () => void;
   onCopyLink?: () => void;
 }
@@ -90,6 +91,80 @@ function ComplianceCard({
   );
 }
 
+function SaveSection({ onSave }: { onSave: (name: string) => Promise<boolean> }) {
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(false);
+    const ok = await onSave(name.trim());
+    setSaving(false);
+    if (ok) setSaved(true);
+    else setError(true);
+  };
+
+  if (saved) {
+    return (
+      <div className="rounded-xl border border-green-200 dark:border-green-800/40 bg-green-50 dark:bg-green-950/20 p-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
+            <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-800 dark:text-green-300">Zapisano do historii raportów</p>
+            {name && <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">{name}</p>}
+          </div>
+        </div>
+        <button
+          onClick={() => { setSaved(false); setError(false); }}
+          className="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors shrink-0"
+        >
+          Zapisz ponownie
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-5 space-y-3">
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+        Zapisz do historii raportów
+      </p>
+      <div className="flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Nazwa projektu (opcjonalnie)"
+          value={name}
+          onChange={e => { setName(e.target.value); setError(false); }}
+          onKeyDown={e => { if (e.key === "Enter") handleSave(); }}
+          className={`flex-1 rounded-lg border px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary bg-white dark:bg-[#0B1120] ${
+            error
+              ? "border-red-300 dark:border-red-700"
+              : "border-slate-200 dark:border-slate-600"
+          }`}
+        />
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60 transition-colors shrink-0"
+        >
+          {saving ? "Zapisuję…" : "Zapisz raport"}
+        </button>
+      </div>
+      {error && (
+        <p className="text-xs text-red-500 dark:text-red-400">
+          Nie udało się zapisać. Sprawdź czy jesteś zalogowany i spróbuj ponownie.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function MetricPill({ label, value, unit }: { label: string; value: React.ReactNode; unit: string }) {
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
@@ -105,7 +180,7 @@ function MetricPill({ label, value, unit }: { label: string; value: React.ReactN
 export default function Step5({
   results, step1Data, step2Data, step4Data, akso, abSum,
   actualVent, compCalc, cfnWarnings, extraCFD, anyCFD,
-  onDownloadPDF, onDownloadXLSX, onDownloadDOCX, onReset, onCopyLink,
+  onDownloadPDF, onDownloadXLSX, onDownloadDOCX, onSave, onReset, onCopyLink,
 }: Step5Props) {
   const downloadMenuRef = useRef<HTMLDivElement>(null);
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
@@ -443,6 +518,9 @@ export default function Step5({
           </div>
         </div>
       )}
+
+      {/* ── SAVE ── */}
+      <SaveSection onSave={onSave} />
 
       {/* ── RESET ── */}
       <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">

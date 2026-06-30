@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
-import { listResults, signedResultUrl } from "@/lib/hetzner/storage";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { listResults, signedResultUrl, deleteResults } from "@/lib/hetzner/storage";
 
 export async function GET(
   _req: NextRequest,
@@ -55,4 +55,61 @@ export async function GET(
     fdsLog: data.fds_log ?? null,
     results,
   });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { caseId: string } }
+) {
+  const { caseId } = params;
+
+  // Weryfikuj zalogowanego użytkownika
+  const userClient = createClient();
+  const { data: { user } } = await userClient.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Nieautoryzowany." }, { status: 401 });
+  }
+
+  const admin = createAdminClient();
+
+  // Pobierz rekord i sprawdź własność (user_id lub email)
+  const { data: submission } = await admin
+    .from("fds_submissions")
+    .select("case_id, file_path, status, user_id, email")
+    .eq("case_id", caseId)
+    .single();
+
+  if (!submission) {
+    return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
+  }
+
+  const owns =
+    submission.user_id === user.id ||
+    submission.email === user.email;
+
+  if (!owns) {
+    return NextResponse.json({ error: "Brak dostępu." }, { status: 403 });
+  }
+
+  // Nie pozwól usuwać aktywnych symulacji
+  if (submission.status === "running" || submission.status === "dispatched") {
+    return NextResponse.json({ error: "Nie można usunąć symulacji w trakcie obliczeń." }, { status: 409 });
+  }
+
+  // Usuń plik wejściowy z Supabase Storage
+  if (submission.file_path) {
+    await admin.storage.from("fds-files").remove([submission.file_path]);
+  }
+
+  // Usuń wyniki z Hetzner Object Storage (jeśli są)
+  try {
+    await deleteResults(caseId);
+  } catch {
+    // Brak wyników — ignoruj
+  }
+
+  // Usuń rekord z bazy
+  await admin.from("fds_submissions").delete().eq("case_id", caseId);
+
+  return NextResponse.json({ ok: true });
 }

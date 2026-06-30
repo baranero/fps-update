@@ -27,36 +27,41 @@ const STATUS_CONFIG = {
   pending: {
     label: "Przyjęte",
     desc: "Zlecenie zapisane, uruchamiam serwer obliczeniowy…",
-    color: "text-slate-500",
-    bg: "bg-slate-100",
+    color: "text-slate-500 dark:text-slate-400",
+    bg: "bg-slate-100 dark:bg-slate-800/60",
+    border: "border-slate-200 dark:border-slate-700",
     dot: "bg-slate-400 animate-pulse",
   },
   dispatched: {
     label: "Serwer uruchamiany",
     desc: "Maszyna obliczeniowa startuje, instalacja FDS…",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    border: "border-blue-200 dark:border-blue-800/50",
     dot: "bg-blue-500 animate-pulse",
   },
   running: {
     label: "Obliczenia w toku",
     desc: "FDS działa na serwerze chmurowym.",
-    color: "text-amber-600",
-    bg: "bg-amber-50",
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-900/20",
+    border: "border-amber-200 dark:border-amber-800/50",
     dot: "bg-amber-500 animate-pulse",
   },
   done: {
     label: "Gotowe",
     desc: "Obliczenia zakończone. Wyniki dostępne poniżej.",
-    color: "text-green-600",
-    bg: "bg-green-50",
+    color: "text-green-600 dark:text-green-400",
+    bg: "bg-green-50 dark:bg-green-900/20",
+    border: "border-green-200 dark:border-green-800/50",
     dot: "bg-green-500",
   },
   failed: {
     label: "Błąd",
     desc: "Obliczenia zakończyły się błędem. Skontaktuj się z nami.",
-    color: "text-red-600",
-    bg: "bg-red-50",
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-900/20",
+    border: "border-red-200 dark:border-red-800/50",
     dot: "bg-red-500",
   },
 };
@@ -178,7 +183,7 @@ export default function JobStatusPage({
 }) {
   const { caseId } = params;
   const [job, setJob] = useState<JobData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<"not_found" | "connection" | null>(null);
   const [tick, setTick] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -190,14 +195,15 @@ export default function JobStatusPage({
   const fetchStatus = async () => {
     try {
       const res = await fetch(`/api/symulacje/${caseId}`);
-      if (!res.ok) { setError("Nie znaleziono zlecenia."); return; }
+      if (res.status === 404) { setError("not_found"); return; }
+      if (!res.ok) { setError("connection"); return; }
       const data: JobData = await res.json();
       setJob(data);
       if (data.status === "done" || data.status === "failed") {
         if (intervalRef.current) clearInterval(intervalRef.current);
       }
     } catch {
-      setError("Błąd połączenia z serwerem.");
+      setError("connection");
     }
   };
 
@@ -276,17 +282,45 @@ export default function JobStatusPage({
     }
   };
 
-  if (error) return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-      <p className="font-bold text-red-700">{error}</p>
-      <Link href="/narzedzia/symulacje" className="mt-4 inline-block text-sm text-primary hover:underline">← Wróć</Link>
+  if (error === "not_found") return (
+    <div className="py-16 text-center">
+      <p className="text-7xl font-black text-slate-100 dark:text-slate-800 select-none leading-none mb-6">404</p>
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Nie znaleziono zlecenia</h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+        Zlecenie <span className="font-mono font-semibold">{caseId}</span> nie istnieje lub nie masz do niego dostępu.
+      </p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-8">
+        Sprawdź numer zlecenia w e-mailu potwierdzającym.
+      </p>
+      <div className="flex items-center justify-center gap-3">
+        <Link
+          href="/narzedzia/symulacje/historia"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+        >
+          Historia symulacji
+        </Link>
+        <Link
+          href="/narzedzia/symulacje"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+        >
+          Nowe zlecenie
+        </Link>
+      </div>
+    </div>
+  );
+
+  if (error === "connection") return (
+    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-8 text-center">
+      <p className="font-semibold text-red-700 dark:text-red-400 mb-1">Błąd połączenia z serwerem</p>
+      <p className="text-sm text-red-600/70 dark:text-red-500/70 mb-4">Spróbuj odświeżyć stronę.</p>
+      <Link href="/narzedzia/symulacje" className="text-sm font-medium text-primary hover:underline">← Wróć do symulacji</Link>
     </div>
   );
 
   if (!job) return (
     <div className="space-y-4">
       {[1, 2, 3].map(i => (
-        <div key={i} className="h-20 rounded-lg bg-slate-100 animate-pulse" />
+        <div key={i} className="h-20 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
       ))}
     </div>
   );
@@ -301,11 +335,11 @@ export default function JobStatusPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link href="/narzedzia/symulacje" className="text-xs text-slate-400 hover:text-primary transition-colors">
+          <Link href="/narzedzia/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
             ← Symulacje FDS
           </Link>
-          <h1 className="text-xl font-semibold text-slate-900 mt-1">{job.fileName}</h1>
-          <p className="text-xs font-mono text-slate-400 mt-0.5">{job.caseId}</p>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white mt-1">{job.fileName}</h1>
+          <p className="text-xs font-mono text-slate-400 dark:text-slate-500 mt-0.5">{job.caseId}</p>
         </div>
         <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${cfg.bg} ${cfg.color} shrink-0`}>
           <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
@@ -314,20 +348,20 @@ export default function JobStatusPage({
       </div>
 
       {/* Status card */}
-      <div className={`rounded-lg border p-5 ${cfg.bg}`}>
+      <div className={`rounded-lg border p-5 ${cfg.bg} ${cfg.border}`}>
         <p className={`text-sm font-semibold ${cfg.color}`}>{cfg.desc}</p>
         {isActive && activeFrom && (
-          <p className="text-xs text-slate-500 mt-1.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
             Czas od startu: <span className="font-mono font-bold">{elapsed(activeFrom)}</span>
             {job.wallHours > 0 && (
-              <span className="ml-2 text-slate-400">
+              <span className="ml-2 text-slate-400 dark:text-slate-500">
                 / szacowany: {job.wallHours < 1 ? `${Math.round(job.wallHours * 60)} min` : `${job.wallHours.toFixed(1)} h`}
               </span>
             )}
           </p>
         )}
         {job.status === "done" && job.completedAt && job.dispatchedAt && (
-          <p className="text-xs text-slate-500 mt-1.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
             Czas całkowity:{" "}
             <span className="font-mono font-bold">
               {elapsed(job.dispatchedAt)}
@@ -337,8 +371,8 @@ export default function JobStatusPage({
       </div>
 
       {/* Timeline */}
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="text-xs font-medium text-slate-500 mb-3">Postęp</h2>
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
+        <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">Postęp</h2>
         <div className="space-y-3">
           {(
             [
@@ -358,26 +392,26 @@ export default function JobStatusPage({
             return (
               <div key={step.key} className="flex items-center gap-3">
                 <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                  failed ? "bg-red-100" :
-                  done ? "bg-green-100" :
+                  failed ? "bg-red-100 dark:bg-red-900/40" :
+                  done ? "bg-green-100 dark:bg-green-900/40" :
                   active ? "bg-primary/10" :
-                  "bg-slate-100"
+                  "bg-slate-100 dark:bg-slate-700"
                 }`}>
                   {done ? (
-                    <svg className="h-3 w-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-3 w-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : active ? (
                     <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   ) : (
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-500" />
                   )}
                 </div>
-                <span className={`text-sm ${done || active ? "font-semibold text-slate-900" : "text-slate-400"}`}>
+                <span className={`text-sm ${done || active ? "font-semibold text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500"}`}>
                   {step.label}
                 </span>
                 {step.time && (
-                  <span className="ml-auto text-[11px] font-mono text-slate-400">
+                  <span className="ml-auto text-[11px] font-mono text-slate-400 dark:text-slate-500">
                     {new Date(step.time).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 )}
@@ -395,9 +429,9 @@ export default function JobStatusPage({
           { label: "vCPU-hours", value: job.vcpuHours.toFixed(1) },
           { label: "Cena netto", value: `${job.price.toLocaleString("pl-PL")} zł` },
         ].map((item) => (
-          <div key={item.label} className="rounded bg-slate-50 border border-slate-100 p-4">
-            <p className="text-[11px] font-medium text-slate-400 mb-1">{item.label}</p>
-            <p className="text-lg font-semibold text-slate-900">{item.value}</p>
+          <div key={item.label} className="rounded bg-slate-50 dark:bg-[#1E232E] border border-slate-100 dark:border-slate-700 p-4">
+            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
           </div>
         ))}
       </div>
@@ -436,20 +470,20 @@ export default function JobStatusPage({
           : null;
 
         return (
-          <div className="rounded-lg border border-slate-200 bg-white">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
 
             {/* Nagłówek */}
-            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-700">Postęp obliczeń</span>
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Postęp obliczeń</span>
                 {job.status === "running" && (
-                  <span className="text-[10px] text-slate-400">odświeżanie co 5 s</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 5 s</span>
                 )}
               </div>
-              <div className="flex rounded border border-slate-200 overflow-hidden text-xs font-semibold">
+              <div className="flex rounded border border-slate-200 dark:border-slate-600 overflow-hidden text-xs font-semibold">
                 {(["basic", "advanced"] as const).map((mode) => (
                   <button key={mode} onClick={() => setLogMode(mode)}
-                    className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+                    className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}>
                     {mode === "basic" ? "Podstawowy" : "Zaawansowany"}
                   </button>
                 ))}
@@ -487,9 +521,9 @@ export default function JobStatusPage({
                       value: isDone ? "zakończono" : remainingStr,
                     },
                   ].map((item) => (
-                    <div key={item.label} className="rounded bg-slate-50 border border-slate-100 px-4 py-3">
-                      <p className="text-[10px] font-medium text-slate-400 mb-1">{item.label}</p>
-                      <p className="text-sm font-bold text-slate-800">{item.value}</p>
+                    <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-4 py-3">
+                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -497,15 +531,15 @@ export default function JobStatusPage({
                 {/* Progress bar */}
                 {displayPct != null && (
                   <div>
-                    <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${isDone ? "bg-green-500" : fdsProgress ? "bg-amber-500" : "bg-slate-400"}`}
                         style={{ width: `${displayPct}%` }}
                       />
                     </div>
-                    <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400">
+                    <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400 dark:text-slate-500">
                       <span>0 s</span>
-                      <span className="text-slate-300 italic">
+                      <span className="text-slate-300 dark:text-slate-600 italic">
                         {isEstimate ? "szacunkowy postęp" : ""}
                       </span>
                       <span>{job.tEnd} s</span>
@@ -532,9 +566,9 @@ export default function JobStatusPage({
                         { label: "Komórki",            value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString("pl-PL") : "—" },
                         { label: "Start FDS",          value: stats.startTime ?? "—" },
                       ].map((item) => (
-                        <div key={item.label} className="rounded bg-slate-50 px-3 py-2">
-                          <p className="text-[10px] text-slate-400 mb-0.5">{item.label}</p>
-                          <p className="text-xs font-mono font-semibold text-slate-700 truncate">{item.value}</p>
+                        <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-3 py-2">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+                          <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-200 truncate">{item.value}</p>
                         </div>
                       ))}
                     </div>
@@ -544,7 +578,7 @@ export default function JobStatusPage({
                 {/* Podgląd ostatnich linii logu */}
                 {logTail && (
                   <div>
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 mb-1.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
                       Ostatnie zdarzenia
                     </p>
                     <div className="rounded bg-slate-900 p-3">
@@ -554,7 +588,7 @@ export default function JobStatusPage({
                 )}
 
                 {!job.fdsLog && job.status === "running" && (
-                  <p className="text-xs text-slate-400 text-center py-2">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
                     Oczekiwanie na pierwsze dane z serwera… (pojawią się po ~15 s od startu FDS)
                   </p>
                 )}
@@ -581,7 +615,7 @@ export default function JobStatusPage({
 
       {/* Wyniki */}
       {job.status === "done" && job.results && job.results.length > 0 && (
-        <div className="rounded-lg border border-green-200 bg-white p-6">
+        <div className="rounded-lg border border-green-200 dark:border-green-800/50 bg-white dark:bg-[#1E232E] p-6">
           {/* Nagłówek z akcjami */}
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2.5">
@@ -592,9 +626,9 @@ export default function JobStatusPage({
                 onChange={toggleAll}
                 className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer"
               />
-              <h2 className="text-sm font-medium text-slate-700">
+              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Pliki wynikowe
-                <span className="ml-1.5 text-slate-400 font-normal">
+                <span className="ml-1.5 text-slate-400 dark:text-slate-500 font-normal">
                   ({job.results.length})
                 </span>
               </h2>
@@ -607,7 +641,7 @@ export default function JobStatusPage({
                   else downloadZip(toDownload);
                 }}
                 disabled={!someSelected || zipping}
-                className="flex items-center gap-1.5 rounded border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 rounded border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -636,16 +670,16 @@ export default function JobStatusPage({
 
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-slate-100 dark:border-slate-700">
                 <th className="pb-2 pr-3 w-8" />
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">Plik</th>
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4 hidden sm:table-cell">Typ</th>
-                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4 hidden sm:table-cell">Utworzono</th>
-                <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 pl-4">Rozmiar</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Plik</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Typ</th>
+                <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Utworzono</th>
+                <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4">Rozmiar</th>
                 <th className="pb-2 pl-4 w-24" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {job.results.map((f) => (
                 <tr key={f.name} className="group">
                   <td className="py-2.5 pr-3 align-middle">
@@ -659,14 +693,14 @@ export default function JobStatusPage({
                   <td className="py-2.5 align-middle min-w-0 max-w-[200px]">
                     <div className="flex items-center gap-2">
                       <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
-                      <span className="font-mono text-slate-700 truncate">{f.name}</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-200 truncate">{f.name}</span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 hidden sm:table-cell">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">
                     {fileType(f.name)}
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 hidden sm:table-cell">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:table-cell">
                     {f.createdAt
                       ? new Date(f.createdAt).toLocaleString("pl-PL", {
                           day: "2-digit", month: "2-digit", year: "numeric",
@@ -674,13 +708,13 @@ export default function JobStatusPage({
                         })
                       : "—"}
                   </td>
-                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 text-right">
+                  <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
                     {formatSize(f.size)}
                   </td>
                   <td className="py-2.5 pl-4 align-middle text-right">
                     <button
                       onClick={() => downloadFile(f)}
-                      className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded border border-slate-200 dark:border-slate-600 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -697,13 +731,13 @@ export default function JobStatusPage({
 
       {/* Kontakt przy błędzie */}
       {job.status === "failed" && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-5 flex items-start gap-4">
-          <svg className="h-5 w-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-5 flex items-start gap-4">
+          <svg className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-red-700">Obliczenia zakończyły się błędem.</p>
-            <p className="text-xs text-red-600/80 mt-1">
+            <p className="text-sm font-semibold text-red-700 dark:text-red-400">Obliczenia zakończyły się błędem.</p>
+            <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
               Skontaktuj się z nami podając numer zlecenia:{" "}
               <a href="mailto:biuro@fp-solutions.pl" className="underline">biuro@fp-solutions.pl</a>
             </p>

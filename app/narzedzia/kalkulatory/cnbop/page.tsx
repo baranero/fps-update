@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -65,7 +65,7 @@ const initialAeHelper: AeHelperState = {
   ceilingArea: "", otherAe: "",
 };
 
-export default function CNBOPWizardPage() {
+function CNBOPWizardInner() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [hasCalculated, setHasCalculated] = useState(false);
@@ -359,6 +359,30 @@ export default function CNBOPWizardPage() {
     if (data) await generateDOCX(data, `Raport_CNBOP_${Date.now()}.docx`);
   };
 
+  const handleSave = async (projectName: string): Promise<boolean> => {
+    const shareUrl = buildShareUrl({ label: projectName, step1Data, step2aData, step2Data, step4Data, cfDCond, aeHelper });
+    try {
+      const res = await fetch("/api/raporty/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          calculator: "CNBOP-PIB W-0003:2016",
+          format: "CNBOP",
+          project_name: projectName || null,
+          share_url: shareUrl,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error("Save report failed:", body);
+      }
+      return res.ok;
+    } catch (err) {
+      console.error("Save report error:", err);
+      return false;
+    }
+  };
+
   const isGrav = systemType === "GRAVITATIONAL";
 
   return (
@@ -523,6 +547,7 @@ export default function CNBOPWizardPage() {
             onDownloadPDF={handleDownloadPDF}
             onDownloadXLSX={handleDownloadXLSX}
             onDownloadDOCX={handleDownloadDOCX}
+            onSave={handleSave}
             onReset={handleReset}
             onCopyLink={handleCopyLink}
           />
@@ -586,6 +611,14 @@ export default function CNBOPWizardPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function CNBOPWizardPage() {
+  return (
+    <Suspense>
+      <CNBOPWizardInner />
+    </Suspense>
   );
 }
 
