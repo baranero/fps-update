@@ -58,13 +58,15 @@ function buildMonthlyData(items: Item[]) {
 }
 
 function buildStatusData(items: Item[]) {
-  const done    = items.filter((s) => s.status === "done").length;
-  const active  = items.filter((s) => ACTIVE.has(s.status)).length;
-  const failed  = items.filter((s) => s.status === "failed" || s.status === "error").length;
+  const done      = items.filter((s) => s.status === "done").length;
+  const active    = items.filter((s) => ACTIVE.has(s.status)).length;
+  const failed    = items.filter((s) => s.status === "failed" || s.status === "error").length;
+  const cancelled = items.filter((s) => s.status === "cancelled").length;
   return [
-    { name: "Zakończone", value: done,   color: "#22c55e" },
-    { name: "W toku",     value: active, color: "#f59e0b" },
-    { name: "Błędy",      value: failed, color: "#ef4444" },
+    { name: "Zakończone", value: done,      color: "#22c55e" },
+    { name: "W toku",     value: active,    color: "#f59e0b" },
+    { name: "Błędy",      value: failed,    color: "#ef4444" },
+    { name: "Anulowane",  value: cancelled, color: "#94a3b8" },
   ].filter((d) => d.value > 0);
 }
 

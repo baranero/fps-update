@@ -15,9 +15,10 @@ type Item = {
   server_type: string | null;
   total_cells: number;
   mesh_count: number | null;
+  payment_status: "paid" | "pending" | null;
 };
 
-type FilterTab = "all" | "done" | "active" | "failed";
+type FilterTab = "all" | "done" | "active" | "failed" | "cancelled";
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   pending:    { label: "Oczekuje",    cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
@@ -26,6 +27,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   done:       { label: "Zakończone",  cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
   error:      { label: "Błąd",        cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
   failed:     { label: "Błąd",        cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+  cancelled:  { label: "Anulowane",   cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
 };
 
 const ACTIVE_STATUSES = new Set(["pending", "dispatched", "running"]);
@@ -105,9 +107,10 @@ export default function RozliczeniaPage() {
   }, []);
 
   const filtered = items.filter((s) => {
-    if (filter === "done") return s.status === "done";
-    if (filter === "active") return ACTIVE_STATUSES.has(s.status);
-    if (filter === "failed") return s.status === "failed" || s.status === "error";
+    if (filter === "done")      return s.status === "done";
+    if (filter === "active")    return ACTIVE_STATUSES.has(s.status);
+    if (filter === "failed")    return s.status === "failed" || s.status === "error";
+    if (filter === "cancelled") return s.status === "cancelled";
     return true;
   });
 
@@ -118,12 +121,15 @@ export default function RozliczeniaPage() {
 
   const groups = groupByMonth(filtered);
 
+  const countCancelled = items.filter((s) => s.status === "cancelled").length;
+
   const TABS: Array<{ id: FilterTab; label: string; count: number }> = [
-    { id: "all",    label: "Wszystkie",   count: items.length },
-    { id: "done",   label: "Zakończone",  count: countDone },
-    { id: "active", label: "W toku",      count: countActive },
-    { id: "failed", label: "Błędy",       count: items.filter((s) => s.status === "failed" || s.status === "error").length },
-  ];
+    { id: "all",       label: "Wszystkie",   count: items.length },
+    { id: "done",      label: "Zakończone",  count: countDone },
+    { id: "active",    label: "W toku",      count: countActive },
+    { id: "failed",    label: "Błędy",       count: items.filter((s) => s.status === "failed" || s.status === "error").length },
+    { id: "cancelled", label: "Anulowane",   count: countCancelled },
+  ].filter((t) => t.id === "all" || t.id === "done" || t.count > 0) as Array<{ id: FilterTab; label: string; count: number }>;
 
   return (
     <div className="space-y-8">
@@ -293,15 +299,21 @@ export default function RozliczeniaPage() {
                               )}
                             </div>
 
-                            {/* Price */}
+                            {/* Price + payment badge */}
                             <div className="shrink-0 text-right">
                               <p className={`text-sm font-bold ${s.price > 0 ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-500"}`}>
                                 {s.price > 0
                                   ? `${s.price.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`
                                   : "—"}
                               </p>
-                              {s.price > 0 && (
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">netto</p>
+                              {s.status === "done" && (
+                                <span className={`inline-block mt-1 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
+                                  s.payment_status === "paid"
+                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                }`}>
+                                  {s.payment_status === "paid" ? "Opłacone" : "Do zapłaty"}
+                                </span>
                               )}
                             </div>
 

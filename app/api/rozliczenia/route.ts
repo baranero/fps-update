@@ -14,7 +14,7 @@ export async function GET() {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("fds_submissions")
-    .select("case_id, file_name, status, created_at, completed_at, price, wall_hours, server_type, total_cells, mesh_count")
+    .select("case_id, file_name, status, created_at, completed_at, price, wall_hours, server_type, total_cells, mesh_count, payment_status")
     .or(`user_id.eq.${user.id},email.eq.${user.email}`)
     .order("created_at", { ascending: false });
 

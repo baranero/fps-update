@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import JSZip from "jszip";
 
 interface JobData {
   caseId: string;
-  status: "pending" | "dispatched" | "running" | "done" | "failed";
+  status: "pending" | "dispatched" | "running" | "done" | "failed" | "cancelled";
   fileName: string;
   totalCells: number;
   meshCount: number | null;
@@ -21,6 +22,7 @@ interface JobData {
   completedAt: string | null;
   fdsLog: string | null;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
+  paymentStatus: "paid" | "pending" | null;
 }
 
 const STATUS_CONFIG = {
@@ -64,6 +66,14 @@ const STATUS_CONFIG = {
     border: "border-red-200 dark:border-red-800/50",
     dot: "bg-red-500",
   },
+  cancelled: {
+    label: "Anulowane",
+    desc: "Obliczenia zostały anulowane przez użytkownika.",
+    color: "text-slate-500 dark:text-slate-400",
+    bg: "bg-slate-100 dark:bg-slate-800/60",
+    border: "border-slate-200 dark:border-slate-700",
+    dot: "bg-slate-400",
+  },
 };
 
 function formatCells(n: number) {
@@ -74,10 +84,10 @@ function formatCells(n: number) {
 
 function elapsed(from: string | null): string {
   if (!from) return "—";
-  const s = Math.floor((Date.now() - new Date(from).getTime()) / 1000);
+  const s = Math.max(0, Math.floor((Date.now() - new Date(from).getTime()) / 1000));
   if (s < 60) return `${s} s`;
-  if (s < 3600) return `${Math.floor(s / 60)} min`;
-  return `${(s / 3600).toFixed(1)} h`;
+  if (s < 3600) return `${Math.floor(s / 60)} min ${s % 60} s`;
+  return `${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min`;
 }
 
 function fileIcon(name: string) {
@@ -182,6 +192,9 @@ export default function JobStatusPage({
   params: { caseId: string };
 }) {
   const { caseId } = params;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const platnosc = searchParams.get("platnosc");
   const [job, setJob] = useState<JobData | null>(null);
   const [error, setError] = useState<"not_found" | "connection" | null>(null);
   const [tick, setTick] = useState(0);
@@ -191,15 +204,79 @@ export default function JobStatusPage({
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
   const termScrolledUpRef = useRef(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [paying, setPaying] = useState(false);
+
+  const handleCancel = async () => {
+    if (!confirm("Anulować obliczenia? Serwer zostanie zatrzymany.")) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/symulacje/${caseId}/cancel`, { method: "POST" });
+      if (res.ok) {
+        setJob((j) => j ? { ...j, status: "cancelled" } : j);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/symulacje/${caseId}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/narzedzia/symulacje/historia");
+      }
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
+
+  const handlePay = async () => {
+    setPaying(true);
+    try {
+      const res = await fetch("/api/platnosci/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  // Po powrocie ze Stripe verify i odśwież status płatności
+  useEffect(() => {
+    if (platnosc === "sukces") {
+      fetch(`/api/platnosci/verify?caseId=${caseId}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.payment_status === "paid") {
+            setJob((j) => j ? { ...j, paymentStatus: "paid" } : j);
+          }
+        })
+        .catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [platnosc]);
 
   const fetchStatus = async () => {
     try {
       const res = await fetch(`/api/symulacje/${caseId}`);
       if (res.status === 404) { setError("not_found"); return; }
+      if (res.status === 500) { setError("connection"); return; }
       if (!res.ok) { setError("connection"); return; }
       const data: JobData = await res.json();
       setJob(data);
-      if (data.status === "done" || data.status === "failed") {
+      if (["done", "failed", "cancelled"].includes(data.status)) {
         if (intervalRef.current) clearInterval(intervalRef.current);
       }
     } catch {
@@ -326,8 +403,9 @@ export default function JobStatusPage({
   );
 
   const cfg = STATUS_CONFIG[job.status];
-  const activeFrom = job.startedAt ?? job.dispatchedAt;
   const isActive = job.status === "running" || job.status === "dispatched";
+  const canCancel = ["pending", "dispatched", "running"].includes(job.status);
+  const isTerminal = ["done", "failed", "cancelled"].includes(job.status);
 
   return (
     <div className="space-y-6" suppressHydrationWarning>
@@ -350,9 +428,14 @@ export default function JobStatusPage({
       {/* Status card */}
       <div className={`rounded-lg border p-5 ${cfg.bg} ${cfg.border}`}>
         <p className={`text-sm font-semibold ${cfg.color}`}>{cfg.desc}</p>
-        {isActive && activeFrom && (
+        {isActive && job.dispatchedAt && (
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-            Czas od startu: <span className="font-mono font-bold">{elapsed(activeFrom)}</span>
+            Czas od przyjęcia: <span className="font-mono font-bold">{elapsed(job.dispatchedAt)}</span>
+            {job.status === "running" && job.startedAt && (
+              <span className="ml-3">
+                · FDS od: <span className="font-mono font-bold">{elapsed(job.startedAt)}</span>
+              </span>
+            )}
             {job.wallHours > 0 && (
               <span className="ml-2 text-slate-400 dark:text-slate-500">
                 / szacowany: {job.wallHours < 1 ? `${Math.round(job.wallHours * 60)} min` : `${job.wallHours.toFixed(1)} h`}
@@ -369,6 +452,60 @@ export default function JobStatusPage({
           </p>
         )}
       </div>
+
+      {/* Akcje — anulowanie / usuwanie */}
+      {(canCancel || isTerminal) && (
+        <div className="flex items-center gap-3 flex-wrap">
+          {canCancel && (
+            <button
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {cancelling ? (
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+              )}
+              {cancelling ? "Zatrzymywanie…" : "Anuluj obliczenia"}
+            </button>
+          )}
+
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">Potwierdź usunięcie:</span>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
+              >
+                {deleting ? "Usuwanie…" : "Tak, usuń"}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Anuluj
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {canCancel ? "Zatrzymaj i usuń" : "Usuń zlecenie"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Timeline */}
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
@@ -726,6 +863,84 @@ export default function JobStatusPage({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Płatność */}
+      {job.status === "done" && (
+        <div className={`rounded-lg border p-5 ${
+          job.paymentStatus === "paid"
+            ? "border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20"
+            : "border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20"
+        }`}>
+          {platnosc === "sukces" && job.paymentStatus !== "paid" && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
+              Weryfikacja płatności trwa chwilę…
+            </p>
+          )}
+          {platnosc === "anulowano" && (
+            <p className="text-xs text-red-600 dark:text-red-400 mb-3">
+              Płatność została anulowana. Możesz spróbować ponownie.
+            </p>
+          )}
+
+          {job.paymentStatus === "paid" ? (
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 shrink-0">
+                <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-green-700 dark:text-green-400">Płatność zrealizowana</p>
+                <p className="text-xs text-green-600/70 dark:text-green-500/70 mt-0.5">
+                  Kwota: <span className="font-semibold">{job.price.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</span> netto
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Oczekuje na płatność</p>
+                <p className="text-xs text-amber-600/80 dark:text-amber-500 mt-0.5">
+                  Do zapłaty: <span className="font-bold">{job.price.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</span> netto
+                  <span className="ml-1 text-amber-500/70 dark:text-amber-600">(~{(job.price * 1.23).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł brutto)</span>
+                </p>
+              </div>
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="flex items-center gap-2 rounded-lg bg-primary hover:bg-primary/90 px-5 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+              >
+                {paying ? (
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                )}
+                {paying ? "Przekierowanie…" : `Zapłać ${job.price.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł`}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Anulowano */}
+      {job.status === "cancelled" && (
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5 flex items-start gap-4">
+          <svg className="h-5 w-5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Obliczenia anulowane.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Serwer obliczeniowy został zatrzymany. Możesz złożyć nowe zlecenie z tym samym plikiem.
+            </p>
+          </div>
         </div>
       )}
 

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { listResults, signedResultUrl, deleteResults } from "@/lib/hetzner/storage";
+import { deleteServer } from "@/lib/hetzner/client";
 
 export async function GET(
   _req: NextRequest,
@@ -13,11 +14,15 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("fds_submissions")
-    .select("*")
+    .select("*, payment_status, stripe_session_id")
     .eq("case_id", caseId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    console.error(`GET /api/symulacje/${caseId} error:`, error);
+    return NextResponse.json({ error: "Błąd bazy danych." }, { status: 500 });
+  }
+  if (!data) {
     return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
   }
 
@@ -54,6 +59,7 @@ export async function GET(
     completedAt: data.completed_at,
     fdsLog: data.fds_log ?? null,
     results,
+    paymentStatus: data.payment_status ?? null,
   });
 }
 
@@ -75,7 +81,7 @@ export async function DELETE(
   // Pobierz rekord i sprawdź własność (user_id lub email)
   const { data: submission } = await admin
     .from("fds_submissions")
-    .select("case_id, file_path, status, user_id, email")
+    .select("case_id, file_path, status, server_id, user_id, email")
     .eq("case_id", caseId)
     .single();
 
@@ -91,9 +97,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Brak dostępu." }, { status: 403 });
   }
 
-  // Nie pozwól usuwać aktywnych symulacji
-  if (submission.status === "running" || submission.status === "dispatched") {
-    return NextResponse.json({ error: "Nie można usunąć symulacji w trakcie obliczeń." }, { status: 409 });
+  // Jeśli symulacja jest aktywna — najpierw zatrzymaj serwer Hetzner
+  if (["dispatched", "running"].includes(submission.status) && submission.server_id) {
+    await deleteServer(submission.server_id).catch((err) => {
+      console.error(`DELETE sim: deleteServer(${submission.server_id}) error:`, err);
+    });
   }
 
   // Usuń plik wejściowy z Supabase Storage

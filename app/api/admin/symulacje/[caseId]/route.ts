@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/utils/adminCheck";
+import { deleteServer } from "@/lib/hetzner/client";
 
 export async function PATCH(
   req: NextRequest,
@@ -22,10 +23,25 @@ export async function PATCH(
     wall_hours?: number;
   };
 
+  // Jeśli admin ustawia "cancelled" — zatrzymaj serwer Hetzner
+  if (status === "cancelled") {
+    const admin2 = createAdminClient();
+    const { data: sub } = await admin2
+      .from("fds_submissions")
+      .select("server_id, status")
+      .eq("case_id", params.caseId)
+      .single();
+    if (sub?.server_id && ["pending", "dispatched", "running"].includes(sub.status)) {
+      await deleteServer(sub.server_id).catch((err) => {
+        console.error(`Admin PATCH cancel: deleteServer(${sub.server_id}) error:`, err);
+      });
+    }
+  }
+
   const updates: Record<string, unknown> = {};
   if (status !== undefined) {
     updates.status = status;
-    if (status === "done" || status === "failed") {
+    if (["done", "failed", "cancelled"].includes(status)) {
       updates.completed_at = new Date().toISOString();
     }
   }

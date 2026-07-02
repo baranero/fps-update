@@ -21,6 +21,8 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   dispatched: { label: "W kolejce",  cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
   running:    { label: "W trakcie",  cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
   done:       { label: "Zakończone", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  failed:     { label: "Błąd",       cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+  cancelled:  { label: "Anulowane",  cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
   error:      { label: "Błąd",       cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
 };
 
@@ -189,7 +191,9 @@ export default function HistoriaSymulacjiPage() {
                     <span className="text-sm text-slate-700 dark:text-slate-300 flex-1">
                       Usunąć <span className="font-mono font-semibold">{s.case_id}</span>?
                       <span className="block text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                        Plik wejściowy i wyniki zostaną trwale usunięte.
+                        {["pending", "dispatched", "running"].includes(s.status)
+                          ? "Serwer obliczeniowy zostanie zatrzymany, a zlecenie usunięte."
+                          : "Plik wejściowy i wyniki zostaną trwale usunięte."}
                       </span>
                     </span>
                     <button
@@ -251,9 +255,8 @@ export default function HistoriaSymulacjiPage() {
                     {/* Przycisk usuwania — widoczny przy hover */}
                     <button
                       onClick={(e) => { e.preventDefault(); setConfirmDelete(s.case_id); setDeleteError(null); }}
-                      disabled={s.status === "running" || s.status === "dispatched"}
-                      title={s.status === "running" || s.status === "dispatched" ? "Nie można usunąć symulacji w trakcie obliczeń" : "Usuń zlecenie"}
-                      className="shrink-0 rounded p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      title="Usuń zlecenie"
+                      className="shrink-0 rounded p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
