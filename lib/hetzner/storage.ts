@@ -22,7 +22,7 @@ export async function listResults(caseId: string) {
   return res.Contents ?? [];
 }
 
-export async function signedResultUrl(key: string, expiresIn = 86400) {
+export async function signedResultUrl(key: string, expiresIn = 604800) {
   return getSignedUrl(s3(), new GetObjectCommand({ Bucket: BUCKET(), Key: key }), { expiresIn });
 }
 

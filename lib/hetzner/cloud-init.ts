@@ -57,6 +57,11 @@ on_exit() {
     log "=== Script exited with error: $code ==="
     send_log 2>/dev/null || true
     notify "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
+    local inst
+    inst=$(curl -sf http://169.254.169.254/hetzner/v1/metadata/instance-id 2>/dev/null || echo "")
+    [ -n "$inst" ] && curl -sf -X DELETE \\
+      "https://api.hetzner.cloud/v1/servers/$inst" \\
+      -H "Authorization: Bearer $HETZNER_TOKEN" > /dev/null 2>&1 || true
   fi
 }
 trap on_exit EXIT

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { deleteServer } from "@/lib/hetzner/client";
 import { Resend } from "resend";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl";
@@ -37,7 +38,7 @@ function emailDone(
     <p style="font-size:15px;margin:0 0 16px">Cześć <strong>${name}</strong>,</p>
     <p style="font-size:14px;color:#475569;line-height:1.6;margin:0 0 24px">
       Obliczenia numeryczne FDS dla Twojego projektu zostały zakończone.
-      Wyniki są dostępne do pobrania w panelu — pliki będą dostępne przez 30 dni.
+      Wyniki są dostępne do pobrania w panelu — pliki będą dostępne przez 60 dni.
     </p>
     <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:24px">
       <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -145,7 +146,7 @@ export async function POST(
 
   if (status === "running") {
     updates.status = "running";
-    updates.started_at = new Date().toISOString();
+    // started_at ustawiany osobno tylko przy pierwszym przejściu — poniżej
   } else if (status === "done" || status === "failed") {
     updates.status = status;
     updates.completed_at = new Date().toISOString();
@@ -156,8 +157,24 @@ export async function POST(
     .from("fds_submissions")
     .update(updates)
     .eq("case_id", caseId)
-    .select("email, name, file_name, price, wall_hours, server_type")
+    .select("email, name, file_name, price, wall_hours, server_type, server_id")
     .single();
+
+  // Ustaw started_at tylko jeśli jeszcze nie ustawiony (pierwsze "running")
+  if (status === "running") {
+    await supabase
+      .from("fds_submissions")
+      .update({ started_at: new Date().toISOString() })
+      .eq("case_id", caseId)
+      .is("started_at", null);
+  }
+
+  // Safety net: usuń VM Hetzner przy failed (na wypadek gdy cloud-init nie zdążył się sam usunąć)
+  if (status === "failed" && row?.server_id) {
+    await deleteServer(row.server_id).catch((err) => {
+      console.error(`complete webhook: deleteServer(${row.server_id}) error:`, err);
+    });
+  }
 
   // Email powiadomienia do klienta
   if (row && (status === "done" || status === "failed")) {

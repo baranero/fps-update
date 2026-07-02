@@ -250,6 +250,11 @@ export async function POST(req: NextRequest) {
       await dispatchHetzner(caseId, filePath, file.name, parsed.meshCount ?? 1, parsed.ompThreads ?? 1);
     } catch (err) {
       console.error("Hetzner dispatch error:", err);
+      // Oznacz jako failed — job nie może zostać jako "pending" na zawsze
+      await supabase
+        .from("fds_submissions")
+        .update({ status: "failed", completed_at: new Date().toISOString() })
+        .eq("case_id", caseId);
     }
 
     return NextResponse.json({ caseId }, { status: 201 });

@@ -26,6 +26,8 @@ export interface FdsEstimate {
   wallHours: number;
   price: number;
   cloudCostEur: number;
+  storageCostEur: number;
+  estimatedOutputGb: number;
   serverType: string;
   serverCores: number;
   dtEstimate: number;       // szacowany krok czasowy Δt [s]
@@ -227,9 +229,17 @@ const THROUGHPUT    = 240_000; // cell-timesteps/s per rdzeń MPI (Hetzner CCX)
 const FIRE_VEL      = 5.0;     // m/s — zakładana prędkość charakterystyczna przepływu
 const CFL_FACTOR    = 0.8;     // współczynnik CFL (domyślny w FDS)
 const DEFAULT_DX    = 0.10;    // m — zakładany rozmiar komórki gdy brak XB
-const MARKUP        = 2;       // 100% marża na koszcie serwera
+const MARKUP        = 10;      // ~10x marża na koszcie serwera
 const EUR_PLN       = 4.3;
 const OVERHEAD_H    = 10 / 60; // ~10 min: boot + upload wyników + auto-delete
+
+// Hetzner Object Storage (eu-central) + egress na pobranie wyników
+const STORAGE_EUR_PER_GB = 0.031; // €0.0119 storage/m-c + €0.019 egress ≈ €0.031/GB
+
+function estimateOutputGb(cells: number, tEnd: number): number {
+  // Szacunek: ~0.3 GB na milion komórek na minutę symulacji (slice + csv + smv)
+  return Math.max(0.05, (cells / 1_000_000) * 0.3 * (tEnd / 60));
+}
 
 export function estimateCost(parsed: FdsParseResult): FdsEstimate {
   const cells     = parsed.totalCells || 1;
@@ -256,9 +266,11 @@ export function estimateCost(parsed: FdsParseResult): FdsEstimate {
   const billedHours  = wallHours + OVERHEAD_H;
 
   // 4. Koszty
-  const cloudCostEur = billedHours * server.eurPerHour;
-  const vcpuHours    = billedHours * server.cores;
-  const price        = Math.max(1, Math.round(cloudCostEur * MARKUP * EUR_PLN));
+  const cloudCostEur     = billedHours * server.eurPerHour;
+  const vcpuHours        = billedHours * server.cores;
+  const estimatedOutputGb = estimateOutputGb(cells, tEnd);
+  const storageCostEur   = estimatedOutputGb * STORAGE_EUR_PER_GB;
+  const price            = Math.max(1, Math.round((cloudCostEur + storageCostEur) * MARKUP * EUR_PLN));
 
   let complexity: FdsEstimate["complexity"];
   if (cells < 500_000)        complexity = "mała";
@@ -268,6 +280,7 @@ export function estimateCost(parsed: FdsParseResult): FdsEstimate {
 
   return {
     vcpuHours, wallHours, price, cloudCostEur,
+    storageCostEur, estimatedOutputGb,
     serverType, serverCores: server.cores,
     dtEstimate: dtEst, cellDimSource,
     complexity,
