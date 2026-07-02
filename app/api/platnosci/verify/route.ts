@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/client";
+import { getStripe } from "@/lib/stripe/client";
 
 export async function GET(req: NextRequest) {
   const userClient = createClient();
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   // Jeśli webhook nie zdążył — sprawdź bezpośrednio u Stripe
   if (sub.payment_status !== "paid" && sub.stripe_session_id) {
-    const session = await stripe.checkout.sessions.retrieve(sub.stripe_session_id);
+    const session = await getStripe().checkout.sessions.retrieve(sub.stripe_session_id);
     if (session.payment_status === "paid") {
       await admin
         .from("fds_submissions")
