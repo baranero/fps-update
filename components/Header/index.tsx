@@ -246,15 +246,8 @@ const Header = () => {
               </nav>
             </div>
 
-            {/* Right side: CTA + email + theme toggler */}
+            {/* Right side: CTA + theme toggler + account */}
             <div className="flex items-center justify-end gap-4 pr-16 lg:pr-0">
-              <a
-                href="mailto:biuro@fp-solutions.pl"
-                className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-white xl:block"
-              >
-                biuro@fp-solutions.pl
-              </a>
-
               {/* CFD Cloud — CTA (desktop) */}
               {highlightItem?.path && (
                 <Link
