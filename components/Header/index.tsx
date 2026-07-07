@@ -1,16 +1,21 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
+import { createClient } from "@/lib/supabase/client";
 
 const Header = () => {
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openIndex, setOpenIndex] = useState(-1);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY >= 20);
@@ -18,9 +23,45 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Zamknij menu konta po kliknięciu poza nim
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Zamknij menu przy zmianie strony
+  useEffect(() => {
+    setAccountOpen(false);
+    setNavbarOpen(false);
+  }, [pathname]);
+
   const handleSubmenu = (index: number) => {
     setOpenIndex(openIndex === index ? -1 : index);
   };
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUserEmail(null);
+    setAccountOpen(false);
+    setNavbarOpen(false);
+    router.push("/");
+    router.refresh();
+  }
 
   const regularItems = menuData.filter((m) => !m.highlight);
   const highlightItem = menuData.find((m) => m.highlight);
@@ -153,6 +194,54 @@ const Header = () => {
                       </Link>
                     </li>
                   )}
+
+                  {/* Konto — mobile */}
+                  <li className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700 lg:hidden">
+                    {userEmail ? (
+                      <div className="space-y-1">
+                        <p className="truncate px-1 pb-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+                          {userEmail}
+                        </p>
+                        <Link
+                          href="/narzedzia"
+                          onClick={() => setNavbarOpen(false)}
+                          className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                        >
+                          Panel narzędzi
+                        </Link>
+                        <Link
+                          href="/narzedzia/profil"
+                          onClick={() => setNavbarOpen(false)}
+                          className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                        >
+                          Profil
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full rounded-lg px-1 py-2 text-left text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                        >
+                          Wyloguj się
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href="/signin"
+                          onClick={() => setNavbarOpen(false)}
+                          className="rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                        >
+                          Zaloguj się
+                        </Link>
+                        <Link
+                          href="/signup"
+                          onClick={() => setNavbarOpen(false)}
+                          className="rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        >
+                          Zarejestruj się
+                        </Link>
+                      </div>
+                    )}
+                  </li>
                 </ul>
               </nav>
             </div>
@@ -178,6 +267,90 @@ const Header = () => {
               )}
 
               <ThemeToggler />
+
+              {/* Konto — desktop */}
+              <div className="relative hidden lg:block" ref={accountRef}>
+                {userEmail ? (
+                  <button
+                    onClick={() => setAccountOpen((o) => !o)}
+                    aria-label="Menu konta"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-white shadow-sm transition-opacity hover:opacity-90"
+                  >
+                    {userEmail[0]}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setAccountOpen((o) => !o)}
+                    aria-label="Menu konta"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </button>
+                )}
+
+                {accountOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#111827]">
+                    {userEmail ? (
+                      <>
+                        <div className="border-b border-slate-100 px-3 pb-2 pt-1 dark:border-slate-800">
+                          <p className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Zalogowano jako
+                          </p>
+                          <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                            {userEmail}
+                          </p>
+                        </div>
+                        <Link
+                          href="/narzedzia"
+                          onClick={() => setAccountOpen(false)}
+                          className="mt-1 block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          Panel narzędzi
+                        </Link>
+                        <Link
+                          href="/symulacje"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          CFD Cloud
+                        </Link>
+                        <Link
+                          href="/narzedzia/profil"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          Profil
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="mt-1 block w-full rounded-lg border-t border-slate-100 px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          Wyloguj się
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/signin"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          Zaloguj się
+                        </Link>
+                        <Link
+                          href="/signup"
+                          onClick={() => setAccountOpen(false)}
+                          className="mt-1 block rounded-lg bg-primary px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        >
+                          Zarejestruj się
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
