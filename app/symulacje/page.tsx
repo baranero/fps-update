@@ -27,6 +27,65 @@ function formatHours(h: number) {
   return `${h.toFixed(1)} h`;
 }
 
+function formatGb(gb: number) {
+  if (gb < 1) return `${Math.round(gb * 1024)} MB`;
+  return `${gb.toFixed(1)} GB`;
+}
+
+const deliverables = [
+  {
+    title: "Wizualizacja Smokeview",
+    desc: "Pliki .smv wraz z przekrojami (slice) i granicami — pełne odtworzenie rozwoju pożaru i dymu.",
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M4 9h16 M9 4v16" />
+    ),
+  },
+  {
+    title: "Dane z urządzeń (DEVC)",
+    desc: "CSV z pomiarami temperatury, widzialności i prędkości — gotowe do analizy warunków ewakuacji.",
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    ),
+  },
+  {
+    title: "Pełny log obliczeń FDS",
+    desc: "Kompletny przebieg symulacji z parametrami solvera — do weryfikacji i dokumentacji projektu.",
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    ),
+  },
+  {
+    title: "Bezpieczny dostęp 60 dni",
+    desc: "Wyniki pobierzesz przez podpisany link; po 60 dniach są automatycznie usuwane z serwera.",
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    ),
+  },
+];
+
+const faqs = [
+  {
+    q: "Jakie pliki są obsługiwane?",
+    a: "Pliki wejściowe FDS z rozszerzeniem .fds. Parser analizuje sekcje &MESH, &TIME, &REAC oraz elementy modelu (&OBST, &VENT, &DEVC) bezpośrednio w przeglądarce.",
+  },
+  {
+    q: "Ile to kosztuje i kiedy płacę?",
+    a: "Płacisz za faktyczny czas pracy CPU oraz storage wyników — bez abonamentu i opłat stałych. Wycenę widzisz przed uruchomieniem, a płatność (Stripe, BLIK, Przelewy24) następuje po zakończeniu obliczeń. Faktura VAT jest dostępna w panelu.",
+  },
+  {
+    q: "Jak długo trwają obliczenia?",
+    a: "Zależnie od liczby komórek i czasu symulacji. Szacunek czasu pokazujemy przy wycenie na podstawie warunku CFL i wydajności ~240 000 cell-timesteps/s na rdzeń. Każde zlecenie dostaje własny, dedykowany serwer AMD EPYC.",
+  },
+  {
+    q: "Czy mogę uruchomić kilka symulacji naraz?",
+    a: "Tak. Każde zlecenie uruchamia osobną maszynę wirtualną — nie ma kolejki ani współdzielenia zasobów między Twoimi symulacjami.",
+  },
+  {
+    q: "Czy mój plik jest bezpieczny?",
+    a: "Plik jest analizowany lokalnie w przeglądarce i przesyłany dopiero po zatwierdzeniu wyceny. Obliczenia biegną na serwerach w Unii Europejskiej (Hetzner), a maszyna jest kasowana po zakończeniu zlecenia.",
+  },
+];
+
 function complexityColor(c: FdsEstimate["complexity"]) {
   return {
     mała: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -194,27 +253,52 @@ export default function SymulacjePage() {
 
         {/* Hero */}
         <div className="mb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">CFD Cloud</span>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-primary">CFD Cloud</span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-[28px]">
+                Symulacje FDS w chmurze
+              </h1>
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                Wgraj plik wejściowy FDS — system dobierze serwer, oszacuje koszt i uruchomi obliczenia.
+                Płacisz wyłącznie za faktyczne zużycie CPU i storage, bez abonamentu.
+              </p>
+            </div>
+            {history.length > 0 && (
+              <Link
+                href="/symulacje/historia"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:text-primary"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Historia symulacji
+              </Link>
+            )}
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Symulacje FDS w chmurze
-          </h1>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Wgraj plik wejściowy FDS — system dobierze serwer, oszacuje koszt i uruchomi obliczenia. Płacisz za faktyczne zużycie CPU i storage.
-          </p>
-          {history.length > 0 && (
-            <Link
-              href="/symulacje/historia"
-              className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:text-primary transition-colors"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Historia symulacji →
-            </Link>
-          )}
+
+          {/* Trust / spec strip */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {[
+              "Dedykowany VM per zlecenie",
+              "AMD EPYC · Hetzner (UE)",
+              "Płatność od zużycia",
+              "Wyniki przez 60 dni",
+            ].map((t) => (
+              <span
+                key={t}
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-[#1E232E] dark:text-slate-400"
+              >
+                <svg className="h-3 w-3 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                {t}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -373,6 +457,50 @@ export default function SymulacjePage() {
             </div>
           )}
 
+          {/* Onboarding: co otrzymasz + FAQ (tylko na kroku upload) */}
+          {step === "upload" && (
+            <div className="space-y-8 pt-2">
+              {/* Co otrzymasz */}
+              <div>
+                <p className="mb-3 text-xs font-medium text-slate-400 dark:text-slate-500">Co otrzymasz</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {deliverables.map((d) => (
+                    <div
+                      key={d.title}
+                      className="flex items-start gap-3.5 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1E232E]"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{d.icon}</svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{d.title}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{d.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* FAQ */}
+              <div>
+                <p className="mb-3 text-xs font-medium text-slate-400 dark:text-slate-500">Najczęstsze pytania</p>
+                <div className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-700 dark:bg-[#1E232E]">
+                  {faqs.map((f) => (
+                    <details key={f.q} className="group">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-medium text-slate-700 transition-colors hover:text-primary dark:text-slate-200 dark:hover:text-white [&::-webkit-details-marker]:hidden">
+                        {f.q}
+                        <svg className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </summary>
+                      <p className="px-4 pb-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Step 2: Review */}
           {(step === "review" || step === "submitting") && parseResult && estimate && (
             <div className="space-y-5">
@@ -509,14 +637,50 @@ export default function SymulacjePage() {
                     <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">zawiera obsługę i weryfikację</p>
                   </div>
                 </div>
+
+                {/* Rozbicie kosztu: CPU vs storage */}
+                {(() => {
+                  const total = estimate.cloudCostEur + estimate.storageCostEur;
+                  const cpuPln = total > 0 ? Math.round(estimate.price * (estimate.cloudCostEur / total)) : estimate.price;
+                  const storagePln = Math.max(0, estimate.price - cpuPln);
+                  return (
+                    <div className="mt-4 grid grid-cols-1 gap-2 border-t border-amber-200/60 dark:border-amber-800/40 pt-4 sm:grid-cols-2">
+                      <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2 dark:bg-black/10">
+                        <span className="flex items-center gap-2 text-[12px] font-medium text-amber-800/80 dark:text-amber-300">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                          </svg>
+                          Moc obliczeniowa (CPU)
+                        </span>
+                        <span className="text-sm font-bold text-amber-900 dark:text-amber-200">{cpuPln.toLocaleString("pl-PL")} zł</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2 dark:bg-black/10">
+                        <span className="flex items-center gap-2 text-[12px] font-medium text-amber-800/80 dark:text-amber-300">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2 1.5 3 4 3h8c2.5 0 4-1 4-3V7M4 7c0-2 1.5-3 4-3h8c2.5 0 4 1 4 3M4 7c0 2 1.5 3 4 3h8c2.5 0 4-1 4-3" />
+                          </svg>
+                          Storage wyników · ~{formatGb(estimate.estimatedOutputGb)}
+                        </span>
+                        <span className="text-sm font-bold text-amber-900 dark:text-amber-200">{storagePln.toLocaleString("pl-PL")} zł</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
-                  Czas obliczeń szacowany z warunku CFL i wydajności ~240&nbsp;000 cell-timesteps/s per rdzeń (AMD EPYC). Potwierdzamy przed uruchomieniem.
+                  Czas obliczeń szacowany z warunku CFL i wydajności ~240&nbsp;000 cell-timesteps/s per rdzeń (AMD EPYC).
+                  Ostateczny koszt naliczany jest od faktycznego zużycia — potwierdzamy przed uruchomieniem.
                 </p>
               </div>
 
               {/* Form */}
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-4">
-                <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">Dane kontaktowe</h2>
+                <div>
+                  <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">Dane kontaktowe</h2>
+                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                    Uzupełnione z Twojego konta — możesz je zmienić dla tego zlecenia. Ofertę i status wyślemy na podany adres.
+                  </p>
+                </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">
