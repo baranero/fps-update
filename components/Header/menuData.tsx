@@ -31,7 +31,7 @@ const menuData: Menu[] = [
   {
     id: 4,
     title: "CFD Cloud",
-    path: "/narzedzia/symulacje",
+    path: "/symulacje",
     newTab: false,
     highlight: true,
   },

@@ -36,8 +36,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex gap-1.5 pb-1">
             {[
               { name: "Narzędzia", href: "/narzedzia", exact: true },
-              { name: "Symulacje FDS", href: "/narzedzia/symulacje", exact: true },
-              { name: "Historia FDS", href: "/narzedzia/symulacje/historia", exact: false },
               { name: "CNBOP", href: "/narzedzia/kalkulatory/cnbop", exact: false },
               { name: "Klatki PN-B", href: "/narzedzia/kalkulatory/oddymianie-klatek-pn", exact: false },
               { name: "Szybki Aᴄz", href: "/narzedzia/kalkulatory/oddymianie-grawitacyjne", exact: false },
@@ -136,46 +134,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Nav */}
             <nav className="flex flex-col gap-5">
-
-              {/* Symulacje — wyróżnione */}
-              <div>
-                <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Symulacje CFD
-                </p>
-                <div className="flex flex-col gap-0.5">
-                  <Link
-                    href="/narzedzia/symulacje"
-                    className={`flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm transition-colors ${
-                      active("/narzedzia/symulacje") && !active("/narzedzia/symulacje/historia")
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-                      </svg>
-                      <span>Obliczenia FDS</span>
-                    </div>
-                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary">
-                      Nowe
-                    </span>
-                  </Link>
-                  <Link
-                    href="/narzedzia/symulacje/historia"
-                    className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
-                      active("/narzedzia/symulacje/historia")
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Historia symulacji</span>
-                  </Link>
-                </div>
-              </div>
 
               {/* Kalkulatory */}
               <div>

@@ -16,7 +16,7 @@ function emailDone(
   wallHours: number,
   serverType: string | null
 ): Parameters<Resend["emails"]["send"]>[0] {
-  const url = `${APP_URL}/narzedzia/symulacje/${caseId}`;
+  const url = `${APP_URL}/symulacje/${caseId}`;
   const wallStr = wallHours < 1
     ? `${Math.round(wallHours * 60)} min`
     : `${wallHours.toFixed(1)} h`;
@@ -69,7 +69,7 @@ function emailFailed(
   caseId: string,
   fileName: string
 ): Parameters<Resend["emails"]["send"]>[0] {
-  const url = `${APP_URL}/narzedzia/symulacje/${caseId}`;
+  const url = `${APP_URL}/symulacje/${caseId}`;
 
   return {
     from: "FP Solutions <noreply@fp-solutions.pl>",

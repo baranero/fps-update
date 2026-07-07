@@ -24,7 +24,7 @@ function generateCaseId(): string {
 }
 
 function emailUser(to: string, name: string, caseId: string, fileName: string, price: number, wallHours: number, serverType: string, appUrl: string) {
-  const statusUrl = `${appUrl}/narzedzia/symulacje/${caseId}`;
+  const statusUrl = `${appUrl}/symulacje/${caseId}`;
   const wallStr = wallHours < 1 ? `${Math.round(wallHours * 60)} min` : `${wallHours.toFixed(1)} h`;
   return {
     from: "FP Solutions <noreply@fp-solutions.pl>",
@@ -78,7 +78,7 @@ function emailAdmin(
   wallHours: number,
   appUrl: string
 ) {
-  const statusUrl = `${appUrl}/narzedzia/symulacje/${caseId}`;
+  const statusUrl = `${appUrl}/symulacje/${caseId}`;
   return {
     from: "FP Solutions <noreply@fp-solutions.pl>",
     to: adminEmail,

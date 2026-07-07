@@ -94,7 +94,7 @@ const CloudSpotlight = () => {
             </div>
 
             <Link
-              href="/narzedzia/symulacje"
+              href="/symulacje"
               className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-7 py-3.5 text-[14px] font-extrabold text-[#0B0F1A] transition-opacity hover:opacity-90"
             >
               Uruchom pierwszą symulację →

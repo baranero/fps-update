@@ -140,7 +140,7 @@ const Hero = () => {
                 Skontaktuj się
               </Link>
               <Link
-                href="/narzedzia/symulacje"
+                href="/symulacje"
                 className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-7 py-3.5 text-[14px] font-bold text-cyan-500 transition-colors hover:bg-cyan-500/20"
               >
                 Uruchom symulację FDS ↗

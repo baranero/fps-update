@@ -13,7 +13,7 @@ const pillars = [
     icon: "☁",
     title: "CFD Cloud",
     desc: "Wgraj plik FDS, odbierz wyniki symulacji. Bez własnego serwera — obliczenia w chmurze, płatność od zużycia.",
-    link: "/narzedzia/symulacje",
+    link: "/symulacje",
     label: "Uruchom symulację →",
     variant: "cyan" as const,
   },

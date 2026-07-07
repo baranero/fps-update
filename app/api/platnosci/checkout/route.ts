@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
     ],
     metadata: { case_id: caseId },
     customer_email: user.email ?? undefined,
-    success_url: `${origin}/narzedzia/symulacje/${caseId}?platnosc=sukces`,
-    cancel_url:  `${origin}/narzedzia/symulacje/${caseId}?platnosc=anulowano`,
+    success_url: `${origin}/symulacje/${caseId}?platnosc=sukces`,
+    cancel_url:  `${origin}/symulacje/${caseId}?platnosc=anulowano`,
     payment_method_types: ["card", "blik", "p24"],
   });
 

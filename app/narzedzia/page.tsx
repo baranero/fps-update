@@ -46,37 +46,9 @@ export default function DashboardPage() {
       <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Narzędzia</h1>
         <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          Kalkulatory i symulacje dla projektantów systemów oddymiania.
+          Kalkulatory inżynierskie dla projektantów systemów oddymiania.
         </p>
       </div>
-
-      {/* Symulacje — promowane */}
-      <Link
-        href="/narzedzia/symulacje"
-        className="group block rounded-md bg-slate-900 dark:bg-[#0D1117] px-6 py-6 hover:bg-slate-800 dark:hover:bg-slate-800 transition-colors"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2.5 mb-3">
-              <span className="font-mono text-[11px] font-semibold text-slate-400 tracking-wide">FDS / CFD</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-primary border border-primary/40 rounded px-1.5 py-0.5">Nowe</span>
-            </div>
-            <h2 className="text-base font-semibold text-white mb-2">
-              Symulacje numeryczne
-            </h2>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
-              Obliczenia Fire Dynamics Simulator w chmurze — bez lokalnej instalacji, bez konfiguracji serwera.
-              Wgrywasz plik <code className="text-slate-300 font-mono">.fds</code>, dostajesz wyniki.
-            </p>
-          </div>
-          <svg
-            className="h-5 w-5 shrink-0 text-slate-600 group-hover:text-slate-400 transition-colors mt-0.5"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
-      </Link>
 
       {/* Kalkulatory */}
       <div>
