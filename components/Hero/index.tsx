@@ -27,10 +27,10 @@ const HeroCloudPanel = () => {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-cyan-500/20 bg-[#0D1A2E] shadow-[0_0_60px_rgba(34,211,238,0.06),0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden">
+    <div className="rounded-2xl border border-primary/20 bg-[#111827] shadow-[0_0_60px_rgba(220,53,69,0.10),0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-cyan-500/10 px-4 py-3">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-cyan-400">
+      <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
           CFD Cloud — symulacja w toku
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
@@ -43,7 +43,7 @@ const HeroCloudPanel = () => {
       <div className="p-4 space-y-4">
         {/* File row */}
         <div className="flex items-center gap-3 rounded-lg border border-slate-700/50 bg-white/[0.03] px-3 py-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary text-sm">
             ⬡
           </div>
           <div>
@@ -63,9 +63,9 @@ const HeroCloudPanel = () => {
           ].map(({ val, label }) => (
             <div
               key={label}
-              className="rounded-lg border border-cyan-500/10 bg-cyan-500/[0.04] px-3 py-2.5"
+              className="rounded-lg border border-primary/10 bg-primary/[0.04] px-3 py-2.5"
             >
-              <p className="font-mono text-[17px] font-extrabold tabular-nums text-cyan-300">
+              <p className="font-mono text-[17px] font-extrabold tabular-nums text-primary">
                 {val}
               </p>
               <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-500">
@@ -80,7 +80,7 @@ const HeroCloudPanel = () => {
           <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-white/5">
             <div
               ref={barRef}
-              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-300 transition-[width] duration-1000"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-red-400 transition-[width] duration-1000"
               style={{ width: "0%" }}
             />
           </div>
@@ -93,7 +93,7 @@ const HeroCloudPanel = () => {
         {/* Price row */}
         <div className="flex items-center justify-between border-t border-slate-700/40 pt-3">
           <span className="text-[12px] text-slate-500">Koszt netto</span>
-          <span className="font-mono text-[22px] font-extrabold tabular-nums text-cyan-300">
+          <span className="font-mono text-[22px] font-extrabold tabular-nums text-primary">
             {DEMO.price}
           </span>
         </div>
@@ -141,7 +141,7 @@ const Hero = () => {
               </Link>
               <Link
                 href="/symulacje"
-                className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-7 py-3.5 text-[14px] font-bold text-cyan-500 transition-colors hover:bg-cyan-500/20"
+                className="rounded-xl border border-primary/30 bg-primary/10 px-7 py-3.5 text-[14px] font-bold text-primary transition-colors hover:bg-primary/20"
               >
                 Uruchom symulację FDS ↗
               </Link>

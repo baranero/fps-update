@@ -119,7 +119,7 @@ export default function HistoriaSymulacjiPage() {
 
           <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
             <div className="flex items-center gap-2.5">
-              <Link href="/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-cyan-500 transition-colors mb-1 block">
+              <Link href="/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors mb-1 block">
                 ← CFD Cloud
               </Link>
             </div>
@@ -151,12 +151,12 @@ export default function HistoriaSymulacjiPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Numer zlecenia (np. FDS-ABC123-XY)"
-              className="flex-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              className="flex-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button
               type="submit"
               disabled={!search.trim()}
-              className="rounded-md bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Otwórz
             </button>
@@ -169,14 +169,14 @@ export default function HistoriaSymulacjiPage() {
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
                 Zaloguj się, aby zobaczyć historię symulacji.
               </p>
-              <Link href="/signin?next=/symulacje/historia" className="text-sm font-medium text-cyan-500 hover:underline">
+              <Link href="/signin?next=/symulacje/historia" className="text-sm font-medium text-primary hover:underline">
                 Zaloguj się →
               </Link>
             </div>
           ) : submissions.length === 0 ? (
             <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Brak zleconych symulacji.</p>
-              <Link href="/symulacje" className="text-sm font-medium text-cyan-500 hover:underline">
+              <Link href="/symulacje" className="text-sm font-medium text-primary hover:underline">
                 Wyślij pierwsze zlecenie →
               </Link>
             </div>
@@ -251,7 +251,7 @@ export default function HistoriaSymulacjiPage() {
                             </p>
                           </div>
 
-                          <svg className="h-4 w-4 text-slate-300 group-hover:text-cyan-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="h-4 w-4 text-slate-300 group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                           </svg>
                         </Link>

@@ -35,9 +35,9 @@ function ProductPanel({ next }: { next: string }) {
 
   return (
     <div className="flex flex-col justify-center h-full py-16 pr-12">
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 w-fit">
-        <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-        <span className="text-[11px] font-bold uppercase tracking-widest text-cyan-400">
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 w-fit">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
           FP Solutions
         </span>
       </div>
@@ -245,7 +245,7 @@ function SigninForm() {
   }
 
   return (
-    <section className="relative z-10 min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-[#0B0F1A]">
+    <section className="relative z-10 min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-[#0B1120]">
       <div className="container h-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-80px)]">
           {/* Left: product panel */}

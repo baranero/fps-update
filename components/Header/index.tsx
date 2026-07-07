@@ -146,7 +146,7 @@ const Header = () => {
                       <Link
                         href={highlightItem.path}
                         onClick={() => setNavbarOpen(false)}
-                        className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2.5 text-sm font-semibold text-cyan-500 transition-colors hover:bg-cyan-500/20"
+                        className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
                         {highlightItem.title}
                         <span>↗</span>
@@ -170,7 +170,7 @@ const Header = () => {
               {highlightItem?.path && (
                 <Link
                   href={highlightItem.path}
-                  className="hidden items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-500 transition-colors hover:bg-cyan-500/20 lg:inline-flex"
+                  className="hidden items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 lg:inline-flex"
                 >
                   {highlightItem.title}
                   <span>↗</span>

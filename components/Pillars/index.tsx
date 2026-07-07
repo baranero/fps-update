@@ -15,7 +15,7 @@ const pillars = [
     desc: "Wgraj plik FDS, odbierz wyniki symulacji. Bez własnego serwera — obliczenia w chmurze, płatność od zużycia.",
     link: "/symulacje",
     label: "Uruchom symulację →",
-    variant: "cyan" as const,
+    variant: "cloud" as const,
   },
   {
     icon: "🧮",
@@ -40,8 +40,8 @@ const Pillars = () => {
               key={title}
               href={link}
               className={`group relative rounded-2xl border p-7 transition-all duration-200 hover:-translate-y-0.5 ${
-                variant === "cyan"
-                  ? "border-cyan-500/25 bg-cyan-500/[0.04] hover:border-cyan-500/40 hover:bg-cyan-500/[0.07]"
+                variant === "cloud"
+                  ? "border-primary/25 bg-primary/[0.04] hover:border-primary/40 hover:bg-primary/[0.07]"
                   : variant === "red"
                   ? "border-slate-200 bg-white hover:border-primary/30 dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-primary/30"
                   : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-slate-600"
@@ -49,8 +49,8 @@ const Pillars = () => {
             >
               <div
                 className={`mb-5 flex h-11 w-11 items-center justify-center rounded-xl border text-xl ${
-                  variant === "cyan"
-                    ? "border-cyan-500/25 bg-cyan-500/10 text-cyan-400"
+                  variant === "cloud"
+                    ? "border-primary/25 bg-primary/10 text-primary"
                     : "border-primary/20 bg-primary/8 text-primary"
                 }`}
               >
@@ -58,8 +58,8 @@ const Pillars = () => {
               </div>
               <h3
                 className={`mb-2 text-[17px] font-bold ${
-                  variant === "cyan"
-                    ? "text-cyan-400"
+                  variant === "cloud"
+                    ? "text-primary"
                     : "text-slate-900 dark:text-white"
                 }`}
               >
@@ -70,8 +70,8 @@ const Pillars = () => {
               </p>
               <span
                 className={`text-[13px] font-semibold ${
-                  variant === "cyan"
-                    ? "text-cyan-400"
+                  variant === "cloud"
+                    ? "text-primary"
                     : "text-primary"
                 }`}
               >
