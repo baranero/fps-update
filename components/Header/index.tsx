@@ -22,6 +22,9 @@ const Header = () => {
     setOpenIndex(openIndex === index ? -1 : index);
   };
 
+  const regularItems = menuData.filter((m) => !m.highlight);
+  const highlightItem = menuData.find((m) => m.highlight);
+
   return (
     <header
       className={`sticky top-0 left-0 z-40 flex w-full items-center transition-all duration-300 ${
@@ -84,27 +87,20 @@ const Header = () => {
                   navbarOpen ? "top-full opacity-100 visible" : "top-[120%] opacity-0 invisible"
                 }`}
               >
-                <ul className="block lg:flex lg:space-x-6 xl:space-x-10">
-                  {menuData.map((menuItem, index) => (
+                <ul className="block lg:flex lg:items-center lg:space-x-6 xl:space-x-10">
+                  {regularItems.map((menuItem, index) => (
                     <li key={index} className="group relative">
                       {menuItem.path ? (
                         <Link
                           href={menuItem.path}
                           onClick={() => setNavbarOpen(false)}
-                          className={
-                            menuItem.highlight
-                              ? "flex py-2 text-sm font-semibold lg:inline-flex lg:px-3 lg:py-1.5 lg:my-auto rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20 transition-colors"
-                              : `flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
-                                  pathname === menuItem.path
-                                    ? "text-primary"
-                                    : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
-                                }`
-                          }
+                          className={`flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
+                            pathname === menuItem.path
+                              ? "text-primary"
+                              : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                          }`}
                         >
                           {menuItem.title}
-                          {menuItem.highlight && (
-                            <span className="ml-1 hidden lg:inline">↗</span>
-                          )}
                         </Link>
                       ) : (
                         <>
@@ -143,18 +139,44 @@ const Header = () => {
                       )}
                     </li>
                   ))}
+
+                  {/* CFD Cloud — CTA (widoczne w menu tylko na mobile) */}
+                  {highlightItem?.path && (
+                    <li className="group relative lg:hidden">
+                      <Link
+                        href={highlightItem.path}
+                        onClick={() => setNavbarOpen(false)}
+                        className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2.5 text-sm font-semibold text-cyan-500 transition-colors hover:bg-cyan-500/20"
+                      >
+                        {highlightItem.title}
+                        <span>↗</span>
+                      </Link>
+                    </li>
+                  )}
                 </ul>
               </nav>
             </div>
 
-            {/* Right side: email + theme toggler */}
+            {/* Right side: CTA + email + theme toggler */}
             <div className="flex items-center justify-end gap-4 pr-16 lg:pr-0">
               <a
                 href="mailto:biuro@fp-solutions.pl"
-                className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-white sm:block"
+                className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-white xl:block"
               >
                 biuro@fp-solutions.pl
               </a>
+
+              {/* CFD Cloud — CTA (desktop) */}
+              {highlightItem?.path && (
+                <Link
+                  href={highlightItem.path}
+                  className="hidden items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-500 transition-colors hover:bg-cyan-500/20 lg:inline-flex"
+                >
+                  {highlightItem.title}
+                  <span>↗</span>
+                </Link>
+              )}
+
               <ThemeToggler />
             </div>
           </div>
