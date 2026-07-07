@@ -42,10 +42,10 @@ function ProductPanel({ next }: { next: string }) {
         </span>
       </div>
 
-      <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold leading-tight tracking-tight text-white mb-2">
+      <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white mb-2">
         {title}
       </h2>
-      <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
         {subtitle}
       </p>
 
@@ -53,16 +53,16 @@ function ProductPanel({ next }: { next: string }) {
         {features.map(({ icon, text }) => (
           <li key={text} className="flex items-start gap-3">
             <span className="text-xl leading-none mt-0.5 shrink-0">{icon}</span>
-            <span className="text-[14px] text-slate-300 leading-relaxed">{text}</span>
+            <span className="text-[14px] text-slate-700 dark:text-slate-300 leading-relaxed">{text}</span>
           </li>
         ))}
       </ul>
 
-      <div className="border-t border-slate-700/50 pt-6">
+      <div className="border-t border-slate-200 dark:border-slate-700/50 pt-6">
         <p className="text-[12px] text-slate-500 mb-3">Zaloguj się lub załóż konto — to nic nie kosztuje</p>
         <Link
           href="/signup"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:border-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-500 dark:hover:border-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           Zarejestruj się →
         </Link>
@@ -245,11 +245,11 @@ function SigninForm() {
   }
 
   return (
-    <section className="relative z-10 min-h-[calc(100vh-80px)] bg-gradient-to-br from-[#0B0F1A] via-[#0D1A2E] to-[#0B0F1A]">
+    <section className="relative z-10 min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-[#0B0F1A]">
       <div className="container h-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-80px)]">
           {/* Left: product panel */}
-          <div className="hidden lg:block border-r border-slate-700/40">
+          <div className="hidden lg:block border-r border-slate-200 dark:border-slate-700/40">
             <ProductPanel next={next} />
           </div>
 
