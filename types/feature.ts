@@ -4,4 +4,5 @@ export type Feature = {
   title: string;
   paragraph: string;
   href: string;
+  isNew?: boolean;
 };

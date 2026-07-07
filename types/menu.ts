@@ -3,5 +3,6 @@ export type Menu = {
   title: string;
   path?: string;
   newTab: boolean;
+  highlight?: boolean;
   submenu?: Menu[];
 };

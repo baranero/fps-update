@@ -91,13 +91,20 @@ const Header = () => {
                         <Link
                           href={menuItem.path}
                           onClick={() => setNavbarOpen(false)}
-                          className={`flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
-                            pathname === menuItem.path
-                              ? "text-primary"
-                              : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
-                          }`}
+                          className={
+                            menuItem.highlight
+                              ? "flex py-2 text-sm font-semibold lg:inline-flex lg:px-3 lg:py-1.5 lg:my-auto rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20 transition-colors"
+                              : `flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
+                                  pathname === menuItem.path
+                                    ? "text-primary"
+                                    : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                                }`
+                          }
                         >
                           {menuItem.title}
+                          {menuItem.highlight && (
+                            <span className="ml-1 hidden lg:inline">↗</span>
+                          )}
                         </Link>
                       ) : (
                         <>

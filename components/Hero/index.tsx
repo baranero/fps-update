@@ -1,113 +1,202 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+
+const DEMO = {
+  fileName: "klatka_schodowa_A.fds",
+  fileSize: "4.2 MB",
+  meshes: 15,
+  tEnd: 900,
+  cells: "3.2M",
+  wallHours: "5.4h",
+  server: "cpx41",
+  progress: 67,
+  remaining: "~1h 47min",
+  price: "87 zł",
+};
+
+const HeroCloudPanel = () => {
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (barRef.current) barRef.current.style.width = `${DEMO.progress}%`;
+    }, 300);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="rounded-2xl border border-cyan-500/20 bg-[#0D1A2E] shadow-[0_0_60px_rgba(34,211,238,0.06),0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-cyan-500/10 px-4 py-3">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-cyan-400">
+          CFD Cloud — symulacja w toku
+        </span>
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+          running
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 space-y-4">
+        {/* File row */}
+        <div className="flex items-center gap-3 rounded-lg border border-slate-700/50 bg-white/[0.03] px-3 py-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-sm">
+            ⬡
+          </div>
+          <div>
+            <p className="font-mono text-[13px] font-semibold text-white">{DEMO.fileName}</p>
+            <p className="text-[11px] text-slate-500">
+              {DEMO.fileSize} · {DEMO.meshes} siatek · T_END {DEMO.tEnd} s
+            </p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { val: DEMO.cells, label: "Komórki" },
+            { val: DEMO.wallHours, label: "Est. czas" },
+            { val: DEMO.server, label: "Serwer" },
+          ].map(({ val, label }) => (
+            <div
+              key={label}
+              className="rounded-lg border border-cyan-500/10 bg-cyan-500/[0.04] px-3 py-2.5"
+            >
+              <p className="font-mono text-[17px] font-extrabold tabular-nums text-cyan-300">
+                {val}
+              </p>
+              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-500">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress */}
+        <div>
+          <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-white/5">
+            <div
+              ref={barRef}
+              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-300 transition-[width] duration-1000"
+              style={{ width: "0%" }}
+            />
+          </div>
+          <div className="flex justify-between font-mono text-[11px] text-slate-500">
+            <span>Obliczenia: {DEMO.progress}%</span>
+            <span>{DEMO.remaining} pozostało</span>
+          </div>
+        </div>
+
+        {/* Price row */}
+        <div className="flex items-center justify-between border-t border-slate-700/40 pt-3">
+          <span className="text-[12px] text-slate-500">Koszt netto</span>
+          <span className="font-mono text-[22px] font-extrabold tabular-nums text-cyan-300">
+            {DEMO.price}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Hero = () => {
   return (
     <section
       id="home"
-      className="relative z-10 flex min-h-[80vh] items-center overflow-hidden pb-16 pt-[50px] md:pb-[120px] md:pt-[70px] xl:pb-[160px] xl:pt-[90px] 2xl:pb-[200px] 2xl:pt-[100px]"
+      className="relative z-10 overflow-hidden border-b border-slate-200/60 pb-16 pt-14 dark:border-slate-800/60 md:pb-20 md:pt-20 lg:pb-28 lg:pt-24"
     >
       <div className="container">
-        <div className="mx-auto max-w-[800px] text-center">
-          <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-900 dark:text-white sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight xl:text-6xl xl:leading-tight">
-            Profesjonalna ochrona przeciwpożarowa
-          </h1>
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
 
-          <p className="mb-10 text-base font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg md:text-xl md:leading-relaxed">
-            Oferuję kompleksowe{" "}
-            <strong className="text-primary">usługi z zakresu ochrony przeciwpożarowej</strong> na
-            terenie <strong className="text-slate-900 dark:text-white">Warszawy</strong>,{" "}
-            <strong className="text-slate-900 dark:text-white">Łodzi</strong>, a także całego{" "}
-            <strong className="text-slate-900 dark:text-white">województwa mazowieckiego</strong> i{" "}
-            <strong className="text-slate-900 dark:text-white">łódzkiego</strong>. Specjalizuję się w
-            projektowaniu <strong className="text-slate-900 dark:text-white">systemów ppoż.</strong>,
-            opracowywaniu{" "}
-            <strong className="text-slate-900 dark:text-white">dokumentacji przeciwpożarowej</strong>{" "}
-            oraz wykonywaniu{" "}
-            <strong className="text-primary">symulacji CFD</strong> na potrzeby analiz zagrożeń i
-            projektowania wentylacji pożarowej.
-          </p>
+          {/* Left: services */}
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">
+                Inżynieria bezpieczeństwa pożarowego
+              </span>
+            </div>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/kontakt"
-              className="rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white transition-colors duration-300 hover:bg-primary/90"
-            >
-              Darmowa wycena
-            </Link>
-            <Link
-              href="/o-mnie"
-              className="rounded-xl bg-slate-100 px-8 py-4 text-base font-semibold text-slate-800 transition-colors duration-300 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            >
-              Poznajmy się
-            </Link>
+            <h1 className="mb-5 text-[clamp(32px,5vw,52px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
+              Ekspert ppoż.{" "}
+              <span className="text-primary">i chmura obliczeniowa</span>{" "}
+              dla inżynierów FDS
+            </h1>
+
+            <p className="mb-8 max-w-[480px] text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
+              Projekty SSP, oddymiania i symulacje CFD — oraz własna platforma
+              do uruchamiania obliczeń FDS w chmurze, dostępna dla inżynierów
+              na całym świecie.
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/kontakt"
+                className="rounded-xl bg-primary px-7 py-3.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+              >
+                Skontaktuj się
+              </Link>
+              <Link
+                href="/narzedzia/symulacje"
+                className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-7 py-3.5 text-[14px] font-bold text-cyan-500 transition-colors hover:bg-cyan-500/20"
+              >
+                Uruchom symulację FDS ↗
+              </Link>
+            </div>
+
+            {/* Trust badges */}
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2">
+              {[
+                "Projekty SSP",
+                "Systemy oddymiania",
+                "Symulacje CFD",
+                "IBP · OZW · Operaty",
+              ].map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[12px] font-medium text-slate-400 dark:text-slate-500"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: CFD Cloud panel */}
+          <div className="lg:pl-4">
+            <HeroCloudPanel />
+            <p className="mt-3 text-right text-[12px] text-slate-400 dark:text-slate-600">
+              Przykładowe zlecenie · płatność po zakończeniu obliczeń
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Decorative SVG — right */}
-      <div className="absolute right-0 top-0 z-[-1] opacity-30 lg:opacity-100">
+      {/* Decorative background blobs */}
+      <div className="pointer-events-none absolute right-0 top-0 z-[-1] opacity-20 lg:opacity-60">
         <svg width="450" height="556" viewBox="0 0 450 556" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="277" cy="63" r="225" fill="url(#paint0_linear_25:217)" />
-          <circle cx="17.9997" cy="182" r="18" fill="url(#paint1_radial_25:217)" />
-          <circle cx="76.9997" cy="288" r="34" fill="url(#paint2_radial_25:217)" />
-          <circle cx="325.486" cy="302.87" r="180" transform="rotate(-37.6852 325.486 302.87)" fill="url(#paint3_linear_25:217)" />
-          <circle opacity="0.8" cx="184.521" cy="315.521" r="132.862" transform="rotate(114.874 184.521 315.521)" stroke="url(#paint4_linear_25:217)" />
-          <circle opacity="0.8" cx="356" cy="290" r="179.5" transform="rotate(-30 356 290)" stroke="url(#paint5_linear_25:217)" />
-          <circle opacity="0.8" cx="191.659" cy="302.659" r="133.362" transform="rotate(133.319 191.659 302.659)" fill="url(#paint6_linear_25:217)" />
+          <circle cx="277" cy="63" r="225" fill="url(#h1)" />
+          <circle cx="325.486" cy="302.87" r="180" transform="rotate(-37.6852 325.486 302.87)" fill="url(#h2)" />
           <defs>
-            <linearGradient id="paint0_linear_25:217" x1="-54.5003" y1="-178" x2="222" y2="288" gradientUnits="userSpaceOnUse">
-              <stop stopColor="" /><stop offset="1" stopColor="#DC3545" stopOpacity="0" />
-            </linearGradient>
-            <radialGradient id="paint1_radial_25:217" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(17.9997 182) rotate(90) scale(18)">
-              <stop offset="0.145833" stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" stopOpacity="0.08" />
-            </radialGradient>
-            <radialGradient id="paint2_radial_25:217" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(76.9997 288) rotate(90) scale(34)">
-              <stop offset="0.145833" stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" stopOpacity="0.08" />
-            </radialGradient>
-            <linearGradient id="paint3_linear_25:217" x1="226.775" y1="-66.1548" x2="292.157" y2="351.421" gradientUnits="userSpaceOnUse">
+            <linearGradient id="h1" x1="-54.5" y1="-178" x2="222" y2="288" gradientUnits="userSpaceOnUse">
               <stop stopColor="#DC3545" /><stop offset="1" stopColor="#DC3545" stopOpacity="0" />
             </linearGradient>
-            <linearGradient id="paint4_linear_25:217" x1="184.521" y1="182.159" x2="184.521" y2="448.882" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" /><stop offset="1" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="paint5_linear_25:217" x1="356" y1="110" x2="356" y2="470" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" /><stop offset="1" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="paint6_linear_25:217" x1="118.524" y1="29.2497" x2="166.965" y2="338.63" gradientUnits="userSpaceOnUse">
+            <linearGradient id="h2" x1="226.775" y1="-66.1548" x2="292.157" y2="351.421" gradientUnits="userSpaceOnUse">
               <stop stopColor="#DC3545" /><stop offset="1" stopColor="#DC3545" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
       </div>
-
-      {/* Decorative SVG — bottom left */}
-      <div className="absolute bottom-0 left-0 z-[-1] opacity-30 lg:opacity-100">
+      <div className="pointer-events-none absolute -left-10 bottom-0 z-[-1] opacity-20 lg:opacity-50">
         <svg width="364" height="201" viewBox="0 0 364 201" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5.88928 72.3303C33.6599 66.4798 101.397 64.9086 150.178 105.427C211.155 156.076 229.59 162.093 264.333 166.607C299.076 171.12 337.718 183.657 362.889 212.24" stroke="url(#paint0_linear_25:218)" />
-          <path d="M-22.1107 72.3303C5.65989 66.4798 73.3965 64.9086 122.178 105.427C183.155 156.076 201.59 162.093 236.333 166.607C271.076 171.12 309.718 183.657 334.889 212.24" stroke="url(#paint1_linear_25:218)" />
-          <path d="M-53.1107 72.3303C-25.3401 66.4798 42.3965 64.9086 91.1783 105.427C152.155 156.076 170.59 162.093 205.333 166.607C240.076 171.12 278.718 183.657 303.889 212.24" stroke="url(#paint2_linear_25:218)" />
-          <path d="M-98.1618 65.0889C-68.1416 60.0601 4.73364 60.4882 56.0734 102.431C120.248 154.86 139.905 161.419 177.137 166.956C214.37 172.493 255.575 186.165 281.856 215.481" stroke="url(#paint3_linear_25:218)" />
-          <circle opacity="0.8" cx="214.505" cy="60.5054" r="49.7205" transform="rotate(-13.421 214.505 60.5054)" stroke="url(#paint4_linear_25:218)" />
-          <circle cx="220" cy="63" r="43" fill="url(#paint5_radial_25:218)" />
+          <path d="M5.88928 72.3303C33.6599 66.4798 101.397 64.9086 150.178 105.427C211.155 156.076 229.59 162.093 264.333 166.607C299.076 171.12 337.718 183.657 362.889 212.24" stroke="url(#h3)" />
           <defs>
-            <linearGradient id="paint0_linear_25:218" x1="184.389" y1="69.2405" x2="184.389" y2="212.24" gradientUnits="userSpaceOnUse">
+            <linearGradient id="h3" x1="184.389" y1="69.2405" x2="184.389" y2="212.24" gradientUnits="userSpaceOnUse">
               <stop stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" />
             </linearGradient>
-            <linearGradient id="paint1_linear_25:218" x1="156.389" y1="69.2405" x2="156.389" y2="212.24" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" />
-            </linearGradient>
-            <linearGradient id="paint2_linear_25:218" x1="125.389" y1="69.2405" x2="125.389" y2="212.24" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" />
-            </linearGradient>
-            <linearGradient id="paint3_linear_25:218" x1="93.8507" y1="67.2674" x2="89.9278" y2="210.214" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" stopOpacity="0" /><stop offset="1" stopColor="#DC3545" />
-            </linearGradient>
-            <linearGradient id="paint4_linear_25:218" x1="214.505" y1="10.2849" x2="212.684" y2="99.5816" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#DC3545" /><stop offset="1" stopColor="#DC3545" stopOpacity="0" />
-            </linearGradient>
-            <radialGradient id="paint5_radial_25:218" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(220 63) rotate(90) scale(43)">
-              <stop offset="0.145833" stopColor="white" stopOpacity="0" /><stop offset="1" stopColor="white" stopOpacity="0.08" />
-            </radialGradient>
           </defs>
         </svg>
       </div>

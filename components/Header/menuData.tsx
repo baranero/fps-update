@@ -18,62 +18,40 @@ const menuData: Menu[] = [
     title: "Oferta",
     newTab: false,
     submenu: [
-      {
-        id: 31,
-        title: "Instrukcja Bezpieczeństwa Pożarowego",
-        path: "/ibp",
-        newTab: false,
-      },
-      {
-        id: 32,
-        title: "Symulacje CFD",
-        path: "/cfd",
-        newTab: false,
-      },
-      {
-        id: 33,
-        title: "Operat przeciwpożarowy",
-        path: "/operat",
-        newTab: false,
-      },
-      {
-        id: 34,
-        title: "Audyt przeciwpożarowy",
-        path: "/audyt",
-        newTab: false,
-      },
-      {
-        id: 35,
-        title: "Scenariusz rozwoju pożaru",
-        path: "/scenariusz",
-        newTab: false,
-      },
-      /* Odkomentuj poniższe pozycje, gdy będziesz gotowy na dodanie nowych usług.
-         Pamiętaj, aby odkomentować je również w plikach: 
-         1. featuresData.tsx (Sekcja usług)
-         2. Footer/index.tsx (Stopka -> offerLinks)
-         
+      { id: 31, title: "Instrukcja Bezpieczeństwa Pożarowego", path: "/ibp", newTab: false },
+      { id: 32, title: "Symulacje CFD", path: "/cfd", newTab: false },
+      { id: 33, title: "Operat przeciwpożarowy", path: "/operat", newTab: false },
+      { id: 34, title: "Audyt przeciwpożarowy", path: "/audyt", newTab: false },
+      { id: 35, title: "Scenariusz rozwoju pożaru", path: "/scenariusz", newTab: false },
       { id: 36, title: "Ocena zagrożenia wybuchem", path: "/ozw", newTab: false },
-      { id: 37, title: "Projekt Systemu Sygnalizacji Pożarowej", path: "/ssp", newTab: false },
-      { id: 38, title: "Projekt systemu oddymiania grawitacyjnego", path: "/oddymianie-grawitacyjne", newTab: false },
-      { id: 39, title: "Projekt systemu oddymiania mechanicznego", path: "/oddymianie-mechaniczne", newTab: false },
-      */
+      { id: 37, title: "Projekt SSP", path: "/ssp", newTab: false },
+      { id: 38, title: "Systemy oddymiania", path: "/oddymianie", newTab: false },
     ],
   },
   {
     id: 4,
-    title: "Dla projektanta",
-    path: "/narzedzia",
+    title: "CFD Cloud",
+    path: "/narzedzia/symulacje",
     newTab: false,
+    highlight: true,
   },
   {
     id: 5,
+    title: "Dla projektanta",
+    newTab: false,
+    submenu: [
+      { id: 51, title: "Kalkulatory", path: "/narzedzia/kalkulatory", newTab: false },
+      { id: 52, title: "Raporty", path: "/narzedzia/raporty", newTab: false },
+    ],
+  },
+  {
+    id: 6,
     title: "Blog",
     path: "/blog",
     newTab: false,
   },
   {
-    id: 6,
+    id: 7,
     title: "Kontakt",
     path: "/kontakt",
     newTab: false,
