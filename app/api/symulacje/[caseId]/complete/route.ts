@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { deleteServer } from "@/lib/hetzner/client";
+import { listResults } from "@/lib/hetzner/storage";
+import { computeFinalPrice } from "@/lib/fds/parser";
 import { Resend } from "resend";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl";
@@ -157,7 +159,7 @@ export async function POST(
     .from("fds_submissions")
     .update(updates)
     .eq("case_id", caseId)
-    .select("email, name, file_name, price, wall_hours, server_type, server_id")
+    .select("email, name, file_name, price, wall_hours, server_type, server_id, dispatched_at, started_at, completed_at")
     .single();
 
   // Ustaw started_at tylko jeśli jeszcze nie ustawiony (pierwsze "running")
@@ -176,11 +178,49 @@ export async function POST(
     });
   }
 
+  // Finalna cena z realnego zużycia (tylko dla "done").
+  // Serwer: od utworzenia VM (dispatched_at) do zakończenia. Storage: faktyczny rozmiar wyników.
+  let finalPrice = row?.price ?? 0;
+  let actualWallHours = row?.wall_hours ?? 0;
+
+  if (row && status === "done") {
+    const endMs = row.completed_at ? new Date(row.completed_at).getTime() : Date.now();
+    const startRef = row.dispatched_at ?? row.started_at;
+
+    if (startRef) {
+      const serverHours = (endMs - new Date(startRef).getTime()) / 3_600_000;
+
+      let storageGb = 0;
+      try {
+        const objects = await listResults(caseId);
+        storageGb = objects.reduce((sum, o) => sum + (o.Size ?? 0), 0) / 1024 ** 3;
+      } catch (err) {
+        console.error(`complete webhook: listResults(${caseId}) error:`, err);
+      }
+
+      finalPrice = computeFinalPrice({
+        serverType: row.server_type ?? "cpx41",
+        serverHours,
+        storageGb,
+      });
+
+      await supabase
+        .from("fds_submissions")
+        .update({ price: finalPrice })
+        .eq("case_id", caseId);
+    }
+
+    // realny czas obliczeń FDS (started_at → completed_at) do powiadomienia
+    if (row.started_at) {
+      actualWallHours = Math.max(0, (endMs - new Date(row.started_at).getTime()) / 3_600_000);
+    }
+  }
+
   // Email powiadomienia do klienta
   if (row && (status === "done" || status === "failed")) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const emailPayload = status === "done"
-      ? emailDone(row.email, row.name, caseId, row.file_name, row.price, row.wall_hours, row.server_type)
+      ? emailDone(row.email, row.name, caseId, row.file_name, finalPrice, actualWallHours, row.server_type)
       : emailFailed(row.email, row.name, caseId, row.file_name);
 
     await resend.emails.send(emailPayload).catch((err) => {

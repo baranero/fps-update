@@ -625,16 +625,17 @@ export default function SymulacjePage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">Koszt netto</p>
+                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">Koszt szacunkowy</p>
                     <p className="text-3xl font-bold text-amber-900 dark:text-amber-200">
-                      {estimate.price.toLocaleString("pl-PL")} zł
+                      ~{estimate.price.toLocaleString("pl-PL")} zł
                     </p>
-                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">zawiera obsługę i weryfikację</p>
+                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">netto · płatność po obliczeniach</p>
                   </div>
                 </div>
 
                 <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
-                  Wycena szacunkowa. Ostateczną cenę potwierdzamy przed uruchomieniem obliczeń.
+                  To wstępny szacunek. Ostateczną cenę naliczamy po zakończeniu obliczeń — na podstawie
+                  faktycznego zużycia serwera i przestrzeni na wyniki. Zapłacisz dopiero za gotowe rezultaty.
                 </p>
               </div>
 

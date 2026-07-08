@@ -286,3 +286,22 @@ export function estimateCost(parsed: FdsParseResult): FdsEstimate {
     complexity,
   };
 }
+
+// ─── Finalna cena po zakończeniu obliczeń ────────────────────────────────────
+//
+// Liczy realne zużycie: czas życia serwera (od utworzenia VM do zakończenia)
+// × cennik Hetzner + faktyczny rozmiar wyników w Object Storage, z tą samą marżą
+// co wycena wstępna. Zwraca cenę netto w PLN.
+
+export function computeFinalPrice(opts: {
+  serverType: string;
+  serverHours: number; // realny czas życia serwera [h] (dispatch → completed)
+  storageGb: number;   // faktyczny rozmiar wyników w Object Storage [GB]
+}): number {
+  const server = HETZNER_CCX[opts.serverType] ?? HETZNER_CCX.cpx41;
+  // realny czas serwera + krótki narzut na wysłanie wyników i usunięcie VM
+  const billedHours    = Math.max(1 / 60, opts.serverHours) + 3 / 60;
+  const cloudCostEur    = billedHours * server.eurPerHour;
+  const storageCostEur  = Math.max(0, opts.storageGb) * STORAGE_EUR_PER_GB;
+  return Math.max(1, Math.round((cloudCostEur + storageCostEur) * MARKUP * EUR_PLN));
+}

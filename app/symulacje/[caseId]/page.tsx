@@ -908,6 +908,9 @@ export default function JobStatusPage({
                       Do zapłaty: <span className="font-bold">{job.price.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</span> netto
                       <span className="ml-1 text-amber-500/70 dark:text-amber-600">(~{(job.price * 1.23).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł brutto)</span>
                     </p>
+                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-1">
+                      Kwota naliczona wg faktycznego zużycia serwera i przestrzeni na wyniki.
+                    </p>
                   </div>
                   <button
                     onClick={handlePay}
