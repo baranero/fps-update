@@ -27,11 +27,6 @@ function formatHours(h: number) {
   return `${h.toFixed(1)} h`;
 }
 
-function formatGb(gb: number) {
-  if (gb < 1) return `${Math.round(gb * 1024)} MB`;
-  return `${gb.toFixed(1)} GB`;
-}
-
 const deliverables = [
   {
     title: "Wizualizacja Smokeview",
@@ -210,7 +205,7 @@ export default function SymulacjePage() {
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("name", form.name.trim());
+      body.append("name", form.name.trim() || form.email.split("@")[0] || "Użytkownik");
       body.append("email", form.email.trim());
       body.append("notes", form.notes.trim());
       body.append("parsed", JSON.stringify(parseResult));
@@ -245,7 +240,7 @@ export default function SymulacjePage() {
     setForm({ name: "", email: "", notes: "" });
   };
 
-  const canSubmit = form.name.trim().length > 1 && /\S+@\S+\.\S+/.test(form.email);
+  const canSubmit = /\S+@\S+\.\S+/.test(form.email);
 
   return (
     <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
@@ -638,78 +633,22 @@ export default function SymulacjePage() {
                   </div>
                 </div>
 
-                {/* Rozbicie kosztu: CPU vs storage */}
-                {(() => {
-                  const total = estimate.cloudCostEur + estimate.storageCostEur;
-                  const cpuPln = total > 0 ? Math.round(estimate.price * (estimate.cloudCostEur / total)) : estimate.price;
-                  const storagePln = Math.max(0, estimate.price - cpuPln);
-                  return (
-                    <div className="mt-4 grid grid-cols-1 gap-2 border-t border-amber-200/60 dark:border-amber-800/40 pt-4 sm:grid-cols-2">
-                      <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2 dark:bg-black/10">
-                        <span className="flex items-center gap-2 text-[12px] font-medium text-amber-800/80 dark:text-amber-300">
-                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-                          </svg>
-                          Moc obliczeniowa (CPU)
-                        </span>
-                        <span className="text-sm font-bold text-amber-900 dark:text-amber-200">{cpuPln.toLocaleString("pl-PL")} zł</span>
-                      </div>
-                      <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2 dark:bg-black/10">
-                        <span className="flex items-center gap-2 text-[12px] font-medium text-amber-800/80 dark:text-amber-300">
-                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2 1.5 3 4 3h8c2.5 0 4-1 4-3V7M4 7c0-2 1.5-3 4-3h8c2.5 0 4 1 4 3M4 7c0 2 1.5 3 4 3h8c2.5 0 4-1 4-3" />
-                          </svg>
-                          Storage wyników · ~{formatGb(estimate.estimatedOutputGb)}
-                        </span>
-                        <span className="text-sm font-bold text-amber-900 dark:text-amber-200">{storagePln.toLocaleString("pl-PL")} zł</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
                 <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
-                  Czas obliczeń szacowany z warunku CFL i wydajności ~240&nbsp;000 cell-timesteps/s per rdzeń (AMD EPYC).
-                  Ostateczny koszt naliczany jest od faktycznego zużycia — potwierdzamy przed uruchomieniem.
+                  Wycena szacunkowa. Ostateczną cenę potwierdzamy przed uruchomieniem obliczeń.
                 </p>
               </div>
 
               {/* Form */}
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-4">
                 <div>
-                  <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">Dane kontaktowe</h2>
+                  <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">Wiadomość do zlecenia</h2>
                   <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                    Uzupełnione z Twojego konta — możesz je zmienić dla tego zlecenia. Ofertę i status wyślemy na podany adres.
+                    Zlecenie powiążemy z Twoim kontem{form.email ? ` (${form.email})` : ""}. Ofertę i status obliczeń wyślemy na ten adres.
                   </p>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">
-                      Imię i nazwisko <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.name}
-                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                      placeholder="Jan Kowalski"
-                      className="w-full rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">
-                      Adres e-mail <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                      placeholder="jan@firma.pl"
-                      className="w-full rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">
-                    Uwagi do zlecenia (opcjonalnie)
+                    Wiadomość (opcjonalnie)
                   </label>
                   <textarea
                     value={form.notes}
