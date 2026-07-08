@@ -1,0 +1,265 @@
+{
+  "language": {
+    "label": "Język",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "about": "O mnie",
+    "offer": "Oferta",
+    "ibp": "Instrukcja Bezpieczeństwa Pożarowego",
+    "cfd": "Symulacje CFD",
+    "operat": "Operat przeciwpożarowy",
+    "audit": "Audyt przeciwpożarowy",
+    "scenario": "Scenariusz rozwoju pożaru",
+    "explosion": "Ocena zagrożenia wybuchem",
+    "ssp": "Projekt SSP",
+    "smoke": "Systemy oddymiania",
+    "cfdCloud": "CFD Cloud",
+    "forDesigner": "Dla projektanta",
+    "calculators": "Kalkulatory",
+    "reports": "Raporty",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "account": {
+      "menu": "Menu konta",
+      "profile": "Twój profil",
+      "signOut": "Wyloguj się",
+      "signIn": "Zaloguj się",
+      "signUp": "Zarejestruj się",
+      "toolsPanel": "Panel narzędzi",
+      "myProfile": "Profil"
+    }
+  },
+  "footer": {
+    "tagline": "Kompleksowe usługi w zakresie ochrony przeciwpożarowej obejmujące projektowanie systemów, opracowywanie dokumentacji oraz symulacje CFD.",
+    "contact": "Kontakt",
+    "pages": "Strony",
+    "offer": "Oferta",
+    "rights": "Fire Protection Solutions — Jakub Baran",
+    "privacy": "Polityka prywatności",
+    "cookies": "Polityka cookies",
+    "terms": "Regulamin"
+  },
+  "hero": {
+    "badge": "Inżynieria bezpieczeństwa pożarowego",
+    "titleStart": "Ekspert ppoż.",
+    "titleAccent": "i chmura obliczeniowa",
+    "titleEnd": "dla inżynierów FDS",
+    "lead": "Projekty SSP, oddymiania i symulacje CFD — oraz własna platforma do uruchamiania obliczeń FDS w chmurze, dostępna dla inżynierów na całym świecie.",
+    "ctaContact": "Skontaktuj się",
+    "ctaRun": "Uruchom symulację FDS ↗",
+    "trust": {
+      "ssp": "Projekty SSP",
+      "smoke": "Systemy oddymiania",
+      "cfd": "Symulacje CFD",
+      "docs": "IBP · OZW · Operaty"
+    },
+    "panel": {
+      "title": "CFD Cloud — symulacja w toku",
+      "running": "działa",
+      "meshes": "siatek",
+      "cells": "Komórki",
+      "estTime": "Est. czas",
+      "server": "Serwer",
+      "progress": "Obliczenia: {pct}%",
+      "remaining": "{time} pozostało",
+      "cost": "Koszt netto",
+      "caption": "Przykładowe zlecenie · płatność po zakończeniu obliczeń"
+    }
+  },
+  "pillars": {
+    "eyebrow": "Czym się zajmujemy",
+    "services": {
+      "title": "Usługi ppoż.",
+      "desc": "Projekty SSP, oddymiania, IBP, OZW/DZW, operaty i audyty — kompleksowa dokumentacja zgodna z polskim prawem.",
+      "cta": "Zobacz ofertę →"
+    },
+    "cloud": {
+      "title": "CFD Cloud",
+      "desc": "Wgraj plik FDS, odbierz wyniki symulacji. Bez własnego serwera — obliczenia w chmurze, płatność od zużycia.",
+      "cta": "Uruchom symulację →"
+    },
+    "tools": {
+      "title": "Narzędzia projektowe",
+      "desc": "Kalkulatory CNBOP, oddymiania klatek i grawitacyjnego. Raporty w PDF i DOCX. Dostęp po rejestracji.",
+      "cta": "Przejdź do narzędzi →"
+    }
+  },
+  "cloudSpotlight": {
+    "badge": "CFD Cloud",
+    "titleStart": "Obliczenia FDS",
+    "titleAccent": "bez własnej infrastruktury",
+    "lead": "Wgraj plik .fds — system dobiera serwer, uruchamia obliczenia i zwraca wyniki. Płacisz tylko za faktyczne zużycie CPU i storage.",
+    "cta": "Uruchom pierwszą symulację →",
+    "steps": {
+      "s1Title": "Wgraj plik .fds",
+      "s1Desc": "Parser analizuje model lokalnie w przeglądarce i pokazuje wycenę przed wysłaniem — bez przesyłania danych.",
+      "s2Title": "Potwierdź i zapłać",
+      "s2Desc": "System dobiera optymalny serwer i uruchamia obliczenia. Śledzisz postęp na żywo — log co 5 sekund.",
+      "s3Title": "Pobierz wyniki",
+      "s3Desc": "Po zakończeniu dostajesz e-mail z linkiem do SMV, CSV i logów. Pliki dostępne przez 60 dni."
+    },
+    "features": {
+      "f1Title": "Dedykowany VM per zlecenie",
+      "f1Desc": "Każda symulacja dostaje własny serwer — brak kolejki, brak dzielenia zasobów.",
+      "f2Title": "Dostępny globalnie",
+      "f2Desc": "Interfejs w języku polskim i angielskim. Serwery w Europie — niskie opóźnienia dla PL, DE, UK, AE.",
+      "f3Title": "Płatność od zużycia",
+      "f3Desc": "Naliczanie za faktyczny czas CPU + storage. Stripe, BLIK, Przelewy24. Faktury w panelu.",
+      "f4Title": "Wyniki przez 60 dni",
+      "f4Desc": "Pliki SMV, slice files, CSV z DEVC i logi — przechowywane 60 dni, pobierane przez bezpieczny link."
+    }
+  },
+  "features": {
+    "eyebrow": "Zakres usług",
+    "new": "Nowa",
+    "sectionTitle": "Zakres usług ppoż.",
+    "sectionLead": "Zapewniam kompleksowe wsparcie z zakresu inżynierii bezpieczeństwa pożarowego – od przygotowania wymaganej przepisami dokumentacji, przez zaawansowane analizy inżynierskie, aż po audyty obiektów.",
+    "ssp": {
+      "title": "Projekt SSP",
+      "desc": "Kompleksowe projekty systemów sygnalizacji pożarowej — dobór central, czujek, stref alarmowych i scenariuszy działania."
+    },
+    "smoke": {
+      "title": "Systemy oddymiania",
+      "desc": "Projekty oddymiania grawitacyjnego i mechanicznego klatek schodowych i hal magazynowych zgodne z CNBOP i normami PN."
+    },
+    "cfd": {
+      "title": "Symulacje CFD",
+      "desc": "Modelowanie rozwoju pożaru i rozprzestrzeniania dymu. Analiza warunków bezpiecznej ewakuacji (ASET vs RSET)."
+    },
+    "ibp": {
+      "title": "Instrukcja Bezpieczeństwa Pożarowego",
+      "desc": "Opracowanie nowej IBP oraz obowiązkowe aktualizacje istniejącej dokumentacji dla obiektów każdego typu."
+    },
+    "ozw": {
+      "title": "OZW / DZW",
+      "desc": "Ocena zagrożenia wybuchem i Dokument Zabezpieczenia przed Wybuchem — wyznaczanie stref Ex i dobór środków ochronnych."
+    },
+    "audit": {
+      "title": "Audyt & Operat ppoż.",
+      "desc": "Weryfikacja zgodności obiektu z przepisami oraz operat przeciwpożarowy do zezwolenia na zbieranie lub przetwarzanie odpadów."
+    }
+  },
+  "home": {
+    "metadata": {
+      "title": "Fire Protection Solutions | Inżynieria Bezpieczeństwa Pożarowego",
+      "description": "Kompleksowe usługi z zakresu ochrony przeciwpożarowej oraz chmura obliczeniowa CFD Cloud do symulacji FDS. Projekty SSP, oddymiania, IBP, OZW. Warszawa i cała Polska.",
+      "ogTitle": "Fire Protection Solutions – Ekspert Ochrony Ppoż. i CFD Cloud",
+      "ogDescription": "Projekty SSP, oddymiania, symulacje CFD oraz platforma CFD Cloud do obliczeń FDS w chmurze. Działamy w całej Polsce i obsługujemy inżynierów globalnie."
+    }
+  },
+  "symulacje": {
+    "badge": "CFD Cloud",
+    "title": "Symulacje FDS w chmurze",
+    "lead": "Wgraj plik wejściowy FDS — system dobierze serwer, oszacuje koszt i uruchomi obliczenia. Płacisz wyłącznie za faktyczne zużycie CPU i storage, bez abonamentu.",
+    "historyLink": "Historia symulacji",
+    "trust": {
+      "vm": "Dedykowany VM per zlecenie",
+      "epyc": "AMD EPYC · Hetzner (UE)",
+      "payg": "Płatność od zużycia",
+      "retention": "Wyniki przez 60 dni"
+    },
+    "steps": {
+      "file": "1. Plik FDS",
+      "estimate": "2. Wycena",
+      "confirm": "3. Potwierdzenie"
+    },
+    "upload": {
+      "heading": "Wgraj plik FDS",
+      "drop": "Przeciągnij plik lub kliknij, aby wybrać",
+      "formats": "Obsługiwane formaty: .fds",
+      "pickAnother": "Kliknij, aby wybrać inny plik",
+      "onlyFds": "Akceptowane są tylko pliki z rozszerzeniem .fds",
+      "readError": "Nie udało się odczytać pliku.",
+      "infoTitle": "Co system analizuje?",
+      "infoBody": "Sekcje &MESH (liczba i rozmiar siatek), &TIME (czas symulacji), &REAC (paliwo) oraz elementy modelu (&OBST, &VENT, &DEVC).",
+      "infoLocal": "Plik pozostaje lokalny — przesyłany jest dopiero po zatwierdzeniu wyceny.",
+      "analyze": "Analizuj plik",
+      "analyzing": "Analizuję plik…",
+      "previousOrders": "Poprzednie zlecenia"
+    },
+    "deliverables": {
+      "heading": "Co otrzymasz",
+      "d1Title": "Wizualizacja Smokeview",
+      "d1Desc": "Pliki .smv wraz z przekrojami (slice) i granicami — pełne odtworzenie rozwoju pożaru i dymu.",
+      "d2Title": "Dane z urządzeń (DEVC)",
+      "d2Desc": "CSV z pomiarami temperatury, widzialności i prędkości — gotowe do analizy warunków ewakuacji.",
+      "d3Title": "Pełny log obliczeń FDS",
+      "d3Desc": "Kompletny przebieg symulacji z parametrami solvera — do weryfikacji i dokumentacji projektu.",
+      "d4Title": "Bezpieczny dostęp 60 dni",
+      "d4Desc": "Wyniki pobierzesz przez podpisany link; po 60 dniach są automatycznie usuwane z serwera."
+    },
+    "faq": {
+      "heading": "Najczęstsze pytania",
+      "q1": "Jakie pliki są obsługiwane?",
+      "a1": "Pliki wejściowe FDS z rozszerzeniem .fds. Parser analizuje sekcje &MESH, &TIME, &REAC oraz elementy modelu (&OBST, &VENT, &DEVC) bezpośrednio w przeglądarce.",
+      "q2": "Ile to kosztuje i kiedy płacę?",
+      "a2": "Płacisz za faktyczny czas pracy CPU oraz storage wyników — bez abonamentu i opłat stałych. Wycenę widzisz przed uruchomieniem, a płatność (Stripe, BLIK, Przelewy24) następuje po zakończeniu obliczeń. Faktura VAT jest dostępna w panelu.",
+      "q3": "Jak długo trwają obliczenia?",
+      "a3": "Zależnie od liczby komórek i czasu symulacji. Szacunek czasu pokazujemy przy wycenie na podstawie warunku CFL i wydajności ~240 000 cell-timesteps/s na rdzeń. Każde zlecenie dostaje własny, dedykowany serwer AMD EPYC.",
+      "q4": "Czy mogę uruchomić kilka symulacji naraz?",
+      "a4": "Tak. Każde zlecenie uruchamia osobną maszynę wirtualną — nie ma kolejki ani współdzielenia zasobów między Twoimi symulacjami.",
+      "q5": "Czy mój plik jest bezpieczny?",
+      "a5": "Plik jest analizowany lokalnie w przeglądarce i przesyłany dopiero po zatwierdzeniu wyceny. Obliczenia biegną na serwerach w Unii Europejskiej (Hetzner), a maszyna jest kasowana po zakończeniu zlecenia."
+    },
+    "complexityLevels": {
+      "mała": "mała",
+      "średnia": "średnia",
+      "duża": "duża",
+      "bardzo duża": "bardzo duża"
+    },
+    "review": {
+      "analysis": "Analiza pliku",
+      "complexity": "Złożoność: {level}",
+      "cellsWord": "komórek",
+      "cores": "Rdzenie obliczeniowe",
+      "meshesMpi": "{count} siatek MPI",
+      "coresMix": "{mpi} MPI × {omp} OMP",
+      "cellsTotal": "Komórek (łącznie)",
+      "simTime": "Czas symulacji",
+      "fuel": "Paliwo (REAC)",
+      "meshDetails": "Szczegóły siatek",
+      "obst": "Przeszkody (OBST): {n}",
+      "vent": "Otwory (VENT): {n}",
+      "devc": "Czujniki (DEVC): {n}"
+    },
+    "estimate": {
+      "heading": "Szacunkowa wycena",
+      "server": "Serwer obliczeniowy",
+      "serverSub": "{cores} dedykowane vCPU (AMD EPYC)",
+      "estTime": "Szacowany czas obliczeń",
+      "dt": "Krok czasowy Δt",
+      "dtFromFile": "z pliku (dx={dx} cm)",
+      "dtAssumed": "założono dx = 10 cm",
+      "costLabel": "Koszt szacunkowy",
+      "costSub": "netto · płatność po obliczeniach",
+      "note": "To wstępny szacunek. Ostateczną cenę naliczamy po zakończeniu obliczeń — na podstawie faktycznego zużycia serwera i przestrzeni na wyniki. Zapłacisz dopiero za gotowe rezultaty."
+    },
+    "form": {
+      "heading": "Wiadomość do zlecenia",
+      "linkedInfo": "Zlecenie powiążemy z Twoim kontem{email}. Ofertę i status obliczeń wyślemy na ten adres.",
+      "messageLabel": "Wiadomość (opcjonalnie)",
+      "messagePlaceholder": "Np. nazwa projektu, termin, dodatkowe wymagania…",
+      "submit": "Wyślij do obliczeń",
+      "submitting": "Wysyłam zlecenie…",
+      "back": "Wróć",
+      "genericError": "Wystąpił błąd. Spróbuj ponownie.",
+      "networkError": "Brak połączenia z serwerem. Spróbuj ponownie."
+    },
+    "done": {
+      "title": "Zlecenie przyjęte",
+      "caseNo": "Numer zgłoszenia:",
+      "body": "Inżynier zweryfikuje plik i prześle ostateczną ofertę na adres {email} przed uruchomieniem obliczeń. Zazwyczaj odpowiadamy w ciągu 1 dnia roboczego.",
+      "again": "Wyślij kolejne zlecenie"
+    },
+    "status": {
+      "oczekuje": "Oczekuje",
+      "wKolejce": "W kolejce",
+      "wTrakcie": "W trakcie",
+      "zakonczone": "Zakończone",
+      "blad": "Błąd"
+    }
+  }
+}

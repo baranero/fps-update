@@ -9,6 +9,7 @@ const featuresData: Feature[] = [
   {
     id: 1,
     icon: <LuAlarmSmoke size={32} />,
+    key: "ssp",
     href: "/ssp",
     title: "Projekt SSP",
     paragraph: "Kompleksowe projekty systemów sygnalizacji pożarowej — dobór central, czujek, stref alarmowych i scenariuszy działania.",
@@ -17,6 +18,7 @@ const featuresData: Feature[] = [
   {
     id: 2,
     icon: <PiStairsBold size={32} />,
+    key: "smoke",
     href: "/oddymianie",
     title: "Systemy oddymiania",
     paragraph: "Projekty oddymiania grawitacyjnego i mechanicznego klatek schodowych i hal magazynowych zgodne z CNBOP i normami PN.",
@@ -25,6 +27,7 @@ const featuresData: Feature[] = [
   {
     id: 3,
     icon: <MdOutlineFireplace size={32} />,
+    key: "cfd",
     href: "/cfd",
     title: "Symulacje CFD",
     paragraph: "Modelowanie rozwoju pożaru i rozprzestrzeniania dymu. Analiza warunków bezpiecznej ewakuacji (ASET vs RSET).",
@@ -32,6 +35,7 @@ const featuresData: Feature[] = [
   {
     id: 4,
     icon: <FaFireExtinguisher size={32} />,
+    key: "ibp",
     href: "/ibp",
     title: "Instrukcja Bezpieczeństwa Pożarowego",
     paragraph: "Opracowanie nowej IBP oraz obowiązkowe aktualizacje istniejącej dokumentacji dla obiektów każdego typu.",
@@ -39,6 +43,7 @@ const featuresData: Feature[] = [
   {
     id: 5,
     icon: <FaExplosion size={32} />,
+    key: "ozw",
     href: "/ozw",
     title: "OZW / DZW",
     paragraph: "Ocena zagrożenia wybuchem i Dokument Zabezpieczenia przed Wybuchem — wyznaczanie stref Ex i dobór środków ochronnych.",
@@ -47,6 +52,7 @@ const featuresData: Feature[] = [
   {
     id: 6,
     icon: <FaBuilding size={32} />,
+    key: "audit",
     href: "/audyt",
     title: "Audyt & Operat ppoż.",
     paragraph: "Weryfikacja zgodności obiektu z przepisami oraz operat przeciwpożarowy do zezwolenia na zbieranie lub przetwarzanie odpadów.",

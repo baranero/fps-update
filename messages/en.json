@@ -1,0 +1,265 @@
+{
+  "language": {
+    "label": "Language",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "offer": "Services",
+    "ibp": "Fire Safety Instructions",
+    "cfd": "CFD Simulations",
+    "operat": "Fire Protection Report",
+    "audit": "Fire Safety Audit",
+    "scenario": "Fire Development Scenario",
+    "explosion": "Explosion Risk Assessment",
+    "ssp": "Fire Alarm System Design",
+    "smoke": "Smoke Control Systems",
+    "cfdCloud": "CFD Cloud",
+    "forDesigner": "For Engineers",
+    "calculators": "Calculators",
+    "reports": "Reports",
+    "blog": "Blog",
+    "contact": "Contact",
+    "account": {
+      "menu": "Account menu",
+      "profile": "Your profile",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "toolsPanel": "Tools panel",
+      "myProfile": "Profile"
+    }
+  },
+  "footer": {
+    "tagline": "End-to-end fire protection services — system design, documentation and CFD simulations.",
+    "contact": "Contact",
+    "pages": "Pages",
+    "offer": "Services",
+    "rights": "Fire Protection Solutions — Jakub Baran",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookie Policy",
+    "terms": "Terms of Service"
+  },
+  "hero": {
+    "badge": "Fire safety engineering",
+    "titleStart": "Fire safety expert",
+    "titleAccent": "and a cloud platform",
+    "titleEnd": "for FDS engineers",
+    "lead": "Fire alarm, smoke control and CFD projects — plus our own platform for running FDS computations in the cloud, available to engineers worldwide.",
+    "ctaContact": "Get in touch",
+    "ctaRun": "Run an FDS simulation ↗",
+    "trust": {
+      "ssp": "Fire alarm design",
+      "smoke": "Smoke control",
+      "cfd": "CFD simulations",
+      "docs": "Reports · Audits · Assessments"
+    },
+    "panel": {
+      "title": "CFD Cloud — simulation running",
+      "running": "running",
+      "meshes": "meshes",
+      "cells": "Cells",
+      "estTime": "Est. time",
+      "server": "Server",
+      "progress": "Computed: {pct}%",
+      "remaining": "{time} remaining",
+      "cost": "Net cost",
+      "caption": "Sample job · pay after the computation completes"
+    }
+  },
+  "pillars": {
+    "eyebrow": "What we do",
+    "services": {
+      "title": "Fire protection services",
+      "desc": "Fire alarm, smoke control, fire safety instructions, explosion risk, reports and audits — complete documentation compliant with Polish law.",
+      "cta": "See services →"
+    },
+    "cloud": {
+      "title": "CFD Cloud",
+      "desc": "Upload an FDS file, get your simulation results. No server of your own — computed in the cloud, pay only for usage.",
+      "cta": "Run a simulation →"
+    },
+    "tools": {
+      "title": "Engineering tools",
+      "desc": "Smoke-control calculators to Polish standards. Reports in PDF and DOCX. Available after signing up.",
+      "cta": "Open the tools →"
+    }
+  },
+  "cloudSpotlight": {
+    "badge": "CFD Cloud",
+    "titleStart": "FDS computations",
+    "titleAccent": "without your own infrastructure",
+    "lead": "Upload a .fds file — the system picks a server, runs the computation and returns the results. You pay only for actual CPU and storage usage.",
+    "cta": "Run your first simulation →",
+    "steps": {
+      "s1Title": "Upload a .fds file",
+      "s1Desc": "The parser analyses the model locally in your browser and shows a quote before sending — no data leaves your device.",
+      "s2Title": "Confirm and pay",
+      "s2Desc": "The system picks the optimal server and starts the computation. Track progress live — logs every 5 seconds.",
+      "s3Title": "Download the results",
+      "s3Desc": "When it finishes you get an email with links to SMV, CSV and logs. Files stay available for 60 days."
+    },
+    "features": {
+      "f1Title": "Dedicated VM per job",
+      "f1Desc": "Every simulation gets its own server — no queue, no shared resources.",
+      "f2Title": "Available globally",
+      "f2Desc": "Interface in Polish and English. Servers in Europe — low latency for PL, DE, UK, AE.",
+      "f3Title": "Pay per usage",
+      "f3Desc": "Billed for actual CPU time + storage. Stripe, BLIK, Przelewy24. Invoices in your panel.",
+      "f4Title": "Results for 60 days",
+      "f4Desc": "SMV files, slice files, DEVC CSV and logs — kept for 60 days, downloaded via a secure link."
+    }
+  },
+  "features": {
+    "eyebrow": "Scope of services",
+    "new": "New",
+    "sectionTitle": "Fire protection services",
+    "sectionLead": "Complete support across fire safety engineering — from the documentation required by regulations, through advanced engineering analyses, to on-site audits.",
+    "ssp": {
+      "title": "Fire Alarm System Design",
+      "desc": "Complete fire alarm system designs — control panels, detectors, alarm zones and cause-and-effect scenarios."
+    },
+    "smoke": {
+      "title": "Smoke Control Systems",
+      "desc": "Natural and mechanical smoke control designs for stairwells and warehouses, compliant with CNBOP and PN standards."
+    },
+    "cfd": {
+      "title": "CFD Simulations",
+      "desc": "Modelling fire growth and smoke spread. Analysis of safe evacuation conditions (ASET vs RSET)."
+    },
+    "ibp": {
+      "title": "Fire Safety Instructions",
+      "desc": "New fire safety instructions (IBP) and the mandatory updates of existing documentation for any type of facility."
+    },
+    "ozw": {
+      "title": "Explosion Risk Assessment",
+      "desc": "Explosion risk assessment and explosion protection document — Ex zone classification and selection of protective measures."
+    },
+    "audit": {
+      "title": "Audit & Fire Report",
+      "desc": "Verifying a facility's compliance with regulations and preparing the fire protection report for waste permits."
+    }
+  },
+  "home": {
+    "metadata": {
+      "title": "Fire Protection Solutions | Fire Safety Engineering",
+      "description": "End-to-end fire protection services and the CFD Cloud platform for FDS simulations. Fire alarm, smoke control, fire safety and explosion assessments. Warsaw and all of Poland.",
+      "ogTitle": "Fire Protection Solutions – Fire Safety Expert & CFD Cloud",
+      "ogDescription": "Fire alarm, smoke control and CFD projects, plus the CFD Cloud platform for FDS computations. We work across Poland and serve engineers globally."
+    }
+  },
+  "symulacje": {
+    "badge": "CFD Cloud",
+    "title": "FDS simulations in the cloud",
+    "lead": "Upload an FDS input file — the system picks a server, estimates the cost and runs the computation. You pay only for actual CPU and storage usage, with no subscription.",
+    "historyLink": "Simulation history",
+    "trust": {
+      "vm": "Dedicated VM per job",
+      "epyc": "AMD EPYC · Hetzner (EU)",
+      "payg": "Pay per usage",
+      "retention": "Results for 60 days"
+    },
+    "steps": {
+      "file": "1. FDS file",
+      "estimate": "2. Quote",
+      "confirm": "3. Confirmation"
+    },
+    "upload": {
+      "heading": "Upload an FDS file",
+      "drop": "Drag a file here or click to choose",
+      "formats": "Supported formats: .fds",
+      "pickAnother": "Click to choose a different file",
+      "onlyFds": "Only files with the .fds extension are accepted",
+      "readError": "Could not read the file.",
+      "infoTitle": "What does the system analyse?",
+      "infoBody": "The &MESH sections (number and size of meshes), &TIME (simulation time), &REAC (fuel) and model elements (&OBST, &VENT, &DEVC).",
+      "infoLocal": "The file stays local — it is uploaded only after you approve the quote.",
+      "analyze": "Analyse file",
+      "analyzing": "Analysing file…",
+      "previousOrders": "Previous jobs"
+    },
+    "deliverables": {
+      "heading": "What you get",
+      "d1Title": "Smokeview visualisation",
+      "d1Desc": ".smv files with slices and boundaries — a full replay of fire growth and smoke movement.",
+      "d2Title": "Device data (DEVC)",
+      "d2Desc": "CSV with temperature, visibility and velocity measurements — ready for evacuation analysis.",
+      "d3Title": "Full FDS computation log",
+      "d3Desc": "The complete simulation run with solver parameters — for verification and project documentation.",
+      "d4Title": "Secure 60-day access",
+      "d4Desc": "Download results via a signed link; after 60 days they are automatically removed from the server."
+    },
+    "faq": {
+      "heading": "Frequently asked questions",
+      "q1": "Which files are supported?",
+      "a1": "FDS input files with the .fds extension. The parser reads the &MESH, &TIME and &REAC sections and model elements (&OBST, &VENT, &DEVC) directly in the browser.",
+      "q2": "How much does it cost and when do I pay?",
+      "a2": "You pay for actual CPU time and result storage — no subscription or fixed fees. You see the quote before running, and payment (Stripe, BLIK, Przelewy24) happens after the computation completes. A VAT invoice is available in your panel.",
+      "q3": "How long do computations take?",
+      "a3": "It depends on the number of cells and the simulation time. We show a time estimate at the quote stage, based on the CFL condition and ~240,000 cell-timesteps/s per core. Every job gets its own dedicated AMD EPYC server.",
+      "q4": "Can I run several simulations at once?",
+      "a4": "Yes. Each job launches a separate virtual machine — there is no queue or resource sharing between your simulations.",
+      "q5": "Is my file safe?",
+      "a5": "The file is analysed locally in your browser and uploaded only after you approve the quote. Computations run on servers in the European Union (Hetzner), and the machine is deleted once the job completes."
+    },
+    "complexityLevels": {
+      "mała": "low",
+      "średnia": "medium",
+      "duża": "high",
+      "bardzo duża": "very high"
+    },
+    "review": {
+      "analysis": "File analysis",
+      "complexity": "Complexity: {level}",
+      "cellsWord": "cells",
+      "cores": "Compute cores",
+      "meshesMpi": "{count} MPI meshes",
+      "coresMix": "{mpi} MPI × {omp} OMP",
+      "cellsTotal": "Cells (total)",
+      "simTime": "Simulation time",
+      "fuel": "Fuel (REAC)",
+      "meshDetails": "Mesh details",
+      "obst": "Obstructions (OBST): {n}",
+      "vent": "Vents (VENT): {n}",
+      "devc": "Devices (DEVC): {n}"
+    },
+    "estimate": {
+      "heading": "Estimated quote",
+      "server": "Compute server",
+      "serverSub": "{cores} dedicated vCPU (AMD EPYC)",
+      "estTime": "Estimated compute time",
+      "dt": "Time step Δt",
+      "dtFromFile": "from file (dx={dx} cm)",
+      "dtAssumed": "assumed dx = 10 cm",
+      "costLabel": "Estimated cost",
+      "costSub": "net · payment after computation",
+      "note": "This is a preliminary estimate. The final price is charged once the computation completes — based on actual server and storage usage. You only pay for finished results."
+    },
+    "form": {
+      "heading": "Message for the job",
+      "linkedInfo": "The job will be linked to your account{email}. We'll send the offer and computation status to that address.",
+      "messageLabel": "Message (optional)",
+      "messagePlaceholder": "E.g. project name, deadline, additional requirements…",
+      "submit": "Send for computation",
+      "submitting": "Sending job…",
+      "back": "Back",
+      "genericError": "Something went wrong. Please try again.",
+      "networkError": "No connection to the server. Please try again."
+    },
+    "done": {
+      "title": "Job received",
+      "caseNo": "Reference number:",
+      "body": "An engineer will review the file and send the final offer to {email} before starting the computation. We usually reply within 1 business day.",
+      "again": "Send another job"
+    },
+    "status": {
+      "oczekuje": "Pending",
+      "wKolejce": "Queued",
+      "wTrakcie": "Running",
+      "zakonczone": "Completed",
+      "blad": "Error"
+    }
+  }
+}

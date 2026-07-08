@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const DEMO = {
   fileName: "klatka_schodowa_A.fds",
@@ -17,13 +18,14 @@ const DEMO = {
 };
 
 const HeroCloudPanel = () => {
+  const t = useTranslations("hero.panel");
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (barRef.current) barRef.current.style.width = `${DEMO.progress}%`;
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -31,11 +33,11 @@ const HeroCloudPanel = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
         <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-          CFD Cloud — symulacja w toku
+          {t("title")}
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-          running
+          {t("running")}
         </span>
       </div>
 
@@ -49,7 +51,7 @@ const HeroCloudPanel = () => {
           <div>
             <p className="font-mono text-[13px] font-semibold text-white">{DEMO.fileName}</p>
             <p className="text-[11px] text-slate-500">
-              {DEMO.fileSize} · {DEMO.meshes} siatek · T_END {DEMO.tEnd} s
+              {DEMO.fileSize} · {DEMO.meshes} {t("meshes")} · T_END {DEMO.tEnd} s
             </p>
           </div>
         </div>
@@ -57,9 +59,9 @@ const HeroCloudPanel = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { val: DEMO.cells, label: "Komórki" },
-            { val: DEMO.wallHours, label: "Est. czas" },
-            { val: DEMO.server, label: "Serwer" },
+            { val: DEMO.cells, label: t("cells") },
+            { val: DEMO.wallHours, label: t("estTime") },
+            { val: DEMO.server, label: t("server") },
           ].map(({ val, label }) => (
             <div
               key={label}
@@ -85,14 +87,14 @@ const HeroCloudPanel = () => {
             />
           </div>
           <div className="flex justify-between font-mono text-[11px] text-slate-500">
-            <span>Obliczenia: {DEMO.progress}%</span>
-            <span>{DEMO.remaining} pozostało</span>
+            <span>{t("progress", { pct: DEMO.progress })}</span>
+            <span>{t("remaining", { time: DEMO.remaining })}</span>
           </div>
         </div>
 
         {/* Price row */}
         <div className="flex items-center justify-between border-t border-slate-700/40 pt-3">
-          <span className="text-[12px] text-slate-500">Koszt netto</span>
+          <span className="text-[12px] text-slate-500">{t("cost")}</span>
           <span className="font-mono text-[22px] font-extrabold tabular-nums text-primary">
             {DEMO.price}
           </span>
@@ -103,6 +105,8 @@ const HeroCloudPanel = () => {
 };
 
 const Hero = () => {
+  const t = useTranslations("hero");
+
   return (
     <section
       id="home"
@@ -116,20 +120,18 @@ const Hero = () => {
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">
-                Inżynieria bezpieczeństwa pożarowego
+                {t("badge")}
               </span>
             </div>
 
             <h1 className="mb-5 text-[clamp(32px,5vw,52px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
-              Ekspert ppoż.{" "}
-              <span className="text-primary">i chmura obliczeniowa</span>{" "}
-              dla inżynierów FDS
+              {t("titleStart")}{" "}
+              <span className="text-primary">{t("titleAccent")}</span>{" "}
+              {t("titleEnd")}
             </h1>
 
             <p className="mb-8 max-w-[480px] text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
-              Projekty SSP, oddymiania i symulacje CFD — oraz własna platforma
-              do uruchamiania obliczeń FDS w chmurze, dostępna dla inżynierów
-              na całym świecie.
+              {t("lead")}
             </p>
 
             <div className="flex flex-wrap gap-3">
@@ -137,24 +139,19 @@ const Hero = () => {
                 href="/kontakt"
                 className="rounded-xl bg-primary px-7 py-3.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
               >
-                Skontaktuj się
+                {t("ctaContact")}
               </Link>
               <Link
                 href="/symulacje"
                 className="rounded-xl border border-primary/30 bg-primary/10 px-7 py-3.5 text-[14px] font-bold text-primary transition-colors hover:bg-primary/20"
               >
-                Uruchom symulację FDS ↗
+                {t("ctaRun")}
               </Link>
             </div>
 
             {/* Trust badges */}
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2">
-              {[
-                "Projekty SSP",
-                "Systemy oddymiania",
-                "Symulacje CFD",
-                "IBP · OZW · Operaty",
-              ].map((tag) => (
+              {[t("trust.ssp"), t("trust.smoke"), t("trust.cfd"), t("trust.docs")].map((tag) => (
                 <span
                   key={tag}
                   className="text-[12px] font-medium text-slate-400 dark:text-slate-500"
@@ -169,7 +166,7 @@ const Hero = () => {
           <div className="lg:pl-4">
             <HeroCloudPanel />
             <p className="mt-3 text-right text-[12px] text-slate-400 dark:text-slate-600">
-              Przykładowe zlecenie · płatność po zakończeniu obliczeń
+              {t("panel.caption")}
             </p>
           </div>
         </div>

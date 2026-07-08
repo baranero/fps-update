@@ -1,9 +1,15 @@
+import createIntlMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { routing } from "./i18n/routing";
+
+const intlMiddleware = createIntlMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  // 1. next-intl: ustalenie języka + ewentualny rewrite/redirect segmentu [locale]
+  const response = intlMiddleware(request);
 
+  // 2. Supabase: odświeżenie sesji (ciasteczka dopinamy do odpowiedzi z intl)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -13,45 +19,51 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           );
         },
       },
     }
   );
 
-  // Odświeżenie sesji – nie przenosić żadnej logiki przed tą linią
   const { data: { user } } = await supabase.auth.getUser();
 
+  // 3. Ścieżka bez prefiksu języka (np. /en/narzedzia → /narzedzia)
   const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith("/narzedzia") || pathname.startsWith("/symulacje");
-  const isAuthRoute = pathname.startsWith("/signin") || pathname.startsWith("/signup") || pathname.startsWith("/auth");
+  const segments = pathname.split("/");
+  let locale: string = routing.defaultLocale;
+  let rest = pathname;
+  if (routing.locales.includes(segments[1] as (typeof routing.locales)[number])) {
+    locale = segments[1];
+    rest = "/" + segments.slice(2).join("/");
+  }
+  if (rest === "") rest = "/";
+  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
+  const isProtected = rest.startsWith("/narzedzia") || rest.startsWith("/symulacje");
+  const isAuthPage = rest === "/signin" || rest === "/signup";
+
+  // Ochrona tras narzędzi i chmury
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/signin";
+    url.pathname = `${prefix}/signin`;
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  // Jeśli zalogowany próbuje wejść na signin/signup – przekieruj do panelu
-  if (isAuthRoute && user && (pathname === "/signin" || pathname === "/signup")) {
+  // Zalogowany na stronie logowania/rejestracji → panel
+  if (isAuthPage && user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/narzedzia";
+    url.pathname = `${prefix}/narzedzia`;
     url.searchParams.delete("next");
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return response;
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  // Pomijamy API, zasoby Next i pliki statyczne
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

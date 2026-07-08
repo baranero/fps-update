@@ -1,47 +1,22 @@
-import Link from "next/link";
-
-const steps = [
-  {
-    n: "1",
-    title: "Wgraj plik .fds",
-    desc: "Parser analizuje model lokalnie w przeglądarce i pokazuje wycenę przed wysłaniem — bez przesyłania danych.",
-  },
-  {
-    n: "2",
-    title: "Potwierdź i zapłać",
-    desc: "System dobiera optymalny serwer i uruchamia obliczenia. Śledzisz postęp na żywo — log co 5 sekund.",
-  },
-  {
-    n: "3",
-    title: "Pobierz wyniki",
-    desc: "Po zakończeniu dostajesz e-mail z linkiem do SMV, CSV i logów. Pliki dostępne przez 60 dni.",
-  },
-];
-
-const features = [
-  {
-    icon: "⚡",
-    title: "Dedykowany VM per zlecenie",
-    desc: "Każda symulacja dostaje własny serwer — brak kolejki, brak dzielenia zasobów.",
-  },
-  {
-    icon: "🌍",
-    title: "Dostępny globalnie",
-    desc: "Interfejs w języku polskim i angielskim. Serwery w Europie — niskie opóźnienia dla PL, DE, UK, AE.",
-  },
-  {
-    icon: "💳",
-    title: "Płatność od zużycia",
-    desc: "Naliczanie za faktyczny czas CPU + storage. Stripe, BLIK, Przelewy24. Faktury w panelu.",
-  },
-  {
-    icon: "📦",
-    title: "Wyniki przez 60 dni",
-    desc: "Pliki SMV, slice files, CSV z DEVC i logi — przechowywane 60 dni, pobierane przez bezpieczny link.",
-  },
-];
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const CloudSpotlight = () => {
+  const t = useTranslations("cloudSpotlight");
+
+  const steps = [
+    { n: "1", title: t("steps.s1Title"), desc: t("steps.s1Desc") },
+    { n: "2", title: t("steps.s2Title"), desc: t("steps.s2Desc") },
+    { n: "3", title: t("steps.s3Title"), desc: t("steps.s3Desc") },
+  ];
+
+  const features = [
+    { icon: "⚡", title: t("features.f1Title"), desc: t("features.f1Desc") },
+    { icon: "🌍", title: t("features.f2Title"), desc: t("features.f2Desc") },
+    { icon: "💳", title: t("features.f3Title"), desc: t("features.f3Desc") },
+    { icon: "📦", title: t("features.f4Title"), desc: t("features.f4Desc") },
+  ];
+
   return (
     <section className="relative overflow-hidden border-y border-slate-800/60 bg-[#0B1120] py-20">
       {/* background glow */}
@@ -61,18 +36,17 @@ const CloudSpotlight = () => {
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-                CFD Cloud
+                {t("badge")}
               </span>
             </div>
 
             <h2 className="mb-4 text-[clamp(26px,4vw,38px)] font-extrabold leading-[1.12] tracking-tight text-white text-wrap-balance">
-              Obliczenia FDS{" "}
-              <span className="text-primary">bez własnej infrastruktury</span>
+              {t("titleStart")}{" "}
+              <span className="text-primary">{t("titleAccent")}</span>
             </h2>
 
             <p className="mb-8 text-[15px] leading-relaxed text-slate-400">
-              Wgraj plik .fds — system dobiera serwer, uruchamia obliczenia i
-              zwraca wyniki. Płacisz tylko za faktyczne zużycie CPU i storage.
+              {t("lead")}
             </p>
 
             <div className="mb-10 space-y-5">
@@ -97,7 +71,7 @@ const CloudSpotlight = () => {
               href="/symulacje"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-[14px] font-extrabold text-white transition-colors hover:bg-primary/90"
             >
-              Uruchom pierwszą symulację →
+              {t("cta")}
             </Link>
           </div>
 

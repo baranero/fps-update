@@ -1,38 +1,41 @@
-import Link from "next/link";
-
-const pillars = [
-  {
-    icon: "🔥",
-    title: "Usługi ppoż.",
-    desc: "Projekty SSP, oddymiania, IBP, OZW/DZW, operaty i audyty — kompleksowa dokumentacja zgodna z polskim prawem.",
-    link: "/kontakt",
-    label: "Zobacz ofertę →",
-    variant: "red" as const,
-  },
-  {
-    icon: "☁",
-    title: "CFD Cloud",
-    desc: "Wgraj plik FDS, odbierz wyniki symulacji. Bez własnego serwera — obliczenia w chmurze, płatność od zużycia.",
-    link: "/symulacje",
-    label: "Uruchom symulację →",
-    variant: "cloud" as const,
-  },
-  {
-    icon: "🧮",
-    title: "Narzędzia projektowe",
-    desc: "Kalkulatory CNBOP, oddymiania klatek i grawitacyjnego. Raporty w PDF i DOCX. Dostęp po rejestracji.",
-    link: "/narzedzia/kalkulatory",
-    label: "Przejdź do narzędzi →",
-    variant: "neutral" as const,
-  },
-];
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const Pillars = () => {
+  const t = useTranslations("pillars");
+
+  const pillars = [
+    {
+      icon: "🔥",
+      title: t("services.title"),
+      desc: t("services.desc"),
+      link: "/kontakt",
+      label: t("services.cta"),
+      variant: "red" as const,
+    },
+    {
+      icon: "☁",
+      title: t("cloud.title"),
+      desc: t("cloud.desc"),
+      link: "/symulacje",
+      label: t("cloud.cta"),
+      variant: "cloud" as const,
+    },
+    {
+      icon: "🧮",
+      title: t("tools.title"),
+      desc: t("tools.desc"),
+      link: "/narzedzia/kalkulatory",
+      label: t("tools.cta"),
+      variant: "neutral" as const,
+    },
+  ];
+
   return (
     <section className="border-b border-slate-200/60 py-16 dark:border-slate-800/60">
       <div className="container">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-          Czym się zajmujemy
+          {t("eyebrow")}
         </p>
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {pillars.map(({ icon, title, desc, link, label, variant }) => (

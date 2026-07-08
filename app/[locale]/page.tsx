@@ -9,23 +9,33 @@ import Hero from "@/components/Hero";
 import Pillars from "@/components/Pillars";
 import Video from "@/components/Video";
 import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Fire Protection Solutions | Inżynieria Bezpieczeństwa Pożarowego",
-  description:
-    "Kompleksowe usługi z zakresu ochrony przeciwpożarowej oraz chmura obliczeniowa CFD Cloud do symulacji FDS. Projekty SSP, oddymiania, IBP, OZW. Warszawa i cała Polska.",
-  alternates: {
-    canonical: "https://fp-solutions.pl",
-  },
-  openGraph: {
-    title: "Fire Protection Solutions – Ekspert Ochrony Ppoż. i CFD Cloud",
-    description:
-      "Projekty SSP, oddymiania, symulacje CFD oraz platforma CFD Cloud do obliczeń FDS w chmurze. Działamy w całej Polsce i obsługujemy inżynierów globalnie.",
-    url: "https://fp-solutions.pl",
-  },
-};
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: "home.metadata" });
+  const canonical = locale === "pl" ? "https://fp-solutions.pl" : `https://fp-solutions.pl/${locale}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: { canonical },
+    openGraph: {
+      title: t("ogTitle"),
+      description: t("ogDescription"),
+      url: canonical,
+    },
+  };
+}
 
-export default function Home() {
+export default function Home({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  setRequestLocale(locale);
   return (
     <>
       <ScrollUp />
