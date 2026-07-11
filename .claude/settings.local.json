@@ -13,7 +13,9 @@
       "PowerShell(cd \"c:/Users/jbara/OneDrive/Documents/github/fps/fps-update\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"hetzner\" })",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)"
     ]
   }
 }

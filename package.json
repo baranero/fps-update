@@ -1,12 +1,10 @@
 {
-  "name": "startup-nextjs-template",
+  "name": "fp-solutions",
   "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "next build && next export",
-    "deploy": "npm run export && gh-pages -d out",
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"
@@ -25,6 +23,7 @@
     "jspdf-autotable": "^5.0.8",
     "jszip": "^3.10.1",
     "next": "^13.5.6",
+    "next-intl": "^3.26.5",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",

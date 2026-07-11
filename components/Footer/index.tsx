@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { FaPhone } from "react-icons/fa6";
 import { IoIosMail } from "react-icons/io";
 
@@ -9,28 +10,30 @@ const contactItems = [
   { Icon: IoIosMail, label: "biuro@fp-solutions.pl", href: "mailto:biuro@fp-solutions.pl" },
 ];
 
-const navigationLinks = [
-  { href: "/blog", label: "Blog" },
-  { href: "/o-mnie", label: "O mnie" },
-  { href: "/kontakt", label: "Kontakt" },
-];
-
-const offerLinks = [
-  { href: "/ibp", label: "Instrukcja Bezpieczeństwa Pożarowego" },
-  { href: "/cfd", label: "Symulacje CFD" },
-  { href: "/operat", label: "Operat przeciwpożarowy" },
-  { href: "/audyt", label: "Audyt przeciwpożarowy" },
-  { href: "/scenariusz", label: "Scenariusz rozwoju pożaru" },
-];
-
-const legalLinks = [
-  { href: "/polityka-prywatnosci", label: "Polityka prywatności" },
-  { href: "/polityka-cookies", label: "Polityka cookies" },
-  { href: "/regulamin", label: "Regulamin" },
-];
-
 const Footer = () => {
+  const t = useTranslations("footer");
+  const tn = useTranslations("nav");
   const year = new Date().getFullYear();
+
+  const navigationLinks = [
+    { href: "/blog", label: tn("blog") },
+    { href: "/o-mnie", label: tn("about") },
+    { href: "/kontakt", label: tn("contact") },
+  ];
+
+  const offerLinks = [
+    { href: "/ibp", label: tn("ibp") },
+    { href: "/cfd", label: tn("cfd") },
+    { href: "/operat", label: tn("operat") },
+    { href: "/audyt", label: tn("audit") },
+    { href: "/scenariusz", label: tn("scenario") },
+  ];
+
+  const legalLinks = [
+    { href: "/polityka-prywatnosci", label: t("privacy") },
+    { href: "/polityka-cookies", label: t("cookies") },
+    { href: "/regulamin", label: t("terms") },
+  ];
 
   return (
     <footer className="relative z-10 bg-slate-100 pt-16 dark:bg-slate-950 md:pt-20 lg:pt-24">
@@ -54,13 +57,12 @@ const Footer = () => {
               </Link>
 
               <p className="mb-8 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                Kompleksowe usługi w zakresie ochrony przeciwpożarowej obejmujące projektowanie
-                systemów, opracowywanie dokumentacji oraz symulacje CFD.
+                {t("tagline")}
               </p>
 
               <div>
                 <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500">
-                  Kontakt
+                  {t("contact")}
                 </h3>
                 {contactItems.map(({ Icon, label, href }) => (
                   <a
@@ -80,7 +82,7 @@ const Footer = () => {
           <div className="w-full px-4 sm:w-1/2 md:w-1/2 lg:w-2/12 xl:w-2/12">
             <div className="mb-12 lg:mb-16">
               <h3 className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500">
-                Strony
+                {t("pages")}
               </h3>
               <ul className="space-y-3">
                 {navigationLinks.map(({ href, label }) => (
@@ -101,7 +103,7 @@ const Footer = () => {
           <div className="w-full px-4 sm:w-1/2 md:w-1/2 lg:w-4/12 xl:w-4/12">
             <div className="mb-12 lg:mb-16">
               <h3 className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500">
-                Oferta
+                {t("offer")}
               </h3>
               <ul className="space-y-3">
                 {offerLinks.map(({ href, label }) => (
@@ -125,7 +127,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="flex flex-col-reverse items-center justify-between gap-4 py-6 md:flex-row">
           <p className="text-sm text-slate-500 dark:text-slate-500">
-            &copy;{year} Fire Protection Solutions — Jakub Baran
+            &copy;{year} {t("rights")}
           </p>
           <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             {legalLinks.map(({ href, label }) => (

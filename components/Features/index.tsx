@@ -1,14 +1,16 @@
+import { useTranslations } from "next-intl";
 import SectionTitle from "../Common/SectionTitle";
 import SingleFeature from "./SingleFeature";
 import featuresData from "./featuresData";
 
 const Features = () => {
+  const t = useTranslations("features");
   return (
     <section id="features" className="py-16 md:py-20 lg:py-28">
       <div className="container">
         <SectionTitle
-          title="Zakres usług ppoż."
-          paragraph="Zapewniam kompleksowe wsparcie z zakresu inżynierii bezpieczeństwa pożarowego – od przygotowania wymaganej przepisami dokumentacji, przez zaawansowane analizy inżynierskie, aż po audyty obiektów."
+          title={t("sectionTitle")}
+          paragraph={t("sectionLead")}
           center
         />
 

@@ -1,8 +1,10 @@
 import { Feature } from "@/types/feature";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {
-  const { icon, title, paragraph, href, isNew } = feature;
+  const { icon, href, isNew } = feature;
+  const t = useTranslations("features");
 
   return (
     <Link
@@ -11,17 +13,17 @@ const SingleFeature = ({ feature }: { feature: Feature }) => {
     >
       {isNew && (
         <span className="absolute right-5 top-5 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-          Nowa
+          {t("new")}
         </span>
       )}
       <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white">
         {icon}
       </div>
       <h3 className="mb-3 text-[16px] font-bold text-slate-900 dark:text-white">
-        {title}
+        {t(`${feature.key}.title`)}
       </h3>
       <p className="text-[14px] leading-relaxed text-slate-500 dark:text-slate-400">
-        {paragraph}
+        {t(`${feature.key}.desc`)}
       </p>
     </Link>
   );

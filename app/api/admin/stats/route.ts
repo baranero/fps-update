@@ -15,14 +15,18 @@ export async function GET() {
 
   const { data: sims } = await admin
     .from("fds_submissions")
-    .select("status, price");
+    .select("status, price, payment_status");
 
-  const counts = { total: 0, pending: 0, running: 0, done: 0, failed: 0, revenue: 0 };
+  const counts = { total: 0, pending: 0, running: 0, done: 0, failed: 0, revenue: 0, unpaid: 0 };
   for (const s of sims ?? []) {
     counts.total++;
     if (s.status === "pending") counts.pending++;
     else if (s.status === "running") counts.running++;
-    else if (s.status === "done") { counts.done++; counts.revenue += s.price ?? 0; }
+    else if (s.status === "done") {
+      counts.done++;
+      counts.revenue += s.price ?? 0;
+      if (s.payment_status !== "paid") counts.unpaid += s.price ?? 0;
+    }
     else if (s.status === "failed") counts.failed++;
   }
 

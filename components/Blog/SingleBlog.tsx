@@ -1,66 +1,50 @@
 import { Blog } from "@/types/blog";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 const SingleBlog = ({ blog }: { blog: Blog }) => {
-  const { title, image, paragraph, author, tags, publishDate, slug } = blog;
+  const { image, author, slug } = blog;
+  const t = useTranslations("blog");
+  const tp = useTranslations(`blog.posts.${slug}`);
   const articleLink = `/${slug}`;
+  const title = tp("title");
 
   return (
-    <div
-      className="wow fadeInUp group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:border-slate-800 dark:bg-[#111827]"
-      data-wow-delay=".1s"
-    >
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-[#111827] dark:hover:border-slate-700">
       <Link href={articleLink} className="relative block aspect-[37/22] w-full overflow-hidden">
-        <span className="absolute right-4 top-4 z-20 inline-flex items-center justify-center rounded-full bg-primary px-4 py-1.5 text-sm font-semibold capitalize text-white">
-          {tags[0]}
+        <span className="absolute left-4 top-4 z-20 inline-flex items-center rounded-md bg-primary px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wide text-white">
+          {tp("tag")}
         </span>
         <Image
           src={image}
-          alt={`Miniatura artykułu: ${title}`}
+          alt={title}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </Link>
 
-      <div className="p-6 sm:p-8">
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <p className="mb-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">{tp("date")}</p>
         <h3>
           <Link
             href={articleLink}
-            className="mb-4 block text-xl font-bold text-slate-900 transition-colors duration-200 hover:text-primary dark:text-white dark:hover:text-primary sm:text-2xl"
+            className="mb-3 block font-display text-lg font-bold tracking-tight text-slate-900 transition-colors hover:text-primary dark:text-white sm:text-xl"
           >
             {title}
           </Link>
         </h3>
-        <p className="mb-6 border-b border-slate-100 pb-6 text-base text-slate-600 dark:border-slate-700 dark:text-slate-400">
-          {paragraph}
+        <p className="mb-6 text-[14px] leading-relaxed text-slate-600 dark:text-slate-400">
+          {tp("excerpt")}
         </p>
 
-        <div className="flex items-center">
-          <div className="mr-5 flex items-center border-r border-slate-100 pr-5 dark:border-slate-700">
-            <div className="mr-3">
-              <div className="relative h-9 w-9 overflow-hidden rounded-full">
-                <Image
-                  src={author.image}
-                  alt={`Autor: ${author.name}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-0.5 text-sm font-semibold text-slate-800 dark:text-white">
-                {author.name}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{author.designation}</p>
-            </div>
+        <div className="mt-auto flex items-center gap-3 border-t border-slate-100 pt-5 dark:border-slate-800">
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
+            <Image src={author.image} alt={t("authorName")} fill className="object-cover" />
           </div>
-
           <div>
-            <h4 className="mb-0.5 text-sm font-semibold text-slate-800 dark:text-white">
-              Data publikacji
-            </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{publishDate}</p>
+            <p className="text-[13px] font-semibold text-slate-800 dark:text-white">{t("authorName")}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{t("authorRole")}</p>
           </div>
         </div>
       </div>

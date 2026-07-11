@@ -1,13 +1,16 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
+import LanguageSwitcher from "./LanguageSwitcher";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
 
 const Header = () => {
+  const t = useTranslations("nav");
+  const tl = useTranslations("language");
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openIndex, setOpenIndex] = useState(-1);
@@ -78,10 +81,7 @@ const Header = () => {
         <div className="relative -mx-4 flex items-center justify-between">
           {/* Logo */}
           <div className="w-max px-4 xl:mr-16 xl:whitespace-nowrap">
-            <Link
-              href="/"
-              className="header-logo block w-full py-4 lg:py-3"
-            >
+            <Link href="/" className="header-logo block w-full py-4 lg:py-3">
               <div className="flex flex-col items-center">
                 <Image
                   src="/images/logo/logo.webp"
@@ -102,7 +102,7 @@ const Header = () => {
               {/* Hamburger */}
               <button
                 onClick={() => setNavbarOpen(!navbarOpen)}
-                aria-label="Mobile Menu"
+                aria-label="Menu"
                 className="absolute right-4 top-1/2 block -translate-y-1/2 rounded-lg px-3 py-[6px] ring-primary focus:ring-2 lg:hidden"
               >
                 <span
@@ -141,7 +141,7 @@ const Header = () => {
                               : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
                           }`}
                         >
-                          {menuItem.title}
+                          {t(menuItem.key ?? "")}
                         </Link>
                       ) : (
                         <>
@@ -149,7 +149,7 @@ const Header = () => {
                             onClick={() => handleSubmenu(index)}
                             className="flex w-full cursor-pointer items-center justify-between py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white lg:inline-flex lg:w-auto lg:px-0 lg:py-5"
                           >
-                            {menuItem.title}
+                            {t(menuItem.key ?? "")}
                             <span className="pl-2">
                               <svg width="16" height="16" viewBox="0 0 25 24" className="fill-current">
                                 <path
@@ -165,14 +165,14 @@ const Header = () => {
                               openIndex === index ? "block" : "hidden"
                             }`}
                           >
-                            {menuItem.submenu.map((submenuItem, subIndex) => (
+                            {menuItem.submenu?.map((submenuItem, subIndex) => (
                               <Link
-                                href={submenuItem.path}
+                                href={submenuItem.path ?? "/"}
                                 key={subIndex}
                                 onClick={() => setNavbarOpen(false)}
                                 className="block rounded-lg py-2.5 text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-white lg:px-3"
                               >
-                                {submenuItem.title}
+                                {t(submenuItem.key ?? "")}
                               </Link>
                             ))}
                           </div>
@@ -189,17 +189,25 @@ const Header = () => {
                         onClick={() => setNavbarOpen(false)}
                         className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
-                        {highlightItem.title}
+                        {t(highlightItem.key ?? "")}
                         <span>↗</span>
                       </Link>
                     </li>
                   )}
 
+                  {/* Język — mobile */}
+                  <li className="mt-3 flex items-center justify-between lg:hidden">
+                    <span className="px-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      {tl("label")}
+                    </span>
+                    <LanguageSwitcher />
+                  </li>
+
                   {/* Konto — mobile */}
                   <li className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700 lg:hidden">
                     {userEmail ? (
                       <div className="space-y-1">
-                        <p className="truncate px-1 pb-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+                        <p className="truncate px-1 pb-1 text-xs font-medium text-slate-500 dark:text-slate-400">
                           {userEmail}
                         </p>
                         <Link
@@ -207,20 +215,20 @@ const Header = () => {
                           onClick={() => setNavbarOpen(false)}
                           className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
                         >
-                          Panel narzędzi
+                          {t("account.toolsPanel")}
                         </Link>
                         <Link
                           href="/narzedzia/profil"
                           onClick={() => setNavbarOpen(false)}
                           className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
                         >
-                          Profil
+                          {t("account.myProfile")}
                         </Link>
                         <button
                           onClick={handleLogout}
                           className="block w-full rounded-lg px-1 py-2 text-left text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
                         >
-                          Wyloguj się
+                          {t("account.signOut")}
                         </button>
                       </div>
                     ) : (
@@ -230,14 +238,14 @@ const Header = () => {
                           onClick={() => setNavbarOpen(false)}
                           className="rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
                         >
-                          Zaloguj się
+                          {t("account.signIn")}
                         </Link>
                         <Link
                           href="/signup"
                           onClick={() => setNavbarOpen(false)}
                           className="rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
                         >
-                          Zarejestruj się
+                          {t("account.signUp")}
                         </Link>
                       </div>
                     )}
@@ -246,50 +254,71 @@ const Header = () => {
               </nav>
             </div>
 
-            {/* Right side: CTA + theme toggler + account */}
-            <div className="flex items-center justify-end gap-4 pr-16 lg:pr-0">
+            {/* Right side: CTA + language + theme + account */}
+            <div className="flex items-center justify-end gap-3 pr-16 lg:pr-0">
               {/* CFD Cloud — CTA (desktop) */}
               {highlightItem?.path && (
                 <Link
                   href={highlightItem.path}
                   className="hidden items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 lg:inline-flex"
                 >
-                  {highlightItem.title}
+                  {t(highlightItem.key ?? "")}
                   <span>↗</span>
                 </Link>
               )}
+
+              <LanguageSwitcher className="hidden lg:flex" />
 
               <ThemeToggler />
 
               {/* Konto — desktop */}
               <div className="relative hidden lg:block" ref={accountRef}>
                 {userEmail ? (
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href="/narzedzia/profil"
-                      aria-label="Twój profil"
-                      title={`${userEmail} — przejdź do profilu`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-white shadow-sm transition-opacity hover:opacity-90"
+                  <>
+                    <button
+                      onClick={() => setAccountOpen((o) => !o)}
+                      aria-label={t("account.menu")}
+                      aria-expanded={accountOpen}
+                      title={userEmail}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-white shadow-sm transition-opacity hover:opacity-90"
                     >
                       {userEmail[0]}
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      aria-label="Wyloguj się"
-                      title="Wyloguj się"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-primary dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
-                    >
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
                     </button>
-                  </div>
+
+                    {accountOpen && (
+                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#111827]">
+                        <p className="truncate px-3 pb-2 pt-1 text-xs text-slate-500 dark:text-slate-400">{userEmail}</p>
+                        <Link
+                          href="/narzedzia"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          {t("account.toolsPanel")}
+                        </Link>
+                        <Link
+                          href="/narzedzia/profil"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          {t("account.myProfile")}
+                        </Link>
+                        <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          {t("account.signOut")}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <>
                     <button
                       onClick={() => setAccountOpen((o) => !o)}
-                      aria-label="Menu konta"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                      aria-label={t("account.menu")}
+                      aria-expanded={accountOpen}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -303,14 +332,14 @@ const Header = () => {
                           onClick={() => setAccountOpen(false)}
                           className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                         >
-                          Zaloguj się
+                          {t("account.signIn")}
                         </Link>
                         <Link
                           href="/signup"
                           onClick={() => setAccountOpen(false)}
-                          className="mt-1 block rounded-lg bg-primary px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                          className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
                         >
-                          Zarejestruj się
+                          {t("account.signUp")}
                         </Link>
                       </div>
                     )}

@@ -32,6 +32,23 @@ module.exports = {
       // => @media (min-width: 1400px) { ... }
     },
     extend: {
+      // Skala typografii: xs/sm/base bez zmian (chroni gęsty UI narzędzi),
+      // rozmiary od lg w górę lekko zmniejszone — nagłówki i teksty
+      // marketingowe były miejscami za duże. [rozmiar, line-height].
+      fontSize: {
+        lg: ["1.0625rem", "1.65rem"], //   18px → 17px
+        xl: ["1.125rem", "1.6rem"], //     20px → 18px
+        "2xl": ["1.375rem", "1.85rem"], // 24px → 22px
+        "3xl": ["1.6875rem", "2.05rem"], //30px → 27px
+        "4xl": ["2rem", "2.3rem"], //      36px → 32px
+        "5xl": ["2.625rem", "1.08"], //    48px → 42px
+        "6xl": ["3.25rem", "1.05"], //     60px → 52px
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+      },
       colors: {
         current: "currentColor",
         transparent: "transparent",
@@ -39,6 +56,9 @@ module.exports = {
         black: "#121723",
         dark: "#1D2430",
         primary: "#DC3545",
+        // Stalowy ton „przepływu/CFD" — sekundarny akcent nowego systemu
+        steel: "#2E6E80",
+        "steel-light": "#5FA7BC",
         yellow: "#FBB040",
         "body-color": "#788293",
         "body-color-dark": "#959CB1",
@@ -47,6 +67,14 @@ module.exports = {
         stroke: "#E3E8EF",
         "stroke-dark": "#353943",
         "bg-color-dark": "#171C28",
+        // Semantyczne tła dark mode (elewacja) — jedno źródło zamiast
+        // rozproszonych wartości hex. bg-surface / bg-surface-card / bg-surface-raised
+        surface: {
+          DEFAULT: "#0B1120", // tło strony (aplikacja/narzędzia)
+          card: "#1E232E",    // karty, wiersze tabel
+          raised: "#111827",  // nagłówek, menu, popovery
+          drawer: "#141922",  // panele wysuwane
+        },
       },
 
       boxShadow: {
