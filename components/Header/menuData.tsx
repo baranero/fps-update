@@ -26,9 +26,10 @@ const menuData: Menu[] = [
       { id: 33, title: "Operat przeciwpożarowy", key: "operat", path: "/operat", newTab: false },
       { id: 34, title: "Audyt przeciwpożarowy", key: "audit", path: "/audyt", newTab: false },
       { id: 35, title: "Scenariusz rozwoju pożaru", key: "scenario", path: "/scenariusz", newTab: false },
-      { id: 36, title: "Ocena zagrożenia wybuchem", key: "explosion", path: "/ozw", newTab: false },
-      { id: 37, title: "Projekt SSP", key: "ssp", path: "/ssp", newTab: false },
-      { id: 38, title: "Systemy oddymiania", key: "smoke", path: "/oddymianie", newTab: false },
+      // Ukryte do czasu powstania dedykowanych stron (unikamy linków do 404):
+      // { id: 36, title: "Ocena zagrożenia wybuchem", key: "explosion", path: "/ozw", newTab: false },
+      // { id: 37, title: "Projekt SSP", key: "ssp", path: "/ssp", newTab: false },
+      // { id: 38, title: "Systemy oddymiania", key: "smoke", path: "/oddymianie", newTab: false },
     ],
   },
   {

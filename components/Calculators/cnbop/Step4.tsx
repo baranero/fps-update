@@ -115,7 +115,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
           {isGrav ? "G" : "M"}
         </span>
         <div>
-          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Zalecany typ systemu</p>
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Zalecany typ systemu</p>
           <p className="text-sm font-semibold text-slate-900 dark:text-white">
             {isGrav ? "Oddymianie grawitacyjne" : "System z nawiewem mechanicznym"}
           </p>
@@ -220,7 +220,7 @@ export default function Step4({ systemType, step1Data, data, setData, aeHelper, 
                 </div>
 
                 {data.compArrangement === "series" && (
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Efektywna pow. szeregu = najmniejszy z otworów (wg CNBOP-PIB W-0003:2016)
                   </p>
                 )}

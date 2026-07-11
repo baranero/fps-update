@@ -1,11 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body { font-family: "Inter", sans-serif; }
+  /* Font self-hostowany przez next/font (zmienna --font-sans w layout.tsx).
+     Blokujący @import z Google Fonts usunięty — Inter nie jest już ładowany podwójnie. */
+  body { font-family: var(--font-sans), system-ui, sans-serif; }
 }
 
 

@@ -237,7 +237,7 @@ function ProfilForm() {
         {label}
       </label>
       {opts?.hint && (
-        <p className="mb-1.5 text-xs text-slate-400 dark:text-slate-500">{opts.hint}</p>
+        <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">{opts.hint}</p>
       )}
       <input
         type="text"
@@ -293,7 +293,7 @@ function ProfilForm() {
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{email}</p>
             {memberSince && (
-              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                 {t("memberSince", { date: memberSince, provider: provider === "email" ? t("providerEmail") : provider })}
               </p>
             )}
@@ -320,7 +320,7 @@ function ProfilForm() {
             className="group rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-4 hover:border-primary/40 transition-colors"
           >
             <p className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{s.value}</p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors">
+            <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">
               {s.label}
             </p>
           </Link>
@@ -397,7 +397,7 @@ function ProfilForm() {
       {/* Dane do faktur */}
       <section className="border-t border-slate-200 dark:border-slate-700 pt-8">
         <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">{t("invoice.title")}</h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
           {t("invoice.subtitle")}
         </p>
         <form onSubmit={handleSave} className="space-y-4 max-w-lg">
@@ -461,7 +461,7 @@ function ProfilForm() {
           </form>
         ) : (
           <div className="flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] p-4 max-w-lg">
-            <svg className="h-5 w-5 shrink-0 text-slate-400 dark:text-slate-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">

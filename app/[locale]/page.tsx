@@ -10,6 +10,7 @@ import Pillars from "@/components/Pillars";
 import Video from "@/components/Video";
 import { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { seoUrls } from "@/lib/seo";
 
 export async function generateMetadata({
   params: { locale },
@@ -17,11 +18,11 @@ export async function generateMetadata({
   params: { locale: string };
 }): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "home.metadata" });
-  const canonical = locale === "pl" ? "https://fp-solutions.pl" : `https://fp-solutions.pl/${locale}`;
+  const { canonical, languages } = seoUrls(locale, "/");
   return {
     title: t("title"),
     description: t("description"),
-    alternates: { canonical },
+    alternates: { canonical, languages },
     openGraph: {
       title: t("ogTitle"),
       description: t("ogDescription"),

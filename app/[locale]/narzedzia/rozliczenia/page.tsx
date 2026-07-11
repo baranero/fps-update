@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
+import { fmtCells, fmtHours } from "@/lib/format";
 
 type Item = {
   case_id: string;
@@ -20,39 +22,16 @@ type Item = {
 
 type FilterTab = "all" | "done" | "active" | "failed" | "cancelled";
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  pending:    { label: "Oczekuje",    cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
-  dispatched: { label: "W kolejce",   cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  running:    { label: "W trakcie",   cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  done:       { label: "Zakończone",  cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  error:      { label: "Błąd",        cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  failed:     { label: "Błąd",        cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  cancelled:  { label: "Anulowane",   cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
-};
-
-const ACTIVE_STATUSES = new Set(["pending", "dispatched", "running"]);
-
-function formatCells(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)} tys.`;
-  return String(n);
-}
-
-function formatHours(h: number) {
-  if (h < 1) return `${Math.round(h * 60)} min`;
-  return `${h.toFixed(1)} h`;
-}
-
 function exportCsv(items: Item[]) {
   const header = ["Numer zlecenia", "Plik", "Data zlecenia", "Status", "Serwer", "Komórki", "Czas obliczeń", "Kwota netto (PLN)"];
   const rows = items.map((s) => [
     s.case_id,
     s.file_name,
     new Date(s.created_at).toLocaleDateString("pl-PL"),
-    STATUS_MAP[s.status]?.label ?? s.status,
+    statusMeta(s.status).label,
     s.server_type ?? "—",
-    formatCells(s.total_cells),
-    s.wall_hours > 0 ? formatHours(s.wall_hours) : "—",
+    fmtCells(s.total_cells),
+    s.wall_hours > 0 ? fmtHours(s.wall_hours) : "—",
     s.price.toFixed(2).replace(".", ","),
   ]);
 
@@ -182,35 +161,37 @@ export default function RozliczeniaPage() {
           {/* Stat cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Łączna kwota (zakończone)</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Łączna kwota (zakończone)</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white">
                 {totalDone.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł
               </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">netto</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">netto</p>
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Zakończone symulacje</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Zakończone symulacje</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white">{countDone}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {countDone === 1 ? "zlecenie" : countDone < 5 ? "zlecenia" : "zleceń"}
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Symulacje w toku</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Symulacje w toku</p>
               <p className={`text-3xl font-bold ${countActive > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
                 {countActive}
               </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {countActive > 0 ? "aktywne" : "brak aktywnych"}
               </p>
             </div>
           </div>
 
           {/* Filter tabs */}
-          <div className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
+          <div role="tablist" aria-label="Filtr rozliczeń" className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={filter === tab.id}
                 onClick={() => setFilter(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                   filter === tab.id
@@ -234,14 +215,14 @@ export default function RozliczeniaPage() {
 
           {/* Grouped table */}
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">Brak wyników dla tego filtru.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Brak wyników dla tego filtru.</p>
           ) : (
             <div className="space-y-6">
               {groups.map((group) => (
                 <div key={group.label}>
                   {/* Month header */}
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       {group.label}
                     </p>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -253,7 +234,7 @@ export default function RozliczeniaPage() {
                   <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
                       {group.items.map((s) => {
-                        const st = STATUS_MAP[s.status] ?? { label: s.status, cls: "bg-slate-100 text-slate-500" };
+                        const st = statusMeta(s.status);
                         return (
                           <div key={s.case_id} className="flex items-center gap-4 px-4 py-3.5 bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
 
@@ -268,16 +249,16 @@ export default function RozliczeniaPage() {
                                 {s.file_name}
                               </p>
                               <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">{s.case_id}</span>
+                                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">{s.case_id}</span>
                                 {s.server_type && (
-                                  <span className="text-[11px] uppercase font-semibold text-slate-400 dark:text-slate-500">{s.server_type}</span>
+                                  <span className="text-[11px] uppercase font-semibold text-slate-500 dark:text-slate-400">{s.server_type}</span>
                                 )}
-                                <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                  {formatCells(s.total_cells)} komórek
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                  {fmtCells(s.total_cells)} komórek
                                 </span>
                                 {s.wall_hours > 0 && (
-                                  <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                    {formatHours(s.wall_hours)}
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    {fmtHours(s.wall_hours)}
                                   </span>
                                 )}
                               </div>
@@ -285,7 +266,7 @@ export default function RozliczeniaPage() {
 
                             {/* Date */}
                             <div className="shrink-0 text-right hidden sm:block">
-                              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                                 {new Date(s.created_at).toLocaleDateString("pl-PL", {
                                   day: "numeric", month: "short",
                                 })}
@@ -301,7 +282,7 @@ export default function RozliczeniaPage() {
 
                             {/* Price + payment badge */}
                             <div className="shrink-0 text-right">
-                              <p className={`text-sm font-bold ${s.price > 0 ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-500"}`}>
+                              <p className={`text-sm font-bold ${s.price > 0 ? "text-slate-800 dark:text-slate-200" : "text-slate-500 dark:text-slate-400"}`}>
                                 {s.price > 0
                                   ? `${s.price.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`
                                   : "—"}
@@ -342,7 +323,7 @@ export default function RozliczeniaPage() {
                 </p>
                 <p className="text-lg font-bold text-slate-900 dark:text-white">
                   {filteredTotal.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł
-                  <span className="ml-1.5 text-xs font-normal text-slate-400 dark:text-slate-500">netto</span>
+                  <span className="ml-1.5 text-xs font-normal text-slate-500 dark:text-slate-400">netto</span>
                 </p>
               </div>
             </div>

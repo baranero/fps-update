@@ -367,7 +367,7 @@ export default function JobStatusPage({
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
             Zlecenie <span className="font-mono font-semibold">{caseId}</span> nie istnieje lub nie masz do niego dostępu.
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-8">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-8">
             Sprawdź numer zlecenia w e-mailu potwierdzającym.
           </p>
           <div className="flex items-center justify-center gap-3">
@@ -424,11 +424,11 @@ export default function JobStatusPage({
           {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <Link href="/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
+              <Link href="/symulacje" className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
                 ← CFD Cloud
               </Link>
               <h1 className="text-xl font-semibold text-slate-900 dark:text-white mt-1">{job.fileName}</h1>
-              <p className="text-xs font-mono text-slate-400 dark:text-slate-500 mt-0.5">{job.caseId}</p>
+              <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">{job.caseId}</p>
             </div>
             <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${cfg.bg} ${cfg.color} shrink-0`}>
               <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
@@ -448,7 +448,7 @@ export default function JobStatusPage({
                   </span>
                 )}
                 {job.wallHours > 0 && (
-                  <span className="ml-2 text-slate-400 dark:text-slate-500">
+                  <span className="ml-2 text-slate-500 dark:text-slate-400">
                     / szacowany: {job.wallHours < 1 ? `${Math.round(job.wallHours * 60)} min` : `${job.wallHours.toFixed(1)} h`}
                   </span>
                 )}
@@ -555,11 +555,11 @@ export default function JobStatusPage({
                         <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-500" />
                       )}
                     </div>
-                    <span className={`text-sm ${done || active ? "font-semibold text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500"}`}>
+                    <span className={`text-sm ${done || active ? "font-semibold text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>
                       {step.label}
                     </span>
                     {step.time && (
-                      <span className="ml-auto text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                      <span className="ml-auto text-[11px] font-mono text-slate-500 dark:text-slate-400">
                         {new Date(step.time).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
@@ -578,7 +578,7 @@ export default function JobStatusPage({
               { label: "Cena netto", value: `${job.price.toLocaleString("pl-PL")} zł` },
             ].map((item) => (
               <div key={item.label} className="rounded bg-slate-50 dark:bg-[#1E232E] border border-slate-100 dark:border-slate-700 p-4">
-                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
                 <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
               </div>
             ))}
@@ -623,7 +623,7 @@ export default function JobStatusPage({
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Postęp obliczeń</span>
                     {job.status === "running" && (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">odświeżanie co 5 s</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">odświeżanie co 5 s</span>
                     )}
                   </div>
                   <div className="flex rounded border border-slate-200 dark:border-slate-600 overflow-hidden text-xs font-semibold">
@@ -666,7 +666,7 @@ export default function JobStatusPage({
                         },
                       ].map((item) => (
                         <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-4 py-3">
-                          <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mb-1">{item.label}</p>
+                          <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
                           <p className="text-sm font-bold text-slate-800 dark:text-white">{item.value}</p>
                         </div>
                       ))}
@@ -680,7 +680,7 @@ export default function JobStatusPage({
                             style={{ width: `${displayPct}%` }}
                           />
                         </div>
-                        <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                        <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400">
                           <span>0 s</span>
                           <span className="text-slate-300 dark:text-slate-600 italic">
                             {isEstimate ? "szacunkowy postęp" : ""}
@@ -709,7 +709,7 @@ export default function JobStatusPage({
                             { label: "Start FDS",          value: stats.startTime ?? "—" },
                           ].map((item) => (
                             <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-3 py-2">
-                              <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">{item.label}</p>
                               <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-200 truncate">{item.value}</p>
                             </div>
                           ))}
@@ -719,7 +719,7 @@ export default function JobStatusPage({
 
                     {logTail && (
                       <div>
-                        <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
+                        <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">
                           Ostatnie zdarzenia
                         </p>
                         <div className="rounded bg-slate-900 p-3">
@@ -729,7 +729,7 @@ export default function JobStatusPage({
                     )}
 
                     {!job.fdsLog && job.status === "running" && (
-                      <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">
                         Oczekiwanie na pierwsze dane z serwera… (pojawią się po ~15 s od startu FDS)
                       </p>
                     )}
@@ -767,7 +767,7 @@ export default function JobStatusPage({
                   />
                   <h2 className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Pliki wynikowe
-                    <span className="ml-1.5 text-slate-400 dark:text-slate-500 font-normal">
+                    <span className="ml-1.5 text-slate-500 dark:text-slate-400 font-normal">
                       ({job.results.length})
                     </span>
                   </h2>
@@ -811,10 +811,10 @@ export default function JobStatusPage({
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-700">
                     <th className="pb-2 pr-3 w-8" />
-                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Plik</th>
-                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Typ</th>
-                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4 hidden sm:table-cell">Utworzono</th>
-                    <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-4">Rozmiar</th>
+                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Plik</th>
+                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4 hidden sm:table-cell">Typ</th>
+                    <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4 hidden sm:table-cell">Utworzono</th>
+                    <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4">Rozmiar</th>
                     <th className="pb-2 pl-4 w-24" />
                   </tr>
                 </thead>
@@ -834,12 +834,12 @@ export default function JobStatusPage({
                           <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
                           <span className="font-mono text-slate-700 dark:text-slate-200 truncate">{f.name}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:hidden pl-6">{fileType(f.name)}</p>
                       </td>
                       <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">
                         {fileType(f.name)}
                       </td>
-                      <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:table-cell">
+                      <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:table-cell">
                         {f.createdAt
                           ? new Date(f.createdAt).toLocaleString("pl-PL", {
                               day: "2-digit", month: "2-digit", year: "numeric",
@@ -847,7 +847,7 @@ export default function JobStatusPage({
                             })
                           : "—"}
                       </td>
-                      <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-400 dark:text-slate-500 text-right">
+                      <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-500 dark:text-slate-400 text-right">
                         {formatSize(f.size)}
                       </td>
                       <td className="py-2.5 pl-4 align-middle text-right">
@@ -937,7 +937,7 @@ export default function JobStatusPage({
           {/* Anulowano */}
           {job.status === "cancelled" && (
             <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5 flex items-start gap-4">
-              <svg className="h-5 w-5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>

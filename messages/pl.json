@@ -4,6 +4,373 @@
     "pl": "Polski",
     "en": "English"
   },
+  "tools": {
+    "title": "Narzędzia",
+    "signIn": "Zaloguj się",
+    "signUp": "Zarejestruj się",
+    "signOut": "Wyloguj",
+    "profile": "Profil",
+    "sections": {
+      "calculators": "Kalkulatory",
+      "account": "Konto",
+      "admin": "Admin"
+    },
+    "calc": {
+      "cnbop": "CNBOP W-0003:2016",
+      "pn": "Klatki schodowe PN-B",
+      "quick": "Szybki dobór Aᴄz"
+    },
+    "mobile": {
+      "tools": "Narzędzia",
+      "cnbop": "CNBOP",
+      "pn": "Klatki PN-B",
+      "quick": "Szybki Aᴄz",
+      "reports": "Raporty",
+      "billing": "Rozliczenia",
+      "stats": "Statystyki",
+      "admin": "Admin"
+    },
+    "adminPanel": "Panel admina",
+    "reportsHistory": "Historia raportów",
+    "billing": "Rozliczenia",
+    "stats": "Statystyki"
+  },
+  "toolsHome": {
+    "title": "Narzędzia",
+    "subtitle": "Kalkulatory inżynierskie dla projektantów systemów oddymiania.",
+    "calculators": "Kalkulatory",
+    "soon": "W przygotowaniu",
+    "items": {
+      "cnbop": {
+        "title": "Kalkulator klatek schodowych",
+        "desc": "Dobór klap dymowych: dane budynku → obliczenia → katalogi Gulajski / ASKON / AWAK → napowietrzanie → raport.",
+        "tag": "5 kroków"
+      },
+      "pn": {
+        "title": "Klatki schodowe — PN",
+        "desc": "Wymagana Aᴄz i weryfikacja napowietrzania według aktualnej normy polskiej."
+      },
+      "quick": {
+        "title": "Szybki dobór Aᴄz",
+        "desc": "Powierzchnia strefy i wysokość → wymagana Aᴄz według trzech norm jednocześnie."
+      }
+    },
+    "soonItems": {
+      "s1": "Gęstość obciążenia ogniowego",
+      "s2": "Podręczny sprzęt gaśniczy",
+      "s3": "Wentylacja pożarowa — garaże"
+    }
+  },
+  "calculatorsPage": {
+    "title": "Kalkulatory",
+    "subtitle": "Wszystkie algorytmy opierają się na aktualnych normach. Każde obliczenie możesz wyeksportować do PDF lub DOCX.",
+    "soon": "W przygotowaniu",
+    "items": {
+      "cnbop": {
+        "title": "Klatki schodowe — krok po kroku",
+        "desc": "Przeprowadza przez cały projekt oddymiania klatki schodowej — od danych budynku, przez dobór klap z katalogów Gulajski / ASKON / AWAK, po weryfikację napowietrzania. Na końcu gotowy raport PDF lub DOCX.",
+        "tag": "5 kroków"
+      },
+      "pn": {
+        "title": "Klatki schodowe — oddymianie grawitacyjne",
+        "desc": "Podajesz wymiary klatki i otwory — kalkulator liczy wymaganą powierzchnię czynną klap (A_cz) i sprawdza napowietrzanie według najnowszej normy."
+      },
+      "quick": {
+        "title": "Szybki dobór klap dymowych",
+        "desc": "Wpisujesz powierzchnię i wysokość strefy — od razu widzisz wymaganą A_cz według trzech norm. Przydatne do szybkiego sprawdzenia bez przechodzenia przez cały proces."
+      }
+    },
+    "soonItems": {
+      "s1": { "title": "Gęstość obciążenia ogniowego", "desc": "Wyznaczanie gęstości obciążenia ogniowego (Q) dla strefy pożarowej na podstawie masy materiałów palnych i ich ciepła spalania." },
+      "s2": { "title": "Podręczny sprzęt gaśniczy", "desc": "Kalkulator minimalnej wymaganej masy środka gaśniczego oraz liczby gaśnic dla danego obiektu." },
+      "s3": { "title": "Wentylacja pożarowa", "desc": "Szacowanie wydatków dla systemów oddymiania mechanicznego dróg ewakuacyjnych i garaży podziemnych." }
+    }
+  },
+  "headers": {
+    "about": { "crumb": "O mnie", "title": "O mnie", "desc": "Poznajmy się! Dowiedz się więcej o moim doświadczeniu, uprawnieniach oraz kompleksowym podejściu do inżynierii bezpieczeństwa pożarowego." },
+    "contact": { "crumb": "Kontakt", "title": "Skontaktuj się ze mną", "desc": "Masz pytania dotyczące bezpieczeństwa pożarowego swojego obiektu? Zadzwoń lub wyślij wiadomość – chętnie doradzę, omówię Twój projekt i przygotuję indywidualną ofertę." },
+    "cfd": { "crumb": "Symulacje CFD", "title": "Symulacje CFD", "desc": "Profesjonalne analizy przepływu dymu i powietrza w warunkach pożarowych – ekspercka inżynieria bezpieczeństwa pożarowego dla Warszawy, Łodzi i całej Polski." },
+    "ibp": { "crumb": "IBP", "title": "Instrukcja Bezpieczeństwa Pożarowego", "desc": "Profesjonalne opracowanie IBP zgodne z aktualnymi przepisami – eksperckie usługi dla Warszawy, Łodzi oraz województw mazowieckiego i łódzkiego." },
+    "operat": { "crumb": "Operat", "title": "Operat przeciwpożarowy", "desc": "Profesjonalne sporządzanie operatów przeciwpożarowych niezbędnych do uzyskania pozwolenia na gospodarowanie odpadami – usługi dla Warszawy, Łodzi i okolic." },
+    "audyt": { "crumb": "Audyt", "title": "Audyt przeciwpożarowy", "desc": "Profesjonalny audyt ochrony przeciwpożarowej – wsparcie z zakresu inżynierii bezpieczeństwa pożarowego dla Warszawy, Łodzi, Grodziska Mazowieckiego i okolic." },
+    "scenariusz": { "crumb": "Scenariusz", "title": "Scenariusz rozwoju pożaru", "desc": "Profesjonalne opracowanie scenariuszy pożarowych dla projektów SSP, DSO, systemów oddymiania i innych urządzeń ppoż. Warszawa, Łódź i województwa mazowieckie oraz łódzkie." },
+    "blog": { "crumb": "Blog", "title": "Blog", "desc": "Aktualności, przepisy i ekspercka wiedza z zakresu ochrony i inżynierii bezpieczeństwa pożarowego." },
+    "regulamin": { "crumb": "Regulamin", "title": "Regulamin Serwisu", "desc": "Zasady korzystania ze strony internetowej oraz warunki świadczenia usług drogą elektroniczną." },
+    "cookies": { "crumb": "Cookies", "title": "Polityka cookies", "desc": "Informacje o plikach cookies i technologiach śledzących wykorzystywanych w naszym serwisie." },
+    "privacy": { "crumb": "Prywatność", "title": "Polityka prywatności", "desc": "Dokument określający zasady przetwarzania i ochrony danych osobowych Użytkowników." }
+  },
+  "about": {
+    "name": "mgr inż. poż. Jakub Baran",
+    "tailoredTitle": "Ochrona ppoż. skrojona na miarę",
+    "tailoredDesc": "Jako inżynier bezpieczeństwa pożarowego do każdego projektu podchodzę indywidualnie, dostosowując się do specyfiki obiektu i wymagań inwestora. Wieloletnie doświadczenie w branży pozwala mi na dobór najbezpieczniejszych i optymalnych rozwiązań.",
+    "points": {
+      "p1": "Indywidualne podejście",
+      "p2": "Możliwość zdalnej współpracy",
+      "p3": "Inżynierska wiedza i doświadczenie",
+      "p4": "Szybka realizacja projektów",
+      "p5": "Wsparcie na każdym etapie"
+    },
+    "eduKicker": "Wykształcenie",
+    "eduTitle": "Branżowe wykształcenie",
+    "eduDesc": "Jestem absolwentem Szkoły Głównej Służby Pożarniczej (obecnie Akademia Pożarnicza), gdzie zdobyłem wykształcenie inżynierskie i magisterskie z dziedziny inżynierii bezpieczeństwa oraz bezpieczeństwa pożarowego. Dodatkowo stale rozszerzam swoją wiedzę ekspercką z zakresu wentylacji pożarowej i systemów oddymiania budynków na Politechnice Warszawskiej.",
+    "sgspTitle": "Szkoła Główna Służby Pożarniczej",
+    "sgspDesc": "Absolwent studiów I stopnia na kierunku Inżynieria Bezpieczeństwa Pożarowego oraz studiów II stopnia na kierunku Inżynieria Bezpieczeństwa.",
+    "pwTitle": "Politechnika Warszawska",
+    "pwDesc": "Studia podyplomowe z zakresu wentylacji pożarowej i systemów oddymiania budynków.",
+    "ctaTitle": "Masz projekt do omówienia?",
+    "ctaDesc": "Chętnie przeanalizuję Twój obiekt i zaproponuję optymalne rozwiązanie — od obliczeń analitycznych po weryfikację CFD. Pierwsze zapytanie bez zobowiązań.",
+    "ctaPrimary": "Napisz do mnie",
+    "ctaSecondary": "Wypróbuj kalkulator CNBOP"
+  },
+  "contact": {
+    "formTitle": "Potrzebujesz więcej informacji? Napisz!",
+    "formDesc": "Odpowiem najszybciej jak to możliwe.",
+    "nameLabel": "Twoje imię",
+    "namePlaceholder": "Wpisz swoje imię",
+    "emailLabel": "Twój email",
+    "emailPlaceholder": "Wpisz swój email",
+    "messageLabel": "Treść wiadomości",
+    "messagePlaceholder": "Wpisz treść wiadomości",
+    "submit": "Wyślij wiadomość",
+    "infoTitle": "Skontaktuj się",
+    "infoDesc": "Wybierz tradycyjną formę kontaktu."
+  },
+  "services": {
+    "ctaButton": "Darmowa wycena",
+    "cfd": {
+      "imageAlt": "Komputerowa symulacja CFD przepływu dymu i ciepła",
+      "lead": "Symulacje CFD (Computational Fluid Dynamics) to zaawansowane analizy komputerowe z zakresu inżynierii bezpieczeństwa pożarowego, które pozwalają na modelowanie przepływu powietrza, dymu oraz rozkładu temperatury w różnych warunkach pożarowych. Dzięki nim można dokładnie przewidzieć zachowanie się gazów pożarowych, skuteczność systemów oddymiania oraz warunki ewakuacji, co znacząco zwiększa bezpieczeństwo budynków.",
+      "sections": [
+        { "h": "Profesjonalne symulacje CFD", "p": "Oferuję zaawansowane symulacje CFD w zakresie wentylacji pożarowej, wykorzystując profesjonalne oprogramowanie inżynieryjne takie jak PyroSim, Pathfinder i Ventus. Moje usługi są skierowane w szczególności do:", "list": ["Rzeczoznawców ds. zabezpieczeń przeciwpożarowych", "Projektantów systemów wentylacji i inżynierów ochrony ppoż.", "Biur projektowych i architektonicznych", "Biegłych sądowych"] },
+        { "h": "Kiedy wymagana jest symulacja CFD?", "p": "Symulacje CFD są wymagane m.in. w obiektach wysokich i wysokościowych, garażach podziemnych, tunelach oraz tam, gdzie stosuje się systemy oddymiania mechanicznego lub planuje niestandardowe scenariusze ewakuacyjne. Wymagania te mogą wynikać z przepisów, zaleceń rzeczoznawcy ppoż. lub indywidualnych analiz ryzyka przeprowadzanych przez inżyniera pożarnictwa." },
+        { "h": "Ile kosztuje symulacja CFD?", "p": "Koszt symulacji CFD zależy od złożoności architektonicznej obiektu, liczby scenariuszy pożarowych oraz oczekiwanego zakresu opracowania. Średnie ceny zaczynają się od kilku tysięcy złotych – każda wycena przygotowywana jest indywidualnie na podstawie rzutów i specyfikacji." },
+        { "h": "Dlaczego warto wykonać symulację CFD?", "p": "Symulacje CFD pozwalają na precyzyjną analizę rozprzestrzeniania się dymu, temperatury oraz skuteczności systemów wentylacyjnych i oddymiających. Dzięki nim można:", "list": ["Ocenić skuteczność systemów oddymiania w budynkach", "Zweryfikować scenariusze ewakuacji w warunkach pożaru", "Optymalizować układ wentylacji pod kątem bezpieczeństwa i kosztów wykonania", "Spełnić rygorystyczne wymagania normatywne i prawne"] },
+        { "h": "Praca zgodna z normami i wytycznymi", "p": "Wykonując symulację, w 100% trzymam się założeń przyjętych w projekcie budowlanym lub koncepcji. Uwzględniam wszystkie czynniki środowiskowe wpływające na wynik analizy. Opieram się na kluczowych normach inżynierskich:", "list": ["CNBOP-PIB W-0003:2016 – wytyczne dla oddymiania klatek schodowych", "PN-EN 12101-13:2022 – systemy różnicowania ciśnień (SRC)", "ITB 378/2002 – wentylacja pożarowa dróg ewakuacyjnych", "NFPA 92, NFPA 204, VdS 2221, BS 7346-4 i inne międzynarodowe standardy"] },
+        { "h": "Działam lokalnie i zdalnie", "p": "Realizuję analizy CFD w Warszawie, Łodzi, Grodzisku Mazowieckim oraz na terenie całego województwa mazowieckiego i łódzkiego. Posiadam odpowiednie zaplecze technologiczne, aby współpracować również w pełni zdalnie z biurami z całej Polski." }
+      ],
+      "cta": "Potrzebujesz profesjonalnej symulacji CFD? Skontaktuj się ze mną, aby omówić projekt i otrzymać darmową wycenę dostosowaną do Twojego obiektu."
+    },
+    "ibp": {
+      "imageAlt": "Opracowanie Instrukcji Bezpieczeństwa Pożarowego IBP Warszawa",
+      "lead": "Instrukcja Bezpieczeństwa Pożarowego to kluczowy dokument określający warunki ochrony przeciwpożarowej w budynku. Jako specjalista w zakresie inżynierii bezpieczeństwa pożarowego, oferuję kompleksowe opracowanie IBP, precyzyjnie dostosowanej do specyfiki i architektury Państwa obiektu, w pełnej zgodności z obowiązującym prawem.",
+      "sections": [
+        { "h": "Kiedy Instrukcja Bezpieczeństwa Pożarowego jest wymagana?", "p": "Zgodnie z przepisami prawa właściciele, zarządcy lub użytkownicy obiektów (bądź ich części stanowiących odrębne strefy pożarowe) przeznaczonych do wykonywania funkcji użyteczności publicznej, zamieszkania zbiorowego, produkcyjnych, magazynowych oraz inwentarskich mają obowiązek wdrożenia IBP, gdy spełniony jest co najmniej jeden z warunków:", "list": ["kubatura brutto budynku lub jego części stanowiącej odrębną strefę pożarową wynosi 1000 m³ lub więcej,", "kubatura brutto budynku inwentarskiego wynosi 1500 m³ lub więcej,", "powierzchnia strefy pożarowej obiektu innego niż budynek wynosi 1000 m² lub więcej,", "w budynku występuje strefa zagrożenia wybuchem."] },
+        { "h": "Kiedy Instrukcja nie jest wymagana?", "p": "Dokument ten nie jest bezwzględnie wymagany w przypadku mniejszych obiektów, w których:", "list": ["kubatura brutto budynku nie przekracza 1000 m³,", "kubatura brutto budynku inwentarskiego nie przekracza 1500 m³,", "powierzchnia strefy pożarowej obiektu (niebędącego budynkiem) nie przekracza 1000 m²."] },
+        { "h": "Podstawa prawna opracowania IBP", "p": "Wymogi sporządzenia dokumentu precyzuje §6 Rozporządzenia Ministra Spraw Wewnętrznych i Administracji z dnia 7 czerwca 2010 r. w sprawie ochrony przeciwpożarowej budynków, innych obiektów budowlanych i terenów (Dz. U. z 2023 r., poz. 822 z późn. zm.)." },
+        { "h": "Dlaczego warto zlecić mi opracowanie IBP?", "list": ["Wiedza i uprawnienia – posiadam wykształcenie i doświadczenie z zakresu inżynierii bezpieczeństwa pożarowego.", "Indywidualne podejście – każdą instrukcję opracowuję na podstawie rzetelnego audytu lokalnego, bez powielania gotowych szablonów.", "Zgodność z przepisami – gwarantuję, że dokument zostanie zaakceptowany przez organy kontrolne (np. Państwową Straż Pożarną).", "Kompleksowe wsparcie – pomagam we wdrożeniu zapisów instrukcji w obiekcie."] },
+        { "h": "Gdzie realizuję zlecenia?", "p": "Swoje usługi z zakresu opracowywania Instrukcji Bezpieczeństwa Pożarowego świadczę lokalnie na terenie Warszawy, Grodziska Mazowieckiego, Łodzi oraz całych województw mazowieckiego i łódzkiego (m.in. Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew, Skierniewice)." }
+      ],
+      "cta": "Twój obiekt wymaga Instrukcji Bezpieczeństwa Pożarowego? Skontaktuj się ze mną, aby ustalić szczegóły i otrzymać szybką wycenę opracowania dokumentacji."
+    },
+    "operat": {
+      "imageAlt": "Sporządzanie operatu przeciwpożarowego dla miejsc magazynowania odpadów",
+      "lead": "Operat ppoż. jest obligatoryjnym dokumentem wymaganym do wydania pozwolenia na zbieranie, przetwarzanie i/lub wytwarzanie odpadów. Stanowi on kluczowy załącznik do wniosku, określający i opiniujący zgodność warunków magazynowania odpadów z rygorystycznymi przepisami ochrony przeciwpożarowej i inżynierii bezpieczeństwa.",
+      "sections": [
+        { "h": "Kiedy wymagany jest operat przeciwpożarowy?", "p": "Każdy inwestor i przedsiębiorca, który ubiega się o wydanie pozwolenia na zbieranie, przetwarzanie bądź wytwarzanie odpadów, zobligowany jest prawem do posiadania aktualnego operatu ppoż. Dokument ten dołącza się jako załącznik do wniosku właściwego organu. Obowiązek ten dotyczy zarówno działalności przemysłowej, hal produkcyjnych, jak i otwartych terenów magazynowych." },
+        { "h": "Kto może prawnie sporządzić operat ppoż.?", "p": "W zależności od organu wydającego zezwolenie operat może sporządzić wyłącznie osoba z określonymi kwalifikacjami z zakresu ochrony ppoż. Gdy organem jest marszałek województwa lub regionalny dyrektor ochrony środowiska — rzeczoznawca do spraw zabezpieczeń przeciwpożarowych. Gdy organem decyzyjnym jest starosta:", "list": ["Inżynier pożarnictwa lub magister inżynier pożarnictwa,", "Absolwent SGSP (obecnie Akademii Pożarniczej) na kierunku inżynieria bezpieczeństwa pożarowego."], "note": "Jako inżynier bezpieczeństwa pożarowego posiadam pełne uprawnienia do opracowywania operatów dla organów powiatowych (starostw)." },
+        { "h": "Podstawa prawna", "list": ["Ustawa z dnia 14 grudnia 2012 r. o odpadach (Dz.U. 2023 poz. 1587 z późn. zm.)", "Ustawa z dnia 27 kwietnia 2001 r. – Prawo ochrony środowiska (Dz.U. 2024 poz. 54 z późn. zm.)"] },
+        { "h": "Gdzie realizuję operaty przeciwpożarowe?", "p": "Sporządzam operaty ppoż. dla przedsiębiorców i inwestorów w Warszawie, Łodzi, Grodzisku Mazowieckim oraz całym województwie mazowieckim i łódzkim. Działam i wspieram firmy również na terenie miast: Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew, Skierniewice." }
+      ],
+      "cta": "Otwierasz punkt zbierania lub przetwarzania odpadów? Zleć mi sporządzenie operatu przeciwpożarowego. Skontaktuj się ze mną po darmową konsultację i wycenę usługi."
+    },
+    "audyt": {
+      "imageAlt": "Ekspercki audyt przeciwpożarowy budynku Warszawa",
+      "lead": "Audyt przeciwpożarowy to szczegółowa analiza stanu bezpieczeństwa pożarowego budynku oraz jego zgodności z obowiązującymi przepisami. Jako eksperci w dziedzinie inżynierii bezpieczeństwa pożarowego, identyfikujemy potencjalne zagrożenia i nieprawidłowości, które mogą wpłynąć na bezpieczeństwo użytkowników obiektu.",
+      "sections": [
+        { "h": "Zakres audytu przeciwpożarowego", "list": ["Ocena warunków ochrony przeciwpożarowej budynku", "Weryfikacja wyposażenia w sprzęt gaśniczy i systemy pożarowe", "Sprawdzenie warunków ewakuacji i prawidłowości oznakowania dróg ewakuacyjnych", "Analiza procedur postępowania na wypadek pożaru", "Kontrola dokumentacji związanej z ochroną przeciwpożarową (np. IBP)", "Ocena ważności i aktualności szkoleń z zakresu ochrony ppoż."], "note": "Po zakończeniu audytu przekazujemy szczegółowy raport inżynierski wraz z konkretnymi zaleceniami dotyczącymi niezbędnych działań korygujących." },
+        { "h": "Dlaczego warto przeprowadzić audyt?", "list": ["Zwiększasz realne bezpieczeństwo użytkowników obiektu", "Unikasz sankcji prawnych i kar finansowych ze strony organów nadzoru", "Umożliwiasz płynne dostosowanie obiektu do aktualnych przepisów budowlanych i ppoż.", "Uzyskujesz jasne zalecenia od inżyniera bezpieczeństwa pożarowego"] },
+        { "h": "Dla kogo przeznaczona jest usługa?", "p": "Nasz audyt ppoż. skierowany jest w szczególności do:", "list": ["Właścicieli i zarządców budynków mieszkalnych oraz biurowych", "Przedsiębiorców prowadzących działalność w obiektach komercyjnych, halach i magazynach", "Instytucji publicznych, edukacyjnych i administracyjnych", "Inwestorów przygotowujących nowe inwestycje lub adaptacje istniejących budynków"] },
+        { "h": "Podstawa prawna audytu", "list": ["Ustawa z dnia 24 sierpnia 1991 r. o ochronie przeciwpożarowej (Dz.U. 2025 poz. 188)"] },
+        { "h": "Gdzie realizujemy audyty przeciwpożarowe?", "p": "Wykonujemy audyty przeciwpożarowe na terenie Warszawy, Łodzi, Grodziska Mazowieckiego oraz całego województwa mazowieckiego i łódzkiego. Działamy również na terenie miast takich jak: Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew czy Skierniewice." }
+      ],
+      "cta": "Skontaktuj się z nami, aby umówić audyt lub uzyskać indywidualną ofertę. Zadbaj o bezpieczeństwo swojego obiektu już dziś!"
+    },
+    "scenariusz": {
+      "imageAlt": "Opracowanie scenariusza rozwoju pożaru dla budynku – dokumentacja projektowa",
+      "lead": "Zgodnie z § 5 pkt 3 Rozporządzenia MSWiA z dnia 5 sierpnia 2023 r. (Dz.U. 2023 poz. 1563) projekt techniczny dla obiektów budowlanych, w których przewiduje się zastosowanie urządzeń przeciwpożarowych, powinien obligatoryjnie zawierać scenariusz rozwoju zdarzeń w czasie pożaru. To kluczowy inżynieryjny dokument projektowy, którego celem jest wykazanie, że zastosowane w obiekcie rozwiązania techniczne zapewniają skuteczne wykrycie pożaru, alarmowanie, sprawną ewakuację oraz prawidłowe uruchomienie i współpracę wszystkich urządzeń przeciwpożarowych w warunkach rzeczywistego zagrożenia.",
+      "sections": [
+        { "h": "Co powinien zawierać scenariusz pożarowy?", "list": ["Szczegółową charakterystykę pożaru i jego rozwój w czasie", "Opis zasady działania i integracji systemów SSP, DSO, tryskaczy, oddymiania, klap ppoż.", "Chronologię aktywacji urządzeń automatycznych i ręcznych w sterowaniach matrycowych", "Czas zadziałania oraz dokładne wartości progowe (np. temperatura, gęstość dymu)", "Analizę warunków i wyliczenie czasu dostępnego na bezpieczną ewakuację ludzi"] },
+        { "h": "Dla kogo jest wymagany?", "p": "Scenariusz pożarowy należy opracować dla obiektów, w których projektuje się:", "list": ["System sygnalizacji pożaru (SSP)", "Systemy oddymiania lub przewietrzania pożarowego", "DSO – dźwiękowy system ostrzegawczy", "Systemy tryskaczowe, zraszaczowe i inne urządzenia gaśnicze"], "note": "Opracowanie poprawnego scenariusza jest obowiązkowe przy uzgadnianiu projektu z rzeczoznawcą ds. zabezpieczeń ppoż." },
+        { "h": "Dlaczego warto zlecić to zadanie specjaliście?", "p": "Powierzenie tego zadania doświadczonemu inżynierowi bezpieczeństwa pożarowego to:", "list": ["Gwarancja pełnej zgodności z aktualnymi przepisami i normami", "Znaczne ułatwienie i przyspieszenie uzyskania pozytywnej opinii rzeczoznawcy ppoż.", "Pewność, że systemy ppoż. będą prawidłowo zintegrowane i zadziałają w odpowiedniej sekwencji", "Zminimalizowanie ryzyka kosztownych błędów projektowych i wykonawczych"] },
+        { "h": "Gdzie realizuję opracowanie scenariuszy pożarowych?", "p": "Wykonuję scenariusze rozwoju pożaru dla inwestycji w Warszawie, Łodzi, Grodzisku Mazowieckim oraz na terenie całego województwa mazowieckiego i łódzkiego. Z powodzeniem działam również na terenie miast takich jak: Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew, Skierniewice." }
+      ],
+      "cta": "Potrzebujesz profesjonalnie opracowanego scenariusza pożarowego dla swojej inwestycji? Zapewniam pełne wsparcie projektowe oraz płynną współpracę z rzeczoznawcą. Skontaktuj się ze mną już dziś!"
+    }
+  },
+  "blog": {
+    "introTitle": "Baza wiedzy przeciwpożarowej",
+    "introDesc": "Bądź na bieżąco z najnowszymi wytycznymi i rozwiązaniami w branży. Publikujemy artykuły i poradniki tworzone przez ekspertów od inżynierii bezpieczeństwa pożarowego.",
+    "homeTitle": "Najnowsze wpisy na blogu",
+    "homeDesc": "Praktyczna dawka wiedzy ze świata inżynierii bezpieczeństwa pożarowego. Bądź na bieżąco z przepisami, poradami i nowinkami z zakresu ochrony ppoż.",
+    "homeKicker": "Blog",
+    "authorName": "Jakub Baran",
+    "authorRole": "Inżynier Bezpieczeństwa Pożarowego",
+    "publishedLabel": "Data publikacji",
+    "readMore": "Czytaj więcej",
+    "crumbBack": "Powrót do bloga",
+    "tagsLabel": "Popularne tagi",
+    "posts": {
+      "nowa-norma-pn-b-02877-4-2025-07": {
+        "title": "Zmiany w projektowaniu systemów oddymiania: analiza normy PN-B-02877-4:2025-07",
+        "excerpt": "Nowa norma oficjalnie zastępuje dokument z 2001 roku. Wprowadza fundamentalne zmiany w metodyce projektowej oraz liberalizuje dopuszczalne wielkości stref dymowych.",
+        "date": "13 maja 2026",
+        "tag": "Oddymianie"
+      },
+      "symulacja-cfd-w-oddymianiu-klatek-schodowych": {
+        "title": "Symulacje CFD w projektowaniu oddymiania klatek schodowych",
+        "excerpt": "Jak udowodnić warunki bezpiecznej ewakuacji za pomocą zaawansowanych symulacji komputerowych dynamiki pożaru.",
+        "date": "11 kwietnia 2025",
+        "tag": "CFD"
+      }
+    }
+  },
+  "articles": {
+    "nowa-norma-pn-b-02877-4-2025-07": {
+      "tags": ["Normy", "Oddymianie", "PN-B-02877"],
+      "blocks": [
+        { "type": "p", "text": "W lipcu 2025 roku Polski Komitet Normalizacyjny opublikował nową normę PN-B-02877-4:2025-07 zatytułowaną „Systemy do grawitacyjnego odprowadzania dymu i ciepła – Część 4: Zasady projektowania”. Dokument ten oficjalnie zastępuje wycofaną normę PN-B-02877-4 z 2001 roku wraz z jej niezwykle istotną zmianą (Az1) z września 2006 roku. Nowelizacja wprowadza fundamentalne zmiany w metodyce projektowej, a zestawienie jej z historycznymi wymogami ukazuje duży krok w stronę optymalizacji i dostosowania przepisów do współczesnego budownictwa wielkopowierzchniowego." },
+        { "type": "p", "text": "Poniżej przedstawiono kluczowe różnice i nowe rozwiązania wprowadzone w dokumencie z 2025 roku." },
+        { "type": "h", "n": "01", "text": "Rewolucja w dopuszczalnych wielkościach stref dymowych" },
+        { "type": "p", "text": "Najważniejszą zmianą z punktu widzenia architektonicznego jest powiększenie dopuszczalnej wielkości stref dymowych. Zmiana Az1 wprowadzona w 2006 roku rygorystycznie ograniczyła maksymalną powierzchnię przestrzeni poddachowej pojedynczej strefy dymowej do zaledwie 2 600 m². Nowa norma z 2025 roku znacząco liberalizuje to ograniczenie – podstawowa maksymalna powierzchnia strefy dymowej w budynkach produkcyjnych i magazynowych wynosi obecnie 4 000 m². Dokument dopuszcza wręcz powiększenie tej powierzchni o maksymalnie 50% (czyli nawet do 6 000 m²), jednak wymaga to wówczas proporcjonalnego zwiększenia łącznej powierzchni czynnej urządzeń oddymiających o 5% dla każdych rozpoczętych 100 m² nadwyżki." },
+        { "type": "h", "n": "02", "text": "Ujęcie systemowe zamiast instalacyjnego" },
+        { "type": "p", "text": "Zrezygnowano z dotychczasowego pojęcia „instalacje do grawitacyjnego odprowadzania dymu i ciepła” na rzecz nazwy „systemy”. Różnica ma wymiar merytoryczny – definicja ta obejmuje teraz integralnie zarówno urządzenia do usuwania dymu i gorących gazów pożarowych, jak i urządzenia dostarczające powietrze kompensacyjne. Norma kładzie silny nacisk na fakt, że zapewnienie napływu świeżego powietrza jest warunkiem koniecznym dla skuteczności całego układu." },
+        { "type": "h", "n": "03", "text": "Grupy Projektowe (GP) zamiast dawnych wzorów obliczeniowych" },
+        { "type": "p", "text": "Zasadniczej zmianie uległa matematyczna strona wymiarowania systemu. Wycofano wcześniejsze skomplikowane wzory na skorygowaną wysokość warstwy wolnej od dymu (które również były korygowane w poprawce z 2006 roku) na rzecz doboru gotowych wartości minimalnej powierzchni czynnej z dedykowanych tablic. System wymiaruje się na podstawie przypisania strefy do jednej z pięciu Grup Projektowych (GP1–GP5). Wybór GP zależy m.in. od gęstości obciążenia ogniowego, przewidywanej szybkości rozprzestrzeniania się pożaru, wysokości składowania oraz ochrony strefy za pomocą stałych urządzeń gaśniczych wodnych." },
+        { "type": "h", "n": "04", "text": "Ścienne urządzenia oddymiające i kompensacja powietrza" },
+        { "type": "p", "text": "Nowa norma formalizuje zasady projektowania i rozmieszczania ściennych urządzeń oddymiających, wymagając m.in. ich montażu na przeciwległych ścianach i zapewnienia automatycznego otwierania od strony zawietrznej. Jednocześnie sformułowano bezwzględny wymóg: łączna powierzchnia efektywna otworów kompensacyjnych w żadnym wypadku nie może być mniejsza od minimalnej wymaganej powierzchni czynnej oddymiania dla danej strefy." },
+        { "type": "h", "n": "05", "text": "Zdefiniowanie zasad współpracy z instalacjami tryskaczowymi" },
+        { "type": "p", "text": "Norma z 2025 roku kompleksowo uwzględnia istnienie stałych samoczynnych urządzeń gaśniczych wodnych (tryskaczy). Ich obecność ułatwia przyporządkowanie do niższej Grupy Projektowej, ale nakłada ścisłe wymogi sterowania. W strefach chronionych tryskaczami urządzenie oddymiające – projektowane w celu zapewnienia ewakuacji – musi uruchomić się samoczynnie po sygnale od systemu sygnalizacji pożarowej, ale obligatoryjnie przed zadziałaniem samej instalacji gaśniczej wodnej." },
+        { "type": "h", "n": "06", "text": "Procedury, odbiory i awarie" },
+        { "type": "p", "text": "Zaktualizowany dokument wprowadza rygorystyczne wytyczne co do logiki sterowania oraz testowania infrastruktury. Sformułowano szczegółowe zasady przeprowadzania uruchomień i testów odbiorczych, a także wprowadzono obowiązek wykonywania badań okresowych co najmniej raz w roku (o ile producent nie wskaże częstszych wizyt technicznych)." },
+        { "type": "quote", "text": "Podsumowując, norma PN-B-02877-4:2025-07 to istotny krok w inżynierii bezpieczeństwa pożarowego. Odejście od dotkliwego dla inwestorów limitu 2 600 m² dla stref dymowych z 2006 roku na rzecz nowej metodyki opartej na Grupach Projektowych dostarcza biurom inżynierskim narzędzia, które są spójne, przewidywalne i elastycznie dostosowane do wymagań dzisiejszych projektów logistycznych i produkcyjnych." }
+      ]
+    },
+    "symulacja-cfd-w-oddymianiu-klatek-schodowych": {
+      "tags": ["Symulacje CFD", "Oddymianie", "Ewakuacja"],
+      "blocks": [
+        { "type": "p", "text": "Kiedy wymagana jest symulacja CFD do projektu oddymiania klatki schodowej?" },
+        { "type": "p", "text": "W dobie coraz większych wymagań dotyczących bezpieczeństwa pożarowego budynków projektanci i inwestorzy coraz chętniej sięgają po narzędzia inżynierskie pozwalające zweryfikować skuteczność zastosowanych rozwiązań. Jednym z takich narzędzi są symulacje CFD (Computational Fluid Dynamics), które stają się coraz powszechniejszym standardem przy projektowaniu systemów oddymiania klatek schodowych." },
+        { "type": "p", "text": "Jeśli projekt oddymiania został wykonany w oparciu o wytyczne projektowania CNBOP-PIB W-0003:2016, to dokument ten podpowiada nam, w jakich przypadkach jesteśmy zobligowani do wykonania symulacji oraz jakie parametry pożaru i środowiskowe powinny zostać zawarte w analizie." },
+        { "type": "h", "text": "Warunki, które wymagają wykonania symulacji CFD" },
+        { "type": "list", "items": [
+          "powierzchnia klatki schodowej (A_KS) na dowolnej kondygnacji jest większa niż 40 m²,",
+          "przestrzeń klatki schodowej jest połączona z przyległymi korytarzami lub holami i długość dojścia z najbardziej oddalonych drzwi do granicy powierzchni obliczeniowej klatki schodowej jest większa niż 5 m (granice powierzchni obliczeniowej klatki schodowej zawarte w Załączniku 1),",
+          "przestrzeń klatki schodowej jest połączona z przyległymi korytarzami i holami o długości dojścia od granicy powierzchni obliczeniowej klatki schodowej do końca korytarza większej niż 10 m,",
+          "szerokość korytarzy połączonych z klatką schodową niewydzieloną przekracza 3 m,",
+          "klatka schodowa charakteryzuje się architekturą inną niż opisana w wytycznych (przykłady w Załączniku 1),",
+          "powierzchnia pozostałych otworów międzykondygnacyjnych nie spełnia warunku: C ≤ 10% (A+B), o którym mowa w rozdziale 6.2 wytycznych,",
+          "powierzchnia duszy schodów nie spełnia warunku: D ≤ 25% (A+B), o którym mowa w rozdziale 6.2 wytycznych,",
+          "klatka stanowi pionową drogę ewakuacji ludzi w budynku wysokim zaliczanym do kategorii zagrożenia ludzi ZL IV,",
+          "napływ powietrza kompensacyjnego w systemie oddymiania grawitacyjnego odbywa się przez dwoje drzwi, w układzie szeregowym, łączących przestrzeń klatki schodowej z przestrzenią zewnętrzną, oddalonych od siebie o więcej niż 5 m,",
+          "nawiew mechaniczny powietrza jest realizowany inaczej niż zapisano w rozdziale 6.5 wytycznych,",
+          "w budynku wysokim ZL IV występują korytarze przyległe do klatki schodowej (nieoddzielone drzwiami)."
+        ] },
+        { "type": "linkbox", "text": "Wytyczne dostępne pod adresem:", "linkText": "Kliknij tutaj", "href": "https://cnbop.pl/app/uploads/2025/02/Wytyczne_Systemy-oddymiania-klatek-schodowych_04.06.2019.pdf" }
+      ]
+    }
+  },
+  "legal": {
+    "regulamin": {
+      "intro": "Niniejszy regulamin określa ogólne warunki, zasady oraz sposób korzystania ze strony internetowej Fire Protection Solutions. Regulamin ten jest dokumentem, o którym mowa w art. 8 Ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.",
+      "footer": "Regulamin wchodzi w życie z dniem publikacji. Ostatnia aktualizacja: {date}",
+      "sections": [
+        { "h": "§ 1. Postanowienia ogólne", "ordered": true, "items": [
+          "Właścicielem i Administratorem serwisu internetowego jest firma Fire Protection Solutions Jakub Baran, z siedzibą: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki.",
+          "Firma wpisana jest do CEIDG, posiada NIP: 6182094888 oraz REGON: 528892780.",
+          "Kontakt z Usługodawcą możliwy jest za pośrednictwem poczty elektronicznej: biuro@fp-solutions.pl oraz pod numerem telefonu: +48 790 782 993."
+        ] },
+        { "h": "§ 2. Definicje", "items": [
+          "Serwis – strona internetowa dostępna pod domeną fp-solutions.pl (lub odpowiednią inną domeną główną).",
+          "Usługodawca – Fire Protection Solutions Jakub Baran.",
+          "Użytkownik – każda osoba fizyczna, osoba prawna lub jednostka organizacyjna korzystająca z Serwisu.",
+          "Usługi elektroniczne – usługi świadczone drogą elektroniczną przez Usługodawcę na rzecz Użytkownika za pośrednictwem Serwisu (np. formularz kontaktowy)."
+        ] },
+        { "h": "§ 3. Rodzaj i zakres świadczonych usług", "ordered": true, "items": [
+          "Serwis ma charakter przede wszystkim informacyjny. Prezentuje on ofertę Usługodawcy z zakresu inżynierii bezpieczeństwa pożarowego (m.in. Instrukcje Bezpieczeństwa Pożarowego, symulacje CFD, audyty).",
+          "Usługodawca świadczy za pośrednictwem Serwisu bezpłatne usługi drogą elektroniczną, polegające na umożliwieniu Użytkownikom wysyłania wiadomości za pomocą interaktywnych linków e-mail oraz (jeśli dotyczy) formularzy kontaktowych."
+        ] },
+        { "h": "§ 4. Wymagania techniczne i zasady korzystania", "ordered": true, "items": [
+          "Do prawidłowego korzystania z Serwisu wymagane jest urządzenie końcowe z dostępem do sieci Internet oraz standardowa przeglądarka internetowa (np. Chrome, Firefox, Safari, Edge).",
+          "Użytkownik zobowiązany jest do korzystania z Serwisu w sposób zgodny z prawem i dobrymi obyczajami, mając na uwadze poszanowanie dóbr osobistych oraz praw autorskich i własności intelektualnej Usługodawcy oraz osób trzecich.",
+          "Obowiązuje zakaz dostarczania przez Użytkownika treści o charakterze bezprawnym."
+        ] },
+        { "h": "§ 5. Własność intelektualna", "lead": "Wszelkie prawa do Serwisu, w tym majątkowe prawa autorskie, prawa własności intelektualnej do jego nazwy, domeny internetowej, a także do wzorców, formularzy, logotypów i zdjęć zamieszczanych w Serwisie (z wyjątkiem materiałów na licencjach zewnętrznych), należą do Usługodawcy. Korzystanie z nich może następować wyłącznie w sposób określony i zgodny z Regulaminem lub za wyraźną, pisemną zgodą Usługodawcy." },
+        { "h": "§ 6. Odpowiedzialność", "ordered": true, "items": [
+          "Informacje zawarte w Serwisie mają charakter ogólny i nie stanowią wiążącej oferty handlowej w rozumieniu przepisów Kodeksu cywilnego, a jedynie zaproszenie do podjęcia negocjacji.",
+          "Usługodawca nie ponosi odpowiedzialności za decyzje podjęte przez Użytkownika na podstawie materiałów i informacji prezentowanych w Serwisie bez uprzedniej bezpośredniej konsultacji i zawarcia właściwej umowy na usługi inżynieryjne."
+        ] },
+        { "h": "§ 7. Postępowanie reklamacyjne", "ordered": true, "items": [
+          "Użytkownik może złożyć reklamację dotyczącą funkcjonowania Serwisu oraz usług świadczonych drogą elektroniczną.",
+          "Reklamacje należy składać drogą elektroniczną na adres: biuro@fp-solutions.pl.",
+          "Usługodawca rozpatruje reklamacje niezwłocznie, nie później niż w terminie 14 dni od dnia jej otrzymania, informując Użytkownika o wynikach postępowania na adres e-mail, z którego przesłano zgłoszenie."
+        ] },
+        { "h": "§ 8. Postanowienia końcowe", "ordered": true, "items": [
+          "W sprawach nieuregulowanych w niniejszym Regulaminie mają zastosowanie powszechnie obowiązujące przepisy prawa polskiego.",
+          "Usługodawca zastrzega sobie prawo do dokonywania zmian Regulaminu z ważnych przyczyn (np. zmiany przepisów prawa, zmiany sposobów świadczenia usług). O zmianach Użytkownicy będą informowani poprzez publikację nowej treści w Serwisie.",
+          "Kwestie związane z przetwarzaniem danych osobowych oraz plikami cookies zostały szczegółowo uregulowane w odrębnych dokumentach: Polityce Prywatności oraz Polityce Cookies."
+        ] }
+      ]
+    },
+    "cookies": {
+      "intro": "Niniejsza Polityka Cookies określa zasady zapisywania i uzyskiwania dostępu do danych na urządzeniach Użytkowników korzystających ze strony internetowej Fire Protection Solutions w celu świadczenia usług drogą elektroniczną przez Administratora.",
+      "footer": "Ostatnia aktualizacja dokumentu: {date}",
+      "sections": [
+        { "h": "§ 1. Informacje ogólne", "ordered": true, "items": [
+          "Administratorem serwisu oraz podmiotem zamieszczającym pliki cookies na urządzeniu końcowym Użytkownika jest Fire Protection Solutions Jakub Baran z siedzibą: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki (NIP: 6182094888).",
+          "Serwis zbiera w sposób automatyczny wyłącznie informacje zawarte w plikach cookies. Nie zbiera w sposób zautomatyzowany żadnych innych informacji o Użytkownikach."
+        ] },
+        { "h": "§ 2. Czym są pliki cookies?", "lead": "Pliki cookies (tzw. „ciasteczka”) stanowią dane informatyczne, w szczególności niewielkie pliki tekstowe, które przechowywane są w urządzeniu końcowym Użytkownika (komputerze, smartfonie, tablecie) i przeznaczone są do korzystania ze stron internetowych Serwisu. Cookies zazwyczaj zawierają nazwę strony internetowej, z której pochodzą, czas przechowywania ich na urządzeniu oraz unikalny numer." },
+        { "h": "§ 3. Rodzaje wykorzystywanych plików cookies", "lead": "W ramach Serwisu stosowane są następujące rodzaje plików cookies:", "items": [
+          "Niezbędne (techniczne) pliki cookies: absolutnie konieczne do prawidłowego funkcjonowania strony internetowej. Zapewniają podstawowe funkcje bezpieczeństwa i dostępności Serwisu.",
+          "Analityczne / wydajnościowe pliki cookies: umożliwiają zbieranie informacji o sposobie korzystania ze strony internetowej, co pomaga nam ulepszać jej strukturę i zawartość (np. Google Analytics).",
+          "Funkcjonalne pliki cookies: umożliwiają „zapamiętanie” wybranych przez Użytkownika ustawień i personalizację interfejsu (np. w zakresie wybranego trybu jasnego/ciemnego)."
+        ] },
+        { "h": "§ 4. Zarządzanie plikami cookies", "ordered": true, "items": [
+          "Większość przeglądarek internetowych domyślnie dopuszcza przechowywanie plików cookies w urządzeniu końcowym Użytkownika.",
+          "Użytkownik może w każdej chwili dokonać zmiany ustawień dotyczących plików cookies. Ustawienia te mogą zostać zmienione w taki sposób, aby blokować automatyczną obsługę cookies w ustawieniach przeglądarki internetowej lub informować o ich każdorazowym zamieszczeniu w urządzeniu.",
+          "Szczegółowe informacje o możliwości i sposobach obsługi plików cookies dostępne są w ustawieniach oprogramowania (przeglądarki internetowej), np. Google Chrome, Mozilla Firefox, Safari, Microsoft Edge.",
+          "Ograniczenie stosowania plików cookies może wpłynąć na niektóre funkcjonalności dostępne na stronie internetowej Serwisu (np. brak możliwości zapamiętania preferencji trybu ciemnego)."
+        ] },
+        { "h": "§ 5. Postanowienia końcowe i kontakt", "ordered": true, "items": [
+          "Więcej informacji na temat przetwarzania Twoich danych osobowych znajdziesz w naszej Polityce Prywatności.",
+          "W razie pytań dotyczących polityki cookies prosimy o kontakt pod adresem e-mail: biuro@fp-solutions.pl."
+        ] }
+      ]
+    },
+    "privacy": {
+      "intro": "Niniejsza Polityka Prywatności zawiera informacje ogólne dotyczące przetwarzania danych osobowych odwiedzających stronę internetową oraz klientów korzystających z usług firmy Fire Protection Solutions. Dokument ten został przygotowany w oparciu o przepisy Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO).",
+      "footer": "Ostatnia aktualizacja dokumentu: {date}",
+      "sections": [
+        { "h": "§ 1. Administrator Danych Osobowych", "ordered": true, "items": [
+          "Administratorem Twoich danych osobowych jest firma Fire Protection Solutions Jakub Baran, z siedzibą pod adresem: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki.",
+          "Firma wpisana jest do Centralnej Ewidencji i Informacji o Działalności Gospodarczej (CEIDG), posiadająca NIP: 6182094888 oraz REGON: 528892780.",
+          "Kontakt z Administratorem w sprawach związanych z ochroną danych osobowych jest możliwy za pośrednictwem poczty elektronicznej pod adresem e-mail: biuro@fp-solutions.pl."
+        ] },
+        { "h": "§ 2. Cele, podstawy prawne oraz czas przetwarzania danych", "lead": "Administrator przetwarza dane osobowe w następujących celach:", "ordered": true, "items": [
+          "Kontakt i obsługa zapytań – na podstawie art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes Administratora). Dane (np. imię, nazwisko, e-mail, numer telefonu) przetwarzane są w celu udzielenia odpowiedzi na zapytania przesłane przez formularz lub drogą mailową. Dane te są przechowywane przez okres niezbędny do obsługi zapytania.",
+          "Realizacja usług z zakresu inżynierii bezpieczeństwa pożarowego (m.in. Instrukcje Bezpieczeństwa Pożarowego, symulacje CFD, audyty, operaty) – na podstawie art. 6 ust. 1 lit. b RODO (niezbędność do wykonania umowy). Dane przetwarzane są przez czas trwania umowy oraz do momentu przedawnienia roszczeń z niej wynikających.",
+          "Wypełnienie obowiązków prawnych (księgowość, podatki) – na podstawie art. 6 ust. 1 lit. c RODO. Dane przechowywane są przez okres wymagany powszechnie obowiązującymi przepisami prawa (zazwyczaj 5 lat od końca roku kalendarzowego, w którym upłynął termin płatności podatku)."
+        ] },
+        { "h": "§ 3. Odbiorcy danych osobowych", "lead": "Dla prawidłowego funkcjonowania strony oraz realizacji świadczonych usług z zakresu bezpieczeństwa pożarowego Administrator korzysta z usług podmiotów zewnętrznych. Dane mogą być przekazywane:", "items": [
+          "biuru rachunkowemu obsługującemu Administratora;",
+          "dostawcom usług hostingowych oraz poczty elektronicznej;",
+          "podmiotom dostarczającym oprogramowanie do zarządzania firmą i projektami inżynieryjnymi;",
+          "organom państwowym (np. Urząd Skarbowy), jeżeli wynika to z obowiązujących przepisów prawa."
+        ], "note": "Administrator powierza dane wyłącznie podmiotom gwarantującym stosowanie odpowiednich środków ochrony i bezpieczeństwa danych osobowych, wymaganych przez przepisy prawa." },
+        { "h": "§ 4. Prawa osób, których dane dotyczą", "lead": "Zgodnie z przepisami RODO każdemu Użytkownikowi przysługuje:", "items": [
+          "Prawo dostępu do swoich danych oraz otrzymania ich kopii;",
+          "Prawo do sprostowania (poprawiania) swoich danych;",
+          "Prawo do usunięcia danych (jeżeli nie ma podstaw do tego, aby były przetwarzane);",
+          "Prawo do ograniczenia przetwarzania danych osobowych;",
+          "Prawo do przenoszenia danych osobowych;",
+          "Prawo do wniesienia sprzeciwu wobec przetwarzania danych opartego na prawnie uzasadnionym interesie Administratora."
+        ], "note": "Ponadto Użytkownik ma prawo wniesienia skargi do organu nadzorczego – Prezesa Urzędu Ochrony Danych Osobowych (PUODO), jeżeli uzna, że przetwarzanie jego danych narusza przepisy prawa." },
+        { "h": "§ 5. Bezpieczeństwo danych", "lead": "Administrator stosuje odpowiednie środki techniczne i organizacyjne zapewniające ochronę przetwarzanych danych osobowych, adekwatne do zagrożeń oraz kategorii danych objętych ochroną. W szczególności zabezpiecza dane przed ich udostępnieniem osobom nieupoważnionym, zabraniem przez osobę nieuprawnioną, przetwarzaniem z naruszeniem obowiązujących przepisów oraz zmianą, utratą, uszkodzeniem lub zniszczeniem (m.in. poprzez stosowanie certyfikatów SSL na stronie)." },
+        { "h": "§ 6. Pliki cookies i technologie śledzące", "lead": "Strona internetowa zbiera w sposób automatyczny wyłącznie informacje zawarte w plikach cookies (ciasteczkach). Służą one do prawidłowego działania witryny, celów statystycznych oraz analitycznych. Szczegółowe zasady korzystania z plików cookies oraz zarządzania nimi opisane są w odrębnym dokumencie: Polityce Cookies." },
+        { "h": "§ 7. Postanowienia końcowe", "lead": "Administrator zastrzega sobie prawo do wprowadzania zmian w niniejszej Polityce Prywatności. Zmiany mogą wynikać z rozwoju technologii internetowej, zmian w powszechnie obowiązującym prawie oraz rozwoju usług inżynierii bezpieczeństwa pożarowego świadczonych przez firmę. O wszelkich zmianach Użytkownicy będą informowani w sposób widoczny i zrozumiały na niniejszej stronie." }
+      ]
+    }
+  },
   "nav": {
     "home": "Strona główna",
     "about": "O mnie",

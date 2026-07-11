@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useMemo, useRef, Suspense } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import {
   Step1Data, Step2aData, Step2Data, Step4Data,
@@ -571,7 +571,7 @@ function CNBOPWizardInner() {
 
             {/* Live values */}
             {akso > 0 && (
-              <div className="hidden sm:flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+              <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                 <span>A<sub>KS-O</sub> <span className="font-medium text-slate-700 dark:text-slate-300 ml-1">{toStr(akso)} m²</span></span>
                 <span className="text-slate-200 dark:text-slate-700">|</span>
                 <span>A<sub>cz,min</sub> <span className="font-medium text-slate-700 dark:text-slate-300 ml-1">{toStr(requiredAcz)} m²</span></span>

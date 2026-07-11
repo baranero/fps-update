@@ -1,7 +1,9 @@
 ﻿import SingleBlog from "@/components/Blog/SingleBlog";
 import blogData from "@/components/Blog/blogData";
-import Breadcrumb from "@/components/Common/Breadcrumb";
+import PageHeader from "@/components/Common/PageHeader";
 import { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
+import { useTranslations } from "next-intl";
 
 export const metadata: Metadata = {
   title: "Blog o inżynierii bezpieczeństwa pożarowego | FP Solutions",
@@ -18,39 +20,33 @@ export const metadata: Metadata = {
   },
 };
 
-const BlogPage = () => {
+const BlogPage = ({ params: { locale } }: { params: { locale: string } }) => {
+  setRequestLocale(locale);
+  const t = useTranslations("blog");
   return (
     <>
-      <Breadcrumb 
-        pageName="Blog" 
-        description="Aktualności, przepisy i ekspercka wiedza z zakresu ochrony i inżynierii bezpieczeństwa pożarowego." 
-      />
+      <PageHeader page="blog" />
 
-      <section className="pb-[120px] pt-[60px]">
+      <section className="pb-24 pt-16">
         <div className="container">
-          
+
           {/* Ustrukturyzowany nagłówek SEO */}
-          <div className="mb-12 text-center">
-            <h1 className="mb-4 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
-              Baza wiedzy przeciwpożarowej
-            </h1>
-            <p className="mx-auto max-w-[700px] text-base leading-relaxed text-slate-600 dark:text-slate-400">
-              Bądź na bieżąco z najnowszymi wytycznymi i rozwiązaniami w branży. Publikujemy artykuły i poradniki tworzone przez ekspertów od inżynierii bezpieczeństwa pożarowego.
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="mb-4 font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+              {t("introTitle")}
+            </h2>
+            <p className="mx-auto max-w-[700px] text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
+              {t("introDesc")}
             </p>
           </div>
 
           {/* Siatka z artykułami */}
-          <div className="-mx-4 flex flex-wrap justify-center">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {blogData.map((blog) => (
-              <div
-                key={blog.id}
-                className="w-full px-4 md:w-2/3 lg:w-1/2 xl:w-1/3"
-              >
-                <SingleBlog blog={blog} />
-              </div>
+              <SingleBlog key={blog.id} blog={blog} />
             ))}
           </div>
-          
+
         </div>
       </section>
     </>

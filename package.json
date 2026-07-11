@@ -1,12 +1,10 @@
 {
-  "name": "startup-nextjs-template",
+  "name": "fp-solutions",
   "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "next build && next export",
-    "deploy": "npm run export && gh-pages -d out",
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"

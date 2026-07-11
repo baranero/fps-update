@@ -166,7 +166,7 @@ function SigninForm() {
             <div className="w-full border-t border-slate-200 dark:border-slate-600" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white dark:bg-[#1E232E] px-3 text-xs text-slate-400 dark:text-slate-500">
+            <span className="bg-white dark:bg-[#1E232E] px-3 text-xs text-slate-500 dark:text-slate-400">
               {tc("orEmail")}
             </span>
           </div>
@@ -197,7 +197,7 @@ function SigninForm() {
               </label>
               <Link
                 href="/auth/reset-password"
-                className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors"
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"
               >
                 {t("forgot")}
               </Link>

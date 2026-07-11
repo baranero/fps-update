@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell, CartesianGrid,
 } from "recharts";
+import { ACTIVE_STATUSES, isFailed, STATUS_CHART } from "@/lib/status";
 
 type Item = {
   case_id: string;
@@ -17,8 +18,6 @@ type Item = {
   server_type: string | null;
   total_cells: number;
 };
-
-const ACTIVE = new Set(["pending", "dispatched", "running"]);
 
 function useIsDark() {
   const [dark, setDark] = useState(false);
@@ -59,14 +58,14 @@ function buildMonthlyData(items: Item[]) {
 
 function buildStatusData(items: Item[]) {
   const done      = items.filter((s) => s.status === "done").length;
-  const active    = items.filter((s) => ACTIVE.has(s.status)).length;
-  const failed    = items.filter((s) => s.status === "failed" || s.status === "error").length;
+  const active    = items.filter((s) => ACTIVE_STATUSES.has(s.status)).length;
+  const failed    = items.filter((s) => isFailed(s.status)).length;
   const cancelled = items.filter((s) => s.status === "cancelled").length;
   return [
-    { name: "Zakończone", value: done,      color: "#22c55e" },
-    { name: "W toku",     value: active,    color: "#f59e0b" },
-    { name: "Błędy",      value: failed,    color: "#ef4444" },
-    { name: "Anulowane",  value: cancelled, color: "#94a3b8" },
+    { name: "Zakończone", value: done,      color: STATUS_CHART.done },
+    { name: "W toku",     value: active,    color: STATUS_CHART.active },
+    { name: "Błędy",      value: failed,    color: STATUS_CHART.failed },
+    { name: "Anulowane",  value: cancelled, color: STATUS_CHART.cancelled },
   ].filter((d) => d.value > 0);
 }
 
@@ -84,11 +83,11 @@ function buildServerData(items: Item[]) {
 function KpiCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-      <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">{label}</p>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
       <p className={`text-3xl font-bold ${accent ? "text-primary" : "text-slate-900 dark:text-white"}`}>
         {value}
       </p>
-      {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
     </div>
   );
 }
@@ -254,11 +253,11 @@ export default function StatystykiPage() {
           <div className="flex items-center gap-4 mt-3 justify-end">
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-4 rounded-full bg-primary inline-block" />
-              <span className="text-[11px] text-slate-400 dark:text-slate-500">Symulacje (szt.)</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Symulacje (szt.)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-4 rounded-full bg-indigo-500 inline-block" />
-              <span className="text-[11px] text-slate-400 dark:text-slate-500">Czas obliczeń (h)</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Czas obliczeń (h)</span>
             </div>
           </div>
         </div>
@@ -272,7 +271,7 @@ export default function StatystykiPage() {
           <SectionTitle>Rozkład statusów</SectionTitle>
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
             {statuses.length === 0 ? (
-              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">Brak danych.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Brak danych.</p>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={180}>
@@ -328,7 +327,7 @@ export default function StatystykiPage() {
           <SectionTitle>Typ serwera obliczeniowego</SectionTitle>
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
             {servers.length === 0 ? (
-              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">Brak danych.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Brak danych.</p>
             ) : (
               <div className="space-y-3 py-2">
                 {servers.map((s) => {
@@ -337,7 +336,7 @@ export default function StatystykiPage() {
                     <div key={s.name}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">{s.name}</span>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{s.count} szt. · {pct}%</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{s.count} szt. · {pct}%</span>
                       </div>
                       <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                         <div

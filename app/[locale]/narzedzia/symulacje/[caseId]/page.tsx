@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function CaseIdRedirect({ params }: { params: { caseId: string } }) {
   const router = useRouter();

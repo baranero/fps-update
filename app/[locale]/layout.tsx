@@ -1,7 +1,7 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ScrollToTop from "@/components/ScrollToTop";
-import { Inter } from "next/font/google";
+import { Inter, Archivo, JetBrains_Mono } from "next/font/google";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
@@ -13,8 +13,13 @@ import { Providers } from "../providers";
 import "node_modules/react-modal-video/css/modal-video.css";
 import "../../styles/index.css";
 
-// Konfiguracja czcionki ze wsparciem dla polskich znaków
-const inter = Inter({ subsets: ["latin", "latin-ext"] });
+// Fonty self-hostowane przez next/font (bez żądań do Google w runtime):
+//  - Inter    → tekst / UI (--font-sans)
+//  - Archivo  → nagłówki display (--font-display)
+//  - JetBrains Mono → dane, kody norm, wymiary (--font-mono)
+const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-sans", display: "swap" });
+const archivo = Archivo({ subsets: ["latin", "latin-ext"], variable: "--font-display", display: "swap" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl"),
@@ -41,7 +46,7 @@ export default async function LocaleLayout({
 
   return (
     <html suppressHydrationWarning lang={locale}>
-      <body className={`bg-slate-50 dark:bg-[#0B1120] ${inter.className}`}>
+      <body className={`bg-slate-50 dark:bg-[#0B1120] font-sans ${inter.variable} ${archivo.variable} ${jetbrainsMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <Header />

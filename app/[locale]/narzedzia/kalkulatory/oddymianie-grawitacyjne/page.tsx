@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 const STANDARDS = {
   PN:    { label: "Polska Norma (PN)",    norm: "PN-B-02877-4:2025-07", factor: 0.02 },

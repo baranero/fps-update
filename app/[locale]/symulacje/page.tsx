@@ -274,7 +274,7 @@ export default function SymulacjePage() {
                       ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                       : active
                       ? "bg-primary text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                   }`}>
                     {done ? (
                       <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,18 +316,18 @@ export default function SymulacjePage() {
                       </svg>
                     </div>
                     <p className="font-bold text-slate-900 dark:text-white">{file.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{t("upload.pickAnother")}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{(file.size / 1024).toFixed(1)} KB</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t("upload.pickAnother")}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 mb-3">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 mb-3">
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                     </div>
                     <p className="font-semibold text-slate-700 dark:text-slate-300">{t("upload.drop")}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">{t("upload.formats")}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{t("upload.formats")}</p>
                   </div>
                 )}
               </div>
@@ -380,7 +380,7 @@ export default function SymulacjePage() {
           {/* Historia zleceń */}
           {step === "upload" && history.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-3">{t("upload.previousOrders")}</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">{t("upload.previousOrders")}</p>
               <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {history.map((s) => (
@@ -392,7 +392,7 @@ export default function SymulacjePage() {
                       <div className="min-w-0">
                         <p className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">{s.case_id}</p>
                         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{s.file_name}</p>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                           {new Date(s.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
                         </p>
                       </div>
@@ -417,7 +417,7 @@ export default function SymulacjePage() {
             <div className="space-y-8 pt-2">
               {/* Co otrzymasz */}
               <div>
-                <p className="mb-3 text-xs font-medium text-slate-400 dark:text-slate-500">{t("deliverables.heading")}</p>
+                <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">{t("deliverables.heading")}</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {deliverables.map((d) => (
                     <div
@@ -440,7 +440,7 @@ export default function SymulacjePage() {
 
               {/* FAQ */}
               <div>
-                <p className="mb-3 text-xs font-medium text-slate-400 dark:text-slate-500">{t("faq.heading")}</p>
+                <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">{t("faq.heading")}</p>
                 <div className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-700 dark:bg-[#1E232E]">
                   {faqs.map((f) => (
                     <details key={f.q} className="group">
@@ -468,7 +468,7 @@ export default function SymulacjePage() {
                     <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("review.analysis")}</h2>
                     <p className="font-bold text-slate-900 dark:text-white">{file?.name}</p>
                     {parseResult.chid && (
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">CHID: {parseResult.chid}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">CHID: {parseResult.chid}</p>
                     )}
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${complexityColor(estimate.complexity)}`}>
@@ -502,16 +502,16 @@ export default function SymulacjePage() {
                     },
                   ].map((item) => (
                     <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] p-4">
-                      <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-2">{item.label}</p>
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2">{item.label}</p>
                       <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
-                      {item.sub && <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{item.sub}</p>}
+                      {item.sub && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{item.sub}</p>}
                     </div>
                   ))}
                 </div>
 
                 {parseResult.meshDetails.length > 1 && (
                   <div className="mt-4">
-                    <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-2">{t("review.meshDetails")}</p>
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2">{t("review.meshDetails")}</p>
                     <div className="flex flex-wrap gap-2">
                       {parseResult.meshDetails.map((m, i) => (
                         <span key={i} className="rounded bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-mono text-slate-600 dark:text-slate-300">
@@ -581,7 +581,7 @@ export default function SymulacjePage() {
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-4">
                 <div>
                   <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">{t("form.heading")}</h2>
-                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     {t("form.linkedInfo", { email: form.email ? ` (${form.email})` : "" })}
                   </p>
                 </div>

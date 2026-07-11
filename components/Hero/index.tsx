@@ -124,7 +124,7 @@ const Hero = () => {
               </span>
             </div>
 
-            <h1 className="mb-5 text-[clamp(32px,5vw,52px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
+            <h1 className="mb-5 text-[clamp(28px,4.4vw,44px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
               {t("titleStart")}{" "}
               <span className="text-primary">{t("titleAccent")}</span>{" "}
               {t("titleEnd")}
@@ -154,7 +154,7 @@ const Hero = () => {
               {[t("trust.ssp"), t("trust.smoke"), t("trust.cfd"), t("trust.docs")].map((tag) => (
                 <span
                   key={tag}
-                  className="text-[12px] font-medium text-slate-400 dark:text-slate-500"
+                  className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
                 >
                   {tag}
                 </span>

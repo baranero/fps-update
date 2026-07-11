@@ -40,7 +40,7 @@ const CloudSpotlight = () => {
               </span>
             </div>
 
-            <h2 className="mb-4 text-[clamp(26px,4vw,38px)] font-extrabold leading-[1.12] tracking-tight text-white text-wrap-balance">
+            <h2 className="mb-4 text-[clamp(24px,3.6vw,34px)] font-extrabold leading-[1.12] tracking-tight text-white text-wrap-balance">
               {t("titleStart")}{" "}
               <span className="text-primary">{t("titleAccent")}</span>
             </h2>

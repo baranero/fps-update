@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 type Report = {
   id: string;
@@ -108,7 +108,7 @@ export default function RaportyPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500">Ładowanie…</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Ładowanie…</p>
       ) : reports.length === 0 ? (
         <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Brak zapisanych raportów.</p>
@@ -146,13 +146,13 @@ export default function RaportyPage() {
                       {r.project_name ?? <span className="text-slate-400 italic font-normal">Brak nazwy</span>}
                     </a>
                   )}
-                  <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                  <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                     {r.calculator}
                   </p>
                 </div>
 
                 {/* date */}
-                <p className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
+                <p className="shrink-0 text-xs text-slate-500 dark:text-slate-400">
                   {new Date(r.created_at).toLocaleDateString("pl-PL", {
                     day: "numeric", month: "short", year: "numeric",
                     hour: "2-digit", minute: "2-digit",

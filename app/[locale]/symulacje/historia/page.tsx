@@ -127,7 +127,7 @@ export default function HistoriaSymulacjiPage() {
 
           <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
             <div className="flex items-center gap-2.5">
-              <Link href="/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors mb-1 block">
+              <Link href="/symulacje" className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors mb-1 block">
                 {t("back")}
               </Link>
             </div>
@@ -171,7 +171,7 @@ export default function HistoriaSymulacjiPage() {
           </form>
 
           {loading ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500">{t("loading")}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t("loading")}</p>
           ) : loggedIn === false ? (
             <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
@@ -202,7 +202,7 @@ export default function HistoriaSymulacjiPage() {
                       <div className="flex items-center gap-3 px-4 py-4">
                         <span className="text-sm text-slate-700 dark:text-slate-300 flex-1">
                           {t.rich("confirmDelete", { code: (c) => <span className="font-mono font-semibold">{c}</span>, id: s.case_id })}
-                          <span className="block text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                          <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                             {["pending", "dispatched", "running"].includes(s.status)
                               ? t("confirmActive")
                               : t("confirmDone")}
@@ -233,16 +233,16 @@ export default function HistoriaSymulacjiPage() {
                               {s.file_name}
                             </p>
                             <div className="flex items-center gap-3 flex-wrap">
-                              <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500">{s.case_id}</p>
+                              <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400">{s.case_id}</p>
                               {s.server_type && (
-                                <span className="text-[11px] uppercase font-semibold text-slate-400 dark:text-slate-500">
+                                <span className="text-[11px] uppercase font-semibold text-slate-500 dark:text-slate-400">
                                   {s.server_type}
                                 </span>
                               )}
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                                 {t("meshes", { count: s.mesh_count })} · {formatCells(s.total_cells)} {t("cellsWord")}
                               </span>
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                                 {t("est", { time: formatHours(s.wall_hours) })}
                               </span>
                             </div>
@@ -252,7 +252,7 @@ export default function HistoriaSymulacjiPage() {
                             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                               {s.price.toLocaleString(dateLocale)} zł
                             </p>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
                               {new Date(s.created_at).toLocaleDateString(dateLocale, {
                                 day: "numeric", month: "short", year: "numeric",
                               })}
@@ -267,7 +267,7 @@ export default function HistoriaSymulacjiPage() {
                         <button
                           onClick={(e) => { e.preventDefault(); setConfirmDelete(s.case_id); setDeleteError(null); }}
                           title={t("deleteTitle")}
-                          className="shrink-0 rounded p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="shrink-0 rounded p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

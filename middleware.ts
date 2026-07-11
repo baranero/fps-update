@@ -9,7 +9,27 @@ export async function middleware(request: NextRequest) {
   // 1. next-intl: ustalenie języka + ewentualny rewrite/redirect segmentu [locale]
   const response = intlMiddleware(request);
 
-  // 2. Supabase: odświeżenie sesji (ciasteczka dopinamy do odpowiedzi z intl)
+  // 2. Ścieżka bez prefiksu języka (np. /en/narzedzia → /narzedzia)
+  const { pathname } = request.nextUrl;
+  const segments = pathname.split("/");
+  let locale: string = routing.defaultLocale;
+  let rest = pathname;
+  if (routing.locales.includes(segments[1] as (typeof routing.locales)[number])) {
+    locale = segments[1];
+    rest = "/" + segments.slice(2).join("/");
+  }
+  if (rest === "") rest = "/";
+  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+
+  const isProtected = rest.startsWith("/narzedzia") || rest.startsWith("/symulacje");
+  const isAuthPage = rest === "/signin" || rest === "/signup";
+
+  // 3. Supabase odpytujemy tylko tam, gdzie sesja decyduje o dostępie —
+  //    nie na każdej publicznej podstronie (oszczędza round-trip do Supabase).
+  if (!isProtected && !isAuthPage) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,21 +48,6 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  // 3. Ścieżka bez prefiksu języka (np. /en/narzedzia → /narzedzia)
-  const { pathname } = request.nextUrl;
-  const segments = pathname.split("/");
-  let locale: string = routing.defaultLocale;
-  let rest = pathname;
-  if (routing.locales.includes(segments[1] as (typeof routing.locales)[number])) {
-    locale = segments[1];
-    rest = "/" + segments.slice(2).join("/");
-  }
-  if (rest === "") rest = "/";
-  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
-
-  const isProtected = rest.startsWith("/narzedzia") || rest.startsWith("/symulacje");
-  const isAuthPage = rest === "/signin" || rest === "/signup";
 
   // Ochrona tras narzędzi i chmury
   if (isProtected && !user) {

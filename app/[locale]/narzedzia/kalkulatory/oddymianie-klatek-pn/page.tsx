@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Tooltip from "@/components/Calculators/ui/Tooltip";
 import { TrashIcon } from "@/components/Calculators/ui/Icons";
 import { toNum } from "@/lib/calculations/cnbop";
@@ -227,7 +227,7 @@ export default function PnStaircaseDynamicCalculatorPage() {
                 <div className="space-y-3">
                   {inlets.map((i, idx) => (
                     <div key={i.id} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                      <span className="font-medium text-slate-400 dark:text-slate-500">{idx+1}.</span>
+                      <span className="font-medium text-slate-500 dark:text-slate-400">{idx+1}.</span>
                       <div className="w-full sm:w-20">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Ilość</label>
                         <input type="number" min="1" value={i.count} onChange={e => updateInlet(i.id, "count", e.target.value)} className="w-full text-sm border-slate-200 border rounded-lg p-2 dark:bg-[#1E232E] dark:border-slate-700" />

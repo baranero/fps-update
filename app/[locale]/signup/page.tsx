@@ -151,7 +151,7 @@ export default function SignupPage() {
                 <div className="w-full border-t border-slate-200 dark:border-slate-600" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white dark:bg-[#1E232E] px-3 text-xs text-slate-400 dark:text-slate-500">
+                <span className="bg-white dark:bg-[#1E232E] px-3 text-xs text-slate-500 dark:text-slate-400">
                   {tc("orEmail")}
                 </span>
               </div>
@@ -206,7 +206,7 @@ export default function SignupPage() {
                 {loading ? t("submitting") : t("submit")}
               </button>
 
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                 {t("gdpr")}
               </p>
             </form>

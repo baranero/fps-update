@@ -1,36 +1,41 @@
 import AboutSectionOne from "@/components/About/AboutSectionOne";
 import AboutSectionTwo from "@/components/About/AboutSectionTwo";
-import Breadcrumb from "@/components/Common/Breadcrumb";
+import PageHeader from "@/components/Common/PageHeader";
 import { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
+import { seoUrls } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "O mnie | Inżynier Bezpieczeństwa Pożarowego – Jakub Baran",
-  description:
-    "Poznaj moje doświadczenie i kwalifikacje. Jako inżynier bezpieczeństwa pożarowego pomagam firmom i instytucjom w dbaniu o zgodność z przepisami ppoż.",
-  alternates: {
-    canonical: "https://fp-solutions.pl/o-mnie",
-  },
-  openGraph: {
-    title: "O mnie – Fire Protection Solutions Jakub Baran",
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const { canonical, languages } = seoUrls(locale, "/o-mnie");
+  return {
+    title: "O mnie | Inżynier Bezpieczeństwa Pożarowego – Jakub Baran",
     description:
-      "Dowiedz się więcej o mojej pracy, doświadczeniu oraz podejściu do nowoczesnej inżynierii bezpieczeństwa pożarowego.",
-    url: "https://fp-solutions.pl/o-mnie",
-  },
-};
+      "Poznaj moje doświadczenie i kwalifikacje. Jako inżynier bezpieczeństwa pożarowego pomagam firmom i instytucjom w dbaniu o zgodność z przepisami ppoż.",
+    alternates: { canonical, languages },
+    openGraph: {
+      title: "O mnie – Fire Protection Solutions Jakub Baran",
+      description:
+        "Dowiedz się więcej o mojej pracy, doświadczeniu oraz podejściu do nowoczesnej inżynierii bezpieczeństwa pożarowego.",
+      url: canonical,
+    },
+  };
+}
 
-const AboutPage = () => {
+export default function AboutPage({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  setRequestLocale(locale);
   return (
     <>
-      <Breadcrumb
-        pageName="O mnie"
-        description="Poznajmy się! Dowiedz się więcej o moim doświadczeniu, uprawnieniach oraz kompleksowym podejściu do inżynierii bezpieczeństwa pożarowego."
-      />
-      
-      {/* Główne sekcje z treścią o Tobie */}
+      <PageHeader page="about" />
       <AboutSectionOne />
       <AboutSectionTwo />
     </>
   );
-};
-
-export default AboutPage;
+}
