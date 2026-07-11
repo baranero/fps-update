@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Submission = {
@@ -16,21 +17,25 @@ type Submission = {
   total_cells: number;
 };
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  pending:    { label: "Oczekuje",   cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
-  dispatched: { label: "W kolejce",  cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  running:    { label: "W trakcie",  cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  done:       { label: "Zakończone", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  failed:     { label: "Błąd",       cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  cancelled:  { label: "Anulowane",  cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
-  error:      { label: "Błąd",       cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+const STATUS_CLS: Record<string, string> = {
+  pending:    "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
+  dispatched: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  running:    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  done:       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  failed:     "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  cancelled:  "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
+  error:      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_MAP[status] ?? { label: status, cls: "bg-slate-100 text-slate-500" };
+  const t = useTranslations("symHistory.status");
+  const cls = STATUS_CLS[status] ?? "bg-slate-100 text-slate-500";
+  const label = ["pending", "dispatched", "running", "done", "failed", "cancelled", "error"].includes(status)
+    ? t(status)
+    : status;
   return (
-    <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${s.cls}`}>
-      {s.label}
+    <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}>
+      {label}
     </span>
   );
 }
@@ -42,11 +47,14 @@ function formatHours(h: number) {
 
 function formatCells(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} tys.`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} k`;
   return String(n);
 }
 
 export default function HistoriaSymulacjiPage() {
+  const t = useTranslations("symHistory");
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-GB" : "pl-PL";
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
@@ -72,14 +80,14 @@ export default function HistoriaSymulacjiPage() {
       const res = await fetch(`/api/symulacje/${caseId}`, { method: "DELETE" });
       if (!res.ok) {
         const d = await res.json();
-        setDeleteError(d.error ?? "Błąd usuwania.");
+        setDeleteError(d.error ?? t("deleteError"));
         setDeleting(null);
         return;
       }
       setSubmissions((prev) => prev.filter((s) => s.case_id !== caseId));
       setConfirmDelete(null);
     } catch {
-      setDeleteError("Błąd połączenia.");
+      setDeleteError(t("connError"));
     }
     setDeleting(null);
   }
@@ -120,20 +128,20 @@ export default function HistoriaSymulacjiPage() {
           <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
             <div className="flex items-center gap-2.5">
               <Link href="/symulacje" className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors mb-1 block">
-                ← CFD Cloud
+                {t("back")}
               </Link>
             </div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Historia symulacji</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{t("title")}</h1>
               {submissions.some((s) => ACTIVE.has(s.status)) && (
                 <span className="flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  Na żywo
+                  {t("live")}
                 </span>
               )}
             </div>
             <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-              Wszystkie zlecenia FDS powiązane z Twoim kontem.
+              {t("subtitle")}
             </p>
           </div>
 
@@ -150,7 +158,7 @@ export default function HistoriaSymulacjiPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Numer zlecenia (np. FDS-ABC123-XY)"
+              placeholder={t("searchPlaceholder")}
               className="flex-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button
@@ -158,26 +166,26 @@ export default function HistoriaSymulacjiPage() {
               disabled={!search.trim()}
               className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Otwórz
+              {t("open")}
             </button>
           </form>
 
           {loading ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500">Ładowanie…</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">{t("loading")}</p>
           ) : loggedIn === false ? (
             <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                Zaloguj się, aby zobaczyć historię symulacji.
+                {t("loginPrompt")}
               </p>
               <Link href="/signin?next=/symulacje/historia" className="text-sm font-medium text-primary hover:underline">
-                Zaloguj się →
+                {t("loginCta")}
               </Link>
             </div>
           ) : submissions.length === 0 ? (
             <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Brak zleconych symulacji.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{t("empty")}</p>
               <Link href="/symulacje" className="text-sm font-medium text-primary hover:underline">
-                Wyślij pierwsze zlecenie →
+                {t("emptyCta")}
               </Link>
             </div>
           ) : (
@@ -193,11 +201,11 @@ export default function HistoriaSymulacjiPage() {
                     {confirmDelete === s.case_id ? (
                       <div className="flex items-center gap-3 px-4 py-4">
                         <span className="text-sm text-slate-700 dark:text-slate-300 flex-1">
-                          Usunąć <span className="font-mono font-semibold">{s.case_id}</span>?
+                          {t.rich("confirmDelete", { code: (c) => <span className="font-mono font-semibold">{c}</span>, id: s.case_id })}
                           <span className="block text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                             {["pending", "dispatched", "running"].includes(s.status)
-                              ? "Serwer obliczeniowy zostanie zatrzymany, a zlecenie usunięte."
-                              : "Plik wejściowy i wyniki zostaną trwale usunięte."}
+                              ? t("confirmActive")
+                              : t("confirmDone")}
                           </span>
                         </span>
                         <button
@@ -205,14 +213,14 @@ export default function HistoriaSymulacjiPage() {
                           disabled={deleting === s.case_id}
                           className="rounded px-3 py-1.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
                         >
-                          {deleting === s.case_id ? "Usuwam…" : "Usuń"}
+                          {deleting === s.case_id ? t("deleting") : t("delete")}
                         </button>
                         <button
                           onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                           disabled={deleting === s.case_id}
                           className="rounded px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
                         >
-                          Anuluj
+                          {t("cancel")}
                         </button>
                       </div>
                     ) : (
@@ -232,20 +240,20 @@ export default function HistoriaSymulacjiPage() {
                                 </span>
                               )}
                               <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                {s.mesh_count} {s.mesh_count === 1 ? "siatka" : "siatki"} · {formatCells(s.total_cells)} komórek
+                                {t("meshes", { count: s.mesh_count })} · {formatCells(s.total_cells)} {t("cellsWord")}
                               </span>
                               <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                est. {formatHours(s.wall_hours)}
+                                {t("est", { time: formatHours(s.wall_hours) })}
                               </span>
                             </div>
                           </div>
 
                           <div className="text-right shrink-0">
                             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                              {s.price.toLocaleString("pl-PL")} zł
+                              {s.price.toLocaleString(dateLocale)} zł
                             </p>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                              {new Date(s.created_at).toLocaleDateString("pl-PL", {
+                              {new Date(s.created_at).toLocaleDateString(dateLocale, {
                                 day: "numeric", month: "short", year: "numeric",
                               })}
                             </p>
@@ -258,7 +266,7 @@ export default function HistoriaSymulacjiPage() {
 
                         <button
                           onClick={(e) => { e.preventDefault(); setConfirmDelete(s.case_id); setDeleteError(null); }}
-                          title="Usuń zlecenie"
+                          title={t("deleteTitle")}
                           className="shrink-0 rounded p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

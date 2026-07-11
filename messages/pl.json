@@ -150,6 +150,96 @@
       "ogDescription": "Projekty SSP, oddymiania, symulacje CFD oraz platforma CFD Cloud do obliczeń FDS w chmurze. Działamy w całej Polsce i obsługujemy inżynierów globalnie."
     }
   },
+  "auth": {
+    "common": {
+      "orEmail": "lub e-mail i hasło",
+      "email": "Adres e-mail",
+      "emailPlaceholder": "jan@firma.pl",
+      "password": "Hasło",
+      "redirecting": "Przekierowanie…",
+      "backToSignin": "Wróć do logowania",
+      "generic": "Wystąpił błąd. Spróbuj ponownie."
+    },
+    "signin": {
+      "title": "Zaloguj się",
+      "noAccount": "Nie masz konta?",
+      "signUp": "Zarejestruj się",
+      "google": "Kontynuuj z Google",
+      "github": "Kontynuuj z GitHub",
+      "forgot": "Zapomniałeś hasła?",
+      "submit": "Zaloguj się",
+      "submitting": "Logowanie…",
+      "errInvalid": "Nieprawidłowy e-mail lub hasło.",
+      "errNotConfirmed": "Potwierdź adres e-mail przed zalogowaniem. Sprawdź skrzynkę.",
+      "errLinkInvalid": "Link weryfikacyjny wygasł lub jest nieprawidłowy. Spróbuj zalogować się ponownie."
+    },
+    "signup": {
+      "title": "Załóż konto",
+      "haveAccount": "Masz już konto?",
+      "signIn": "Zaloguj się",
+      "consent": "Zapoznałem/am się z <privacy>polityką prywatności</privacy> i <terms>regulaminem</terms> i akceptuję ich treść. Wyrażam zgodę na przetwarzanie moich danych osobowych w celu obsługi konta i realizacji usług.",
+      "consentRequiredOauth": "Zaakceptuj politykę prywatności i regulamin przed kontynuowaniem.",
+      "consentRequired": "Musisz zaakceptować politykę prywatności i regulamin.",
+      "google": "Zarejestruj się przez Google",
+      "github": "Zarejestruj się przez GitHub",
+      "passwordPlaceholder": "min. 8 znaków",
+      "submit": "Zarejestruj się",
+      "submitting": "Rejestracja…",
+      "gdpr": "Administratorem danych jest Fire Protection Solutions. Dane przetwarzamy wyłącznie w celach wskazanych w polityce prywatności. Masz prawo dostępu, sprostowania, usunięcia i przenoszenia danych.",
+      "errExists": "Konto z tym adresem e-mail już istnieje.",
+      "errInvalidEmail": "Nieprawidłowy format adresu e-mail.",
+      "errWeak": "Hasło jest za słabe. Użyj co najmniej 8 znaków.",
+      "errGeneric": "Wystąpił błąd podczas rejestracji. Spróbuj ponownie."
+    },
+    "reset": {
+      "title": "Reset hasła",
+      "subtitle": "Wyślemy link do zmiany hasła na Twój adres e-mail.",
+      "sentTitle": "Sprawdź skrzynkę",
+      "sentBody": "Wysłaliśmy link na <b>{email}</b>. Link jest ważny przez 24 godziny.",
+      "submit": "Wyślij link resetujący",
+      "submitting": "Wysyłam…",
+      "error": "Nie udało się wysłać e-maila. Sprawdź adres i spróbuj ponownie."
+    },
+    "newPassword": {
+      "title": "Nowe hasło",
+      "subtitle": "Ustaw nowe hasło do swojego konta.",
+      "newPass": "Nowe hasło",
+      "newPassPlaceholder": "Minimum 8 znaków",
+      "confirm": "Potwierdź hasło",
+      "confirmPlaceholder": "Powtórz hasło",
+      "tooShort": "Hasło musi mieć co najmniej 8 znaków.",
+      "mismatch": "Hasła nie są identyczne.",
+      "error": "Nie udało się zmienić hasła. Link mógł wygasnąć — spróbuj ponownie.",
+      "sendNewLink": "Wyślij nowy link",
+      "submit": "Ustaw nowe hasło",
+      "submitting": "Zapisuję…"
+    },
+    "confirmEmail": {
+      "title": "Sprawdź skrzynkę e-mail",
+      "body": "Wysłaliśmy link potwierdzający na Twój adres e-mail. Kliknij w link, żeby aktywować konto i przejść do panelu.",
+      "validity": "Link jest ważny przez 24 godziny.",
+      "spam": "Jeśli e-mail nie dotarł, sprawdź folder ze spamem.",
+      "back": "← Wróć do logowania",
+      "metaTitle": "Potwierdź adres e-mail | Fire Protection Solutions"
+    },
+    "product": {
+      "badge": "FP Solutions",
+      "cfdTitle": "CFD Cloud",
+      "cfdSubtitle": "Obliczenia FDS w chmurze bez własnej infrastruktury",
+      "calcTitle": "Narzędzia projektowe",
+      "calcSubtitle": "Kalkulatory inżynierskie zgodne z normami",
+      "cfd1": "Dedykowany VM per zlecenie — żadnych kolejek",
+      "cfd2": "Płatność od faktycznego zużycia CPU + storage",
+      "cfd3": "Log FDS na żywo, aktualizowany co 5 sekund",
+      "cfd4": "Wyniki (SMV, CSV, logi) dostępne przez 60 dni",
+      "calc1": "Kalkulator CNBOP-PIB W-0003:2016 — klatki schodowe",
+      "calc2": "Dobór Aᴄz wg PN-B-02877-4:2025 i VdS",
+      "calc3": "Raport gotowy do wydruku w PDF i DOCX",
+      "calc4": "Wzory bezpośrednio z wytycznych — zgodność normowa",
+      "footer": "Zaloguj się lub załóż konto — to nic nie kosztuje",
+      "signUp": "Zarejestruj się →"
+    }
+  },
   "symulacje": {
     "badge": "CFD Cloud",
     "title": "Symulacje FDS w chmurze",
@@ -260,6 +350,117 @@
       "wTrakcie": "W trakcie",
       "zakonczone": "Zakończone",
       "blad": "Błąd"
+    }
+  },
+  "symHistory": {
+    "back": "← CFD Cloud",
+    "title": "Historia symulacji",
+    "live": "Na żywo",
+    "subtitle": "Wszystkie zlecenia FDS powiązane z Twoim kontem.",
+    "searchPlaceholder": "Numer zlecenia (np. FDS-ABC123-XY)",
+    "open": "Otwórz",
+    "loading": "Ładowanie…",
+    "loginPrompt": "Zaloguj się, aby zobaczyć historię symulacji.",
+    "loginCta": "Zaloguj się →",
+    "empty": "Brak zleconych symulacji.",
+    "emptyCta": "Wyślij pierwsze zlecenie →",
+    "deleteError": "Błąd usuwania.",
+    "connError": "Błąd połączenia.",
+    "confirmDelete": "Usunąć <code>{id}</code>?",
+    "confirmActive": "Serwer obliczeniowy zostanie zatrzymany, a zlecenie usunięte.",
+    "confirmDone": "Plik wejściowy i wyniki zostaną trwale usunięte.",
+    "delete": "Usuń",
+    "deleting": "Usuwam…",
+    "cancel": "Anuluj",
+    "deleteTitle": "Usuń zlecenie",
+    "meshes": "{count, plural, one {# siatka} few {# siatki} many {# siatek} other {# siatki}}",
+    "cellsWord": "komórek",
+    "est": "est. {time}",
+    "status": {
+      "pending": "Oczekuje",
+      "dispatched": "W kolejce",
+      "running": "W trakcie",
+      "done": "Zakończone",
+      "failed": "Błąd",
+      "cancelled": "Anulowane",
+      "error": "Błąd"
+    }
+  },
+  "profile": {
+    "loadError": "Nie udało się załadować profilu.",
+    "signOut": "Wyloguj się",
+    "signingOut": "Wylogowywanie…",
+    "memberSince": "Konto od {date} · logowanie: {provider}",
+    "providerEmail": "e-mail",
+    "stats": {
+      "simulations": "Symulacje FDS",
+      "active": "Aktywne obliczenia",
+      "reports": "Raporty",
+      "spent": "Wydatki (opłacone)"
+    },
+    "quickAccess": "Szybki dostęp",
+    "links": {
+      "newSimTitle": "Nowa symulacja FDS",
+      "newSimDesc": "Wgraj plik .fds i uruchom obliczenia w chmurze.",
+      "historyTitle": "Historia symulacji",
+      "historyDesc": "Przeglądaj i pobieraj wyniki wszystkich zleceń.",
+      "calcTitle": "Kalkulatory",
+      "calcDesc": "Dobór klap dymowych i napowietrzania wg norm.",
+      "reportsTitle": "Raporty",
+      "reportsDesc": "Zapisane raporty PDF i DOCX z kalkulatorów.",
+      "billingTitle": "Rozliczenia",
+      "billingDesc": "Faktury i historia płatności za symulacje.",
+      "statsTitle": "Statystyki",
+      "statsDesc": "Zużycie zasobów i podsumowanie kosztów."
+    },
+    "billing": {
+      "title": "Model rozliczeń",
+      "badge": "Pay-as-you-go",
+      "desc": "Płacisz wyłącznie za faktyczne zużycie mocy obliczeniowej i storage — bez abonamentu i opłat stałych. Wycena pojawia się przed uruchomieniem każdej symulacji, a faktury znajdziesz w Rozliczeniach.",
+      "chipEn": "Interfejs EN — wkrótce",
+      "chipVat": "Faktury VAT",
+      "cta": "Rozliczenia →"
+    },
+    "invoice": {
+      "title": "Dane do faktur",
+      "subtitle": "Wykorzystywane automatycznie przy wystawianiu faktur za symulacje.",
+      "fullName": "Imię i nazwisko",
+      "company": "Firma",
+      "nip": "NIP",
+      "nipHint": "Bez myślników, tylko cyfry.",
+      "phone": "Telefon",
+      "address": "Adres",
+      "save": "Zapisz dane",
+      "saving": "Zapisywanie…",
+      "savedOk": "Dane zostały zapisane.",
+      "saveErr": "Błąd zapisu. Spróbuj ponownie.",
+      "phFullName": "Jan Kowalski",
+      "phCompany": "Fire Protection Sp. z o.o.",
+      "phNip": "0000000000",
+      "phPhone": "+48 000 000 000",
+      "phAddress": "ul. Przykładowa 1, 00-000 Warszawa"
+    },
+    "security": {
+      "title": "Bezpieczeństwo",
+      "current": "Obecne hasło",
+      "new": "Nowe hasło",
+      "newPlaceholder": "min. 8 znaków",
+      "change": "Zmień hasło",
+      "changing": "Zmieniam…",
+      "changedOk": "Hasło zostało zmienione.",
+      "changeErr": "Błąd zmiany hasła. Spróbuj ponownie.",
+      "currentWrong": "Obecne hasło jest nieprawidłowe.",
+      "tooShort": "Nowe hasło musi mieć co najmniej 8 znaków.",
+      "oauthNote": "Logujesz się przez <b>{provider}</b>. Hasłem zarządzasz po stronie tego dostawcy — nie ma potrzeby ustawiać go tutaj."
+    },
+    "danger": {
+      "title": "Usuń konto",
+      "warning": "Usunięcie konta jest nieodwracalne. Wszystkie Twoje dane, historia symulacji i raporty zostaną trwale usunięte zgodnie z art. 17 RODO.",
+      "confirmLabel": "Wpisz swój adres e-mail, aby potwierdzić: <b>{email}</b>",
+      "delete": "Trwale usuń konto",
+      "deleting": "Usuwanie…",
+      "mismatch": "Wpisany adres e-mail nie zgadza się.",
+      "error": "Błąd usuwania konta. Spróbuj ponownie lub skontaktuj się z nami."
     }
   }
 }

@@ -1,11 +1,24 @@
-import Link from "next/link";
 import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "Potwierdź adres e-mail | Fire Protection Solutions",
-};
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: "auth.confirmEmail" });
+  return { title: t("metaTitle") };
+}
 
-export default function PotwierdzenieEmailPage() {
+export default function PotwierdzenieEmailPage({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  setRequestLocale(locale);
+  const t = useTranslations("auth.confirmEmail");
   return (
     <section className="relative z-10 py-16 lg:py-24">
       <div className="container">
@@ -18,23 +31,22 @@ export default function PotwierdzenieEmailPage() {
           </div>
 
           <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-            Sprawdź skrzynkę e-mail
+            {t("title")}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-            Wysłaliśmy link potwierdzający na Twój adres e-mail.
-            Kliknij w link, żeby aktywować konto i przejść do panelu.
+            {t("body")}
           </p>
 
           <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#1E232E] px-4 py-3 text-xs text-slate-500 dark:text-slate-400 text-left space-y-1 mb-6">
-            <p>Link jest ważny przez <strong className="text-slate-700 dark:text-slate-300">24 godziny</strong>.</p>
-            <p>Jeśli e-mail nie dotarł, sprawdź folder ze spamem.</p>
+            <p>{t("validity")}</p>
+            <p>{t("spam")}</p>
           </div>
 
           <Link
             href="/signin"
             className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"
           >
-            ← Wróć do logowania
+            {t("back")}
           </Link>
 
         </div>

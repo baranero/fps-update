@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth.reset");
+  const tc = useTranslations("auth.common");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -21,7 +24,7 @@ export default function ResetPasswordPage() {
     });
 
     if (error) {
-      setError("Nie udało się wysłać e-maila. Sprawdź adres i spróbuj ponownie.");
+      setError(t("error"));
     } else {
       setSent(true);
     }
@@ -36,9 +39,9 @@ export default function ResetPasswordPage() {
           <Link href="/" className="inline-block mb-6">
             <span className="text-2xl font-black text-primary tracking-tight">FP Solutions</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reset hasła</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Wyślemy link do zmiany hasła na Twój adres e-mail.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -51,30 +54,30 @@ export default function ResetPasswordPage() {
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-slate-900 dark:text-white">Sprawdź skrzynkę</p>
+                <p className="font-semibold text-slate-900 dark:text-white">{t("sentTitle")}</p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Wysłaliśmy link na <strong>{email}</strong>. Link jest ważny przez 24 godziny.
+                  {t.rich("sentBody", { b: (chunks) => <strong>{chunks}</strong>, email })}
                 </p>
               </div>
               <Link
                 href="/signin"
                 className="inline-block text-sm font-medium text-primary hover:underline mt-2"
               >
-                Wróć do logowania
+                {tc("backToSignin")}
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Adres e-mail
+                  {tc("email")}
                 </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jan@firma.pl"
+                  placeholder={tc("emailPlaceholder")}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -88,12 +91,12 @@ export default function ResetPasswordPage() {
                 disabled={loading || !email.trim()}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? "Wysyłam…" : "Wyślij link resetujący"}
+                {loading ? t("submitting") : t("submit")}
               </button>
 
               <p className="text-center text-sm text-slate-500 dark:text-slate-400">
                 <Link href="/signin" className="font-medium text-primary hover:underline">
-                  Wróć do logowania
+                  {tc("backToSignin")}
                 </Link>
               </p>
             </form>

@@ -150,6 +150,96 @@
       "ogDescription": "Fire alarm, smoke control and CFD projects, plus the CFD Cloud platform for FDS computations. We work across Poland and serve engineers globally."
     }
   },
+  "auth": {
+    "common": {
+      "orEmail": "or email and password",
+      "email": "Email address",
+      "emailPlaceholder": "jane@company.com",
+      "password": "Password",
+      "redirecting": "Redirecting…",
+      "backToSignin": "Back to sign in",
+      "generic": "Something went wrong. Please try again."
+    },
+    "signin": {
+      "title": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "google": "Continue with Google",
+      "github": "Continue with GitHub",
+      "forgot": "Forgot your password?",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "errInvalid": "Invalid email or password.",
+      "errNotConfirmed": "Please confirm your email address before signing in. Check your inbox.",
+      "errLinkInvalid": "The verification link has expired or is invalid. Please try signing in again."
+    },
+    "signup": {
+      "title": "Create an account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "consent": "I have read the <privacy>privacy policy</privacy> and <terms>terms of service</terms> and accept them. I consent to the processing of my personal data for account management and service delivery.",
+      "consentRequiredOauth": "Please accept the privacy policy and terms of service before continuing.",
+      "consentRequired": "You must accept the privacy policy and terms of service.",
+      "google": "Sign up with Google",
+      "github": "Sign up with GitHub",
+      "passwordPlaceholder": "min. 8 characters",
+      "submit": "Sign up",
+      "submitting": "Signing up…",
+      "gdpr": "The data controller is Fire Protection Solutions. We process your data solely for the purposes stated in the privacy policy. You have the right to access, rectify, erase and port your data.",
+      "errExists": "An account with this email already exists.",
+      "errInvalidEmail": "Invalid email address format.",
+      "errWeak": "The password is too weak. Use at least 8 characters.",
+      "errGeneric": "Something went wrong during sign-up. Please try again."
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "We'll send a password reset link to your email address.",
+      "sentTitle": "Check your inbox",
+      "sentBody": "We sent a link to <b>{email}</b>. The link is valid for 24 hours.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "error": "Could not send the email. Check the address and try again."
+    },
+    "newPassword": {
+      "title": "New password",
+      "subtitle": "Set a new password for your account.",
+      "newPass": "New password",
+      "newPassPlaceholder": "At least 8 characters",
+      "confirm": "Confirm password",
+      "confirmPlaceholder": "Repeat the password",
+      "tooShort": "The password must be at least 8 characters.",
+      "mismatch": "The passwords do not match.",
+      "error": "Could not change the password. The link may have expired — please try again.",
+      "sendNewLink": "Send a new link",
+      "submit": "Set new password",
+      "submitting": "Saving…"
+    },
+    "confirmEmail": {
+      "title": "Check your email inbox",
+      "body": "We sent a confirmation link to your email address. Click the link to activate your account and go to your panel.",
+      "validity": "The link is valid for 24 hours.",
+      "spam": "If the email hasn't arrived, check your spam folder.",
+      "back": "← Back to sign in",
+      "metaTitle": "Confirm your email | Fire Protection Solutions"
+    },
+    "product": {
+      "badge": "FP Solutions",
+      "cfdTitle": "CFD Cloud",
+      "cfdSubtitle": "FDS computations in the cloud without your own infrastructure",
+      "calcTitle": "Engineering tools",
+      "calcSubtitle": "Engineering calculators compliant with standards",
+      "cfd1": "Dedicated VM per job — no queues",
+      "cfd2": "Pay for actual CPU + storage usage",
+      "cfd3": "Live FDS log, updated every 5 seconds",
+      "cfd4": "Results (SMV, CSV, logs) available for 60 days",
+      "calc1": "CNBOP-PIB W-0003:2016 calculator — stairwells",
+      "calc2": "Aᴄz sizing per PN-B-02877-4:2025 and VdS",
+      "calc3": "Report ready to print in PDF and DOCX",
+      "calc4": "Formulas straight from the guidelines — standard-compliant",
+      "footer": "Sign in or create an account — it's free",
+      "signUp": "Sign up →"
+    }
+  },
   "symulacje": {
     "badge": "CFD Cloud",
     "title": "FDS simulations in the cloud",
@@ -260,6 +350,117 @@
       "wTrakcie": "Running",
       "zakonczone": "Completed",
       "blad": "Error"
+    }
+  },
+  "symHistory": {
+    "back": "← CFD Cloud",
+    "title": "Simulation history",
+    "live": "Live",
+    "subtitle": "All FDS jobs linked to your account.",
+    "searchPlaceholder": "Job number (e.g. FDS-ABC123-XY)",
+    "open": "Open",
+    "loading": "Loading…",
+    "loginPrompt": "Sign in to see your simulation history.",
+    "loginCta": "Sign in →",
+    "empty": "No simulations yet.",
+    "emptyCta": "Submit your first job →",
+    "deleteError": "Delete failed.",
+    "connError": "Connection error.",
+    "confirmDelete": "Delete <code>{id}</code>?",
+    "confirmActive": "The compute server will be stopped and the job deleted.",
+    "confirmDone": "The input file and results will be permanently deleted.",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete job",
+    "meshes": "{count, plural, one {# mesh} other {# meshes}}",
+    "cellsWord": "cells",
+    "est": "est. {time}",
+    "status": {
+      "pending": "Pending",
+      "dispatched": "Queued",
+      "running": "Running",
+      "done": "Completed",
+      "failed": "Error",
+      "cancelled": "Cancelled",
+      "error": "Error"
+    }
+  },
+  "profile": {
+    "loadError": "Could not load your profile.",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "memberSince": "Member since {date} · sign-in: {provider}",
+    "providerEmail": "email",
+    "stats": {
+      "simulations": "FDS simulations",
+      "active": "Active computations",
+      "reports": "Reports",
+      "spent": "Spend (paid)"
+    },
+    "quickAccess": "Quick access",
+    "links": {
+      "newSimTitle": "New FDS simulation",
+      "newSimDesc": "Upload a .fds file and run the computation in the cloud.",
+      "historyTitle": "Simulation history",
+      "historyDesc": "Browse and download the results of all your jobs.",
+      "calcTitle": "Calculators",
+      "calcDesc": "Smoke-vent and air-supply sizing to standards.",
+      "reportsTitle": "Reports",
+      "reportsDesc": "Saved PDF and DOCX reports from the calculators.",
+      "billingTitle": "Billing",
+      "billingDesc": "Invoices and payment history for simulations.",
+      "statsTitle": "Statistics",
+      "statsDesc": "Resource usage and cost summary."
+    },
+    "billing": {
+      "title": "Billing model",
+      "badge": "Pay-as-you-go",
+      "desc": "You pay only for actual compute power and storage usage — no subscription or fixed fees. A quote appears before each simulation runs, and invoices are in Billing.",
+      "chipEn": "English interface — soon",
+      "chipVat": "VAT invoices",
+      "cta": "Billing →"
+    },
+    "invoice": {
+      "title": "Invoice details",
+      "subtitle": "Used automatically when issuing invoices for simulations.",
+      "fullName": "Full name",
+      "company": "Company",
+      "nip": "VAT ID",
+      "nipHint": "Digits only, no dashes.",
+      "phone": "Phone",
+      "address": "Address",
+      "save": "Save details",
+      "saving": "Saving…",
+      "savedOk": "Your details have been saved.",
+      "saveErr": "Save error. Please try again.",
+      "phFullName": "John Smith",
+      "phCompany": "Fire Protection Ltd.",
+      "phNip": "0000000000",
+      "phPhone": "+48 000 000 000",
+      "phAddress": "1 Example St., 00-000 Warsaw"
+    },
+    "security": {
+      "title": "Security",
+      "current": "Current password",
+      "new": "New password",
+      "newPlaceholder": "min. 8 characters",
+      "change": "Change password",
+      "changing": "Changing…",
+      "changedOk": "Your password has been changed.",
+      "changeErr": "Password change error. Please try again.",
+      "currentWrong": "The current password is incorrect.",
+      "tooShort": "The new password must be at least 8 characters.",
+      "oauthNote": "You sign in with <b>{provider}</b>. Your password is managed by that provider — there's no need to set one here."
+    },
+    "danger": {
+      "title": "Delete account",
+      "warning": "Deleting your account is irreversible. All your data, simulation history and reports will be permanently deleted in line with Art. 17 GDPR.",
+      "confirmLabel": "Type your email address to confirm: <b>{email}</b>",
+      "delete": "Permanently delete account",
+      "deleting": "Deleting…",
+      "mismatch": "The email address you entered doesn't match.",
+      "error": "Account deletion error. Please try again or contact us."
     }
   }
 }

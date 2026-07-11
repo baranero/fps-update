@@ -17,6 +17,7 @@ import "../../styles/index.css";
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl"),
   icons: { icon: "/favicon.webp" },
 };
 

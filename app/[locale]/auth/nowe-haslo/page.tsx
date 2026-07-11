@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function NoweHasloPage() {
+  const t = useTranslations("auth.newPassword");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ export default function NoweHasloPage() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      setError("Nie udało się zmienić hasła. Link mógł wygasnąć — spróbuj ponownie.");
+      setError(t("error"));
       setLoading(false);
       return;
     }
@@ -42,9 +43,9 @@ export default function NoweHasloPage() {
           <Link href="/" className="inline-block mb-6">
             <span className="text-2xl font-black text-primary tracking-tight">FP Solutions</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Nowe hasło</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Ustaw nowe hasło do swojego konta.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -53,14 +54,14 @@ export default function NoweHasloPage() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                Nowe hasło
+                {t("newPass")}
               </label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimum 8 znaków"
+                placeholder={t("newPassPlaceholder")}
                 className={`w-full rounded-lg border bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 transition-colors ${
                   weak
                     ? "border-red-400 focus:border-red-400 focus:ring-red-400"
@@ -68,20 +69,20 @@ export default function NoweHasloPage() {
                 }`}
               />
               {weak && (
-                <p className="mt-1 text-xs text-red-500">Hasło musi mieć co najmniej 8 znaków.</p>
+                <p className="mt-1 text-xs text-red-500">{t("tooShort")}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                Potwierdź hasło
+                {t("confirm")}
               </label>
               <input
                 type="password"
                 required
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Powtórz hasło"
+                placeholder={t("confirmPlaceholder")}
                 className={`w-full rounded-lg border bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 transition-colors ${
                   mismatch
                     ? "border-red-400 focus:border-red-400 focus:ring-red-400"
@@ -89,7 +90,7 @@ export default function NoweHasloPage() {
                 }`}
               />
               {mismatch && (
-                <p className="mt-1 text-xs text-red-500">Hasła nie są identyczne.</p>
+                <p className="mt-1 text-xs text-red-500">{t("mismatch")}</p>
               )}
             </div>
 
@@ -97,7 +98,7 @@ export default function NoweHasloPage() {
               <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
                 {error}{" "}
                 <Link href="/auth/reset-password" className="underline font-medium">
-                  Wyślij nowy link
+                  {t("sendNewLink")}
                 </Link>
               </div>
             )}
@@ -107,7 +108,7 @@ export default function NoweHasloPage() {
               disabled={!canSubmit}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "Zapisuję…" : "Ustaw nowe hasło"}
+              {loading ? t("submitting") : t("submit")}
             </button>
 
           </form>
