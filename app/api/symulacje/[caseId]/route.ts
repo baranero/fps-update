@@ -10,6 +10,17 @@ export async function GET(
   { params }: { params: { caseId: string } }
 ) {
   const { caseId } = params;
+  try {
+    return await handleGet(caseId);
+  } catch (err) {
+    // Ostatnia linia obrony — żaden nieprzewidziany wyjątek nie może zwrócić
+    // gołego 500 (który front pokazuje jako „Błąd połączenia"). Loguj i oddaj JSON.
+    console.error(`GET /api/symulacje/${caseId} unhandled:`, err);
+    return NextResponse.json({ error: "Błąd serwera." }, { status: 500 });
+  }
+}
+
+async function handleGet(caseId: string) {
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
@@ -19,26 +30,35 @@ export async function GET(
     .single();
 
   if (error) {
-    console.error(`GET /api/symulacje/${caseId} error:`, error);
+    // Brak wiersza => 404 (a nie ogólny "błąd połączenia"); realny błąd => 500
+    if (error.code === "PGRST116") {
+      return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
+    }
+    console.error(`GET /api/symulacje/${caseId} db error:`, error);
     return NextResponse.json({ error: "Błąd bazy danych." }, { status: 500 });
   }
   if (!data) {
     return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
   }
 
-  // Jeśli done — wygeneruj signed URLs dla plików wynikowych z Hetzner Object Storage
+  // Jeśli done — wygeneruj signed URLs dla plików wynikowych z Hetzner Object Storage.
+  // Awaria storage NIE może blokować całej strony — degraduj do braku listy plików.
   let results: Array<{ name: string; url: string }> | null = null;
   if (data.status === "done") {
-    const files = await listResults(caseId);
-    if (files.length > 0) {
-      results = await Promise.all(
-        files.map(async (f) => ({
-          name: f.Key!.split("/").pop()!,
-          url: await signedResultUrl(f.Key!),
-          size: f.Size ?? null,
-          createdAt: f.LastModified?.toISOString() ?? null,
-        }))
-      );
+    try {
+      const files = await listResults(caseId);
+      if (files.length > 0) {
+        results = await Promise.all(
+          files.map(async (f) => ({
+            name: f.Key!.split("/").pop()!,
+            url: await signedResultUrl(f.Key!),
+            size: f.Size ?? null,
+            createdAt: f.LastModified?.toISOString() ?? null,
+          }))
+        );
+      }
+    } catch (err) {
+      console.error(`GET /api/symulacje/${caseId}: listResults/signedUrl error (zwracam bez plików):`, err);
     }
   }
 
