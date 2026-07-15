@@ -4,6 +4,14 @@ export interface FdsMeshDetail {
   minCellDim: number | null; // najmniejszy wymiar komórki [m], null gdy brak XB
 }
 
+// Pojedyncze urządzenie DEVC — używane do połączenia przebiegu z CSV z setpointem
+// (nazwa kolumny w CHID_devc.csv = ID urządzenia).
+export interface FdsDevc {
+  id: string;
+  quantity: string | null;
+  setpoint: number | null;
+}
+
 export interface FdsParseResult {
   chid: string | null;
   meshCount: number;
@@ -16,6 +24,7 @@ export interface FdsParseResult {
   obstCount: number;
   ventCount: number;
   devcCount: number;
+  devcs: FdsDevc[];
   minCellDim: number | null; // min z wszystkich siatek [m], null gdy brak XB
   valid: boolean;
   error?: string;
@@ -100,6 +109,7 @@ export function parseFds(content: string): FdsParseResult {
     obstCount: 0,
     ventCount: 0,
     devcCount: 0,
+    devcs: [],
     minCellDim: null,
     valid: false,
   };
@@ -172,9 +182,20 @@ export function parseFds(content: string): FdsParseResult {
       case "VENT":
         result.ventCount++;
         break;
-      case "DEVC":
+      case "DEVC": {
         result.devcCount++;
+        const id = getStringParam(nl.body, "ID");
+        if (id) {
+          const sp = getParam(nl.body, "SETPOINT");
+          const setpoint = sp !== null ? parseFloat(sp) : null;
+          result.devcs.push({
+            id,
+            quantity: getStringParam(nl.body, "QUANTITY"),
+            setpoint: setpoint !== null && !isNaN(setpoint) ? setpoint : null,
+          });
+        }
         break;
+      }
     }
   }
 
@@ -208,6 +229,16 @@ function pickServerType(meshCount: number): string {
   if (meshCount <= 4)  return "cpx31";
   if (meshCount <= 8)  return "cpx41";
   return "cpx51";
+}
+
+// Opis dobranej maszyny do wyświetlenia w UI (np. "CPX41 · 8 vCPU").
+// Bezpieczny do importu w komponencie klienckim — brak zależności server-only.
+export function serverSpec(type: string | null): { cores: number | null; label: string } {
+  if (!type) return { cores: null, label: "—" };
+  const spec = HETZNER_CCX[type];
+  const name = type.toUpperCase();
+  if (!spec) return { cores: null, label: name };
+  return { cores: spec.cores, label: `${name} · ${spec.cores} vCPU` };
 }
 
 // ─── Algorytm kalibrowany z trzech punktów pomiarowych ───────────────────────

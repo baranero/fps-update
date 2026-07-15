@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import JSZip from "jszip";
+import LiveCharts from "./LiveCharts";
+import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
+import { explainFdsErrors, type FdsErrorInfo } from "@/lib/fds/errors";
 
 interface JobData {
   caseId: string;
@@ -21,8 +24,61 @@ interface JobData {
   startedAt: string | null;
   completedAt: string | null;
   fdsLog: string | null;
+  fdsExitCode: number | null;
+  devcCsv: string | null;
+  hrrCsv: string | null;
+  devcSetpoints: FdsDevc[] | null;
+  stopRequested: boolean;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
   paymentStatus: "paid" | "pending" | null;
+}
+
+// Karty z wyjaśnieniem błędów FDS (co oznacza + jak naprawić)
+function FdsErrorCards({ errors }: { errors: FdsErrorInfo[] }) {
+  if (!errors.length) return null;
+  return (
+    <div className="space-y-2">
+      {errors.map((e, i) => (
+        <div key={i} className="rounded border border-red-200 dark:border-red-800/50 bg-white/70 dark:bg-[#0B1120]/50 p-3">
+          <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+            {e.code && (
+              <span className="font-mono text-[10px] mr-1.5 rounded bg-red-100 dark:bg-red-900/40 px-1.5 py-0.5 align-middle">
+                ERROR {e.code}
+              </span>
+            )}
+            {e.title}
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5">{e.explanation}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <span className="font-semibold text-slate-600 dark:text-slate-300">Jak naprawić:</span> {e.hint}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Krytyczny błąd FDS w logu — te same markery co reklasyfikacja exit0→failed
+// w cloud-init. Gdy obecny, zlecenie jest realnie nieudane, nawet jeśli backend
+// jeszcze nie zdążył przestawić statusu (albo stary job liczył się starym runnerem).
+function hasFatalFdsError(log: string | null): boolean {
+  if (!log) return false;
+  return /improperly set-?up|forrtl:\s*severe|\bFatal error\b/i.test(log);
+}
+
+// Wyciąga z logu FDS linie wyglądające na błąd (deduplikacja, ostatnie ~12)
+function extractErrorLines(log: string | null): string[] {
+  if (!log) return [];
+  const rx = /\b(error|fatal|forrtl|severe|abort|cannot|not found|failed|denied|no such)\b/i;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of log.split("\n")) {
+    const l = raw.trim();
+    if (!l || !rx.test(l) || seen.has(l)) continue;
+    seen.add(l);
+    out.push(l);
+  }
+  return out.slice(-12);
 }
 
 const STATUS_CONFIG = {
@@ -204,22 +260,24 @@ export default function JobStatusPage({
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
   const termScrolledUpRef = useRef(false);
-  const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [finalCsv, setFinalCsv] = useState<{ devc: string | null; hrr: string | null }>({ devc: null, hrr: null });
 
-  const handleCancel = async () => {
-    if (!confirm("Anulować obliczenia? Serwer zostanie zatrzymany.")) return;
-    setCancelling(true);
+  // Łagodne zatrzymanie — FDS zapisuje wyniki policzone do tej pory (bez usuwania)
+  const handleStop = async () => {
+    setStopping(true);
     try {
-      const res = await fetch(`/api/symulacje/${caseId}/cancel`, { method: "POST" });
+      const res = await fetch(`/api/symulacje/${caseId}/stop`, { method: "POST" });
       if (res.ok) {
-        setJob((j) => j ? { ...j, status: "cancelled" } : j);
-        if (intervalRef.current) clearInterval(intervalRef.current);
+        setJob((j) => j ? { ...j, stopRequested: true } : j);
       }
     } finally {
-      setCancelling(false);
+      setStopping(false);
+      setConfirmCancel(false);
     }
   };
 
@@ -304,6 +362,26 @@ export default function JobStatusPage({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.fdsLog, logMode]);
+
+  // Po zakończeniu — pobierz pełne CSV z wyników (pełna rozdzielczość wykresów),
+  // niezależnie od zdownsamplowanego strumienia z trakcie obliczeń.
+  useEffect(() => {
+    if (job?.status !== "done" || !job.results?.length) return;
+    const devcF = job.results.find((f) => f.name.toLowerCase().endsWith("_devc.csv"));
+    const hrrF = job.results.find((f) => f.name.toLowerCase().endsWith("_hrr.csv"));
+    if (!devcF && !hrrF) return;
+    let cancelled = false;
+    const load = async (url?: string) => {
+      if (!url) return null;
+      try { return await (await fetch(url)).text(); } catch { return null; }
+    };
+    (async () => {
+      const [devc, hrr] = await Promise.all([load(devcF?.url), load(hrrF?.url)]);
+      if (!cancelled) setFinalCsv({ devc, hrr });
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.status, job?.results]);
 
   const allFiles = job?.results ?? [];
   const allSelected = allFiles.length > 0 && allFiles.every((f) => selected.has(f.name));
@@ -411,8 +489,15 @@ export default function JobStatusPage({
     </section>
   );
 
-  const cfg = STATUS_CONFIG[job.status];
-  const isActive = job.status === "running" || job.status === "dispatched";
+  // FDS mógł przerwać obliczenia błędem, zanim backend przestawi status na "failed"
+  // (albo job liczył się starym runnerem bez reklasyfikacji). Traktuj to jak błąd.
+  const fatalErr = hasFatalFdsError(job.fdsLog);
+  const isRunning = job.status === "running";
+  const effectiveFailed = job.status === "failed" || (isRunning && fatalErr);
+  const displayStatus = effectiveFailed ? "failed" : job.status;
+
+  const cfg = STATUS_CONFIG[displayStatus];
+  const isActive = (job.status === "running" || job.status === "dispatched") && !fatalErr;
   const canCancel = ["pending", "dispatched", "running"].includes(job.status);
   const isTerminal = ["done", "failed", "cancelled"].includes(job.status);
 
@@ -462,58 +547,127 @@ export default function JobStatusPage({
                 </span>
               </p>
             )}
+            {job.serverType && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                Dobrana maszyna: <span className="font-mono font-bold">{serverSpec(job.serverType).label}</span>
+                <span className="ml-1 text-slate-400 dark:text-slate-500">(Hetzner Cloud, AMD EPYC)</span>
+              </p>
+            )}
           </div>
 
           {/* Akcje */}
           {(canCancel || isTerminal) && (
-            <div className="flex items-center gap-3 flex-wrap">
-              {canCancel && (
-                <button
-                  onClick={handleCancel}
-                  disabled={cancelling}
-                  className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {cancelling ? (
-                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                {isRunning && !fatalErr && (
+                  job.stopRequested ? (
+                    <span className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      Zatrzymywanie…
+                    </span>
+                  ) : confirmCancel ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 flex-wrap">
+                      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Zatrzymać obliczenia teraz? Wyniki policzone do tej pory zostaną zapisane.</span>
+                      <button
+                        onClick={handleStop}
+                        disabled={stopping}
+                        className="rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
+                      >
+                        {stopping ? "Zatrzymywanie…" : "Tak, zatrzymaj"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancel(false)}
+                        disabled={stopping}
+                        className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-60"
+                      >
+                        Nie
+                      </button>
+                    </div>
                   ) : (
+                    <button
+                      onClick={() => { setConfirmCancel(true); setConfirmDelete(false); }}
+                      className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 16V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2z" />
+                      </svg>
+                      Zatrzymaj obliczenia
+                    </button>
+                  )
+                )}
+
+                {confirmDelete ? (
+                  <div className="flex flex-col gap-2 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 w-full">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                      {canCancel ? "Usunąć liczącą się symulację?" : "Usunąć zlecenie?"}
+                    </p>
+                    <p className="text-xs text-red-600/90 dark:text-red-400/90">
+                      {canCancel
+                        ? "Serwer obliczeniowy zostanie zatrzymany, a zlecenie, plik wejściowy i wszystkie wyniki — trwale usunięte. Tej operacji nie można cofnąć."
+                        : "Zlecenie, plik wejściowy i wyniki zostaną trwale usunięte. Tej operacji nie można cofnąć."}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
+                      >
+                        {deleting ? "Usuwanie…" : canCancel ? "Tak, zatrzymaj i usuń" : "Tak, usuń"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        disabled={deleting}
+                        className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-60"
+                      >
+                        Anuluj
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setConfirmDelete(true); setConfirmCancel(false); }}
+                    className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                  >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
+                    {canCancel ? "Zatrzymaj i usuń" : "Usuń zlecenie"}
+                  </button>
+                )}
+              </div>
+
+              {/* Adnotacje — co robią przyciski */}
+              {!confirmDelete && !confirmCancel && !job.stopRequested && (
+                <ul className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 space-y-1">
+                  {isRunning && !fatalErr && (
+                    <li>
+                      <span className="font-semibold text-amber-600 dark:text-amber-400">Zatrzymaj obliczenia</span> — kończy symulację w bieżącym kroku.
+                      Wyniki policzone do tej pory zostają zapisane i będą dostępne do pobrania. Naliczamy tylko faktyczne zużycie serwera.
+                    </li>
                   )}
-                  {cancelling ? "Zatrzymywanie…" : "Anuluj obliczenia"}
-                </button>
+                  <li>
+                    <span className="font-semibold text-red-600 dark:text-red-400">{canCancel ? "Zatrzymaj i usuń" : "Usuń zlecenie"}</span> — trwale usuwa zlecenie, plik wejściowy i wyniki; operacji nie można cofnąć.
+                    {canCancel && " Uwaga: symulacja jest w toku — usunięcie zatrzyma płatny serwer i skasuje liczące się obliczenia bez zapisu wyników."}
+                  </li>
+                </ul>
               )}
 
-              {confirmDelete ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">Potwierdź usunięcie:</span>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
-                  >
-                    {deleting ? "Usuwanie…" : "Tak, usuń"}
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(false)}
-                    className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              {/* Trwa łagodne zatrzymanie */}
+              {isRunning && job.stopRequested && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-start gap-3">
+                  <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {canCancel ? "Zatrzymaj i usuń" : "Usuń zlecenie"}
-                </button>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Zatrzymywanie na życzenie…</p>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1">
+                      FDS kończy bieżący krok czasowy i zapisuje wyniki. Za chwilę zlecenie przejdzie w stan „Gotowe” z plikami do pobrania.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -572,6 +726,7 @@ export default function JobStatusPage({
           {/* Model details */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
+              ...(job.serverType ? [{ label: "Maszyna", value: serverSpec(job.serverType).label }] : []),
               { label: "Komórki", value: formatCells(job.totalCells) },
               { label: "Czas symulacji", value: `${job.tEnd} s` },
               { label: "vCPU-hours", value: job.vcpuHours.toFixed(1) },
@@ -749,6 +904,38 @@ export default function JobStatusPage({
                     </div>
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* Wyniki na żywo — wykresy DEVC / HRR */}
+          {(job.status === "running" || job.status === "done" || job.status === "failed") && (
+            <LiveCharts
+              devcCsv={finalCsv.devc ?? job.devcCsv}
+              hrrCsv={finalCsv.hrr ?? job.hrrCsv}
+              setpoints={job.devcSetpoints}
+              running={isRunning && !fatalErr}
+            />
+          )}
+
+          {/* Gotowe, ale w logu FDS są błędy — siatka bezpieczeństwa */}
+          {job.status === "done" && (() => {
+            const explained = explainFdsErrors(job.fdsLog);
+            if (explained.length === 0) return null;
+            return (
+              <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 flex items-start gap-4">
+                <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" />
+                </svg>
+                <div className="min-w-0 w-full">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Uwaga: w logu FDS wykryto błędy</p>
+                  <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1">
+                    Obliczenia zostały zamknięte, ale FDS zgłosił poniższe błędy — wyniki mogą być niekompletne lub niewiarygodne. Zweryfikuj je przed wykorzystaniem.
+                  </p>
+                  <div className="mt-3">
+                    <FdsErrorCards errors={explained} />
+                  </div>
+                </div>
               </div>
             );
           })()}
@@ -949,21 +1136,57 @@ export default function JobStatusPage({
             </div>
           )}
 
-          {/* Kontakt przy błędzie */}
-          {job.status === "failed" && (
-            <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-5 flex items-start gap-4">
-              <svg className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-red-700 dark:text-red-400">Obliczenia zakończyły się błędem.</p>
-                <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
-                  Skontaktuj się z nami podając numer zlecenia:{" "}
-                  <a href="mailto:biuro@fp-solutions.pl" className="underline">biuro@fp-solutions.pl</a>
-                </p>
+          {/* Błąd — treść i status */}
+          {effectiveFailed && (() => {
+            const launchFailure = !job.startedAt;
+            const stillRunning = job.status !== "failed"; // FDS przerwał, ale backend jeszcze nie przestawił statusu
+            const errLines = extractErrorLines(job.fdsLog);
+            const explained = explainFdsErrors(job.fdsLog);
+            return (
+              <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-5 flex items-start gap-4">
+                <svg className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="min-w-0 w-full">
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                    {launchFailure ? "Nie udało się uruchomić obliczeń." : "Obliczenia zostały przerwane błędem."}
+                  </p>
+                  <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
+                    {launchFailure
+                      ? "Serwer obliczeniowy nie wystartował poprawnie (uruchomienie maszyny, instalacja FDS lub pobranie pliku)."
+                      : "FDS odrzucił plik wejściowy i zatrzymał obliczenia. Poniżej wyjaśnienie oraz fragment logu z komunikatami o błędzie."}
+                    {stillRunning && " Serwer kończy pracę — status zmieni się na „Błąd” za chwilę."}
+                    {job.fdsExitCode != null && (
+                      <> {" "}Kod wyjścia: <span className="font-mono font-bold">{job.fdsExitCode}</span>.</>
+                    )}
+                  </p>
+
+                  {explained.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2">Co oznacza ten błąd?</p>
+                      <FdsErrorCards errors={explained} />
+                    </div>
+                  )}
+
+                  {errLines.length > 0 && (
+                    <details className="mt-3" open={explained.length === 0}>
+                      <summary className="text-[11px] font-medium text-red-600/80 dark:text-red-500 cursor-pointer select-none">
+                        Surowe linie z konsoli FDS
+                      </summary>
+                      <div className="mt-2 rounded bg-slate-900 p-3 max-h-56 overflow-auto">
+                        <pre className="text-[11px] font-mono text-red-300 leading-relaxed whitespace-pre-wrap break-all">{errLines.join("\n")}</pre>
+                      </div>
+                    </details>
+                  )}
+
+                  <p className="text-xs text-red-600/80 dark:text-red-500 mt-3">
+                    Nie zostaniesz obciążony za nieudane zlecenie. W razie pytań podaj numer zlecenia:{" "}
+                    <a href="mailto:biuro@fp-solutions.pl" className="underline">biuro@fp-solutions.pl</a>
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
       </div>
