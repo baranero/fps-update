@@ -58,6 +58,11 @@ export async function GET(
     startedAt: data.started_at,
     completedAt: data.completed_at,
     fdsLog: data.fds_log ?? null,
+    fdsExitCode: data.fds_exit_code ?? null,
+    devcCsv: data.devc_csv ?? null,
+    hrrCsv: data.hrr_csv ?? null,
+    devcSetpoints: data.devc_setpoints ?? null,
+    stopRequested: data.stop_requested === true,
     results,
     paymentStatus: data.payment_status ?? null,
   });

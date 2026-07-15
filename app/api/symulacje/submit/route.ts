@@ -252,6 +252,7 @@ export async function POST(req: NextRequest) {
       obst_count: parsed.obstCount,
       vent_count: parsed.ventCount,
       devc_count: parsed.devcCount,
+      devc_setpoints: parsed.devcs,
       vcpu_hours: estimate.vcpuHours,
       wall_hours: estimate.wallHours,
       price: estimate.price,

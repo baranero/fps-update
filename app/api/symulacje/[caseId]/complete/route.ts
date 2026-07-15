@@ -130,10 +130,12 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode, log } = body as {
+  const { status, exitCode, log, devcCsv, hrrCsv } = body as {
     status?: string;
     exitCode?: number;
     log?: string;
+    devcCsv?: string;
+    hrrCsv?: string;
   };
 
   const supabase = createAdminClient();
@@ -146,6 +148,20 @@ export async function POST(
     } catch { /* ignore */ }
   }
 
+  // Podgląd wyników na żywo — strumieniowane CSV (base64) z maszyny liczącej
+  if (devcCsv) {
+    try {
+      const decoded = Buffer.from(devcCsv, "base64").toString("utf8");
+      if (decoded.trim()) updates.devc_csv = decoded;
+    } catch { /* ignore */ }
+  }
+  if (hrrCsv) {
+    try {
+      const decoded = Buffer.from(hrrCsv, "base64").toString("utf8");
+      if (decoded.trim()) updates.hrr_csv = decoded;
+    } catch { /* ignore */ }
+  }
+
   if (status === "running") {
     updates.status = "running";
     // started_at ustawiany osobno tylko przy pierwszym przejściu — poniżej
@@ -155,12 +171,18 @@ export async function POST(
     updates.fds_exit_code = exitCode ?? null;
   }
 
-  const { data: row } = await supabase
+  const { data: row, error: updateError } = await supabase
     .from("fds_submissions")
     .update(updates)
     .eq("case_id", caseId)
-    .select("email, name, file_name, price, wall_hours, server_type, server_id, dispatched_at, started_at, completed_at")
+    .select("email, name, file_name, price, wall_hours, server_type, server_id, dispatched_at, started_at, completed_at, stop_requested")
     .single();
+
+  // Nie połykaj błędu zapisu — najczęściej brak kolumny (nieuruchomiona migracja
+  // migration_devc_stream.sql) blokuje zapis devc_csv/hrr_csv/stop_requested.
+  if (updateError) {
+    console.error(`complete webhook: update error [${caseId}] (uruchom migration_devc_stream.sql?):`, updateError.message);
+  }
 
   // Ustaw started_at tylko jeśli jeszcze nie ustawiony (pierwsze "running")
   if (status === "running") {
@@ -228,5 +250,6 @@ export async function POST(
     });
   }
 
-  return NextResponse.json({ ok: true });
+  // Odpowiedź czytana przez maszynę liczącą — sygnał łagodnego zatrzymania (plik CHID.stop)
+  return NextResponse.json({ ok: true, stop: row?.stop_requested === true });
 }
