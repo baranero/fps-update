@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import JSZip from "jszip";
 import LiveCharts from "./LiveCharts";
 import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
@@ -222,7 +221,6 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const [, setTick] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [zipping, setZipping] = useState(false);
   const [dlMsg, setDlMsg] = useState<string | null>(null);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
@@ -371,60 +369,20 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     a.click();
   };
 
-  // Limit pakowania w przeglądarce — powyżej niego trzymanie wszystkich plików
-  // w pamięci JS wywala się (RangeError: Array buffer allocation failed).
-  const ZIP_LIMIT_BYTES = 120 * 1024 * 1024;
-
-  const downloadZip = async (files: Array<{ name: string }>) => {
-    if (files.length === 0) return;
-    setZipping(true);
-    try {
-      const zip = new JSZip();
-      await Promise.all(
-        files.map(async (f) => {
-          const res = await fetch(proxyUrl(f.name));
-          if (!res.ok) throw new Error(`download ${f.name}: ${res.status}`);
-          zip.file(f.name, await res.blob());
-        })
-      );
-      const blob = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${caseId}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("downloadZip error:", err);
-      // Awaryjnie (np. brak pamięci na ZIP) — pobierz pliki pojedynczo
-      await downloadSequential(files);
-    } finally {
-      setZipping(false);
-    }
+  // Paczka ZIP budowana STRUMIENIOWO po stronie serwera — działa dla dowolnego
+  // rozmiaru (nic nie ląduje w pamięci przeglądarki). Kotwica z download uruchamia
+  // pobranie; strona nie nawiguje (Content-Disposition: attachment).
+  const packageHref = (names?: string[]) => {
+    const q = names && names.length ? `?files=${encodeURIComponent(names.join(","))}` : "";
+    return `/api/symulacje/${caseId}/download-zip${q}`;
   };
-
-  // Pobiera pliki pojedynczo — przeglądarka strumieniuje każdy prosto na dysk,
-  // bez ładowania do pamięci JS. Odporne na duże wyniki FDS (.s3d/.sf/.q).
-  const downloadSequential = async (files: Array<{ name: string }>) => {
-    setDlMsg(t("results.bulkNote"));
-    for (const f of files) {
-      downloadFile(f);
-      await new Promise((r) => setTimeout(r, 700));
-    }
-    setTimeout(() => setDlMsg(null), 6000);
-  };
-
-  // „Pobierz" dla wielu plików — mały pakiet w ZIP, duży pojedynczo (bez OOM).
-  const downloadMany = async (files: Array<{ name: string; size?: number | null }>) => {
-    if (files.length === 0) return;
-    if (files.length === 1) { downloadFile(files[0]); return; }
-    const known = files.every((f) => typeof f.size === "number");
-    const total = files.reduce((s, f) => s + (f.size ?? 0), 0);
-    if (known && total > 0 && total <= ZIP_LIMIT_BYTES) {
-      await downloadZip(files);
-    } else {
-      await downloadSequential(files);
-    }
+  const downloadPackage = (names?: string[]) => {
+    setDlMsg(t("results.preparingZip"));
+    const a = document.createElement("a");
+    a.href = packageHref(names);
+    a.download = `${caseId}.zip`;
+    a.click();
+    setTimeout(() => setDlMsg(null), 5000);
   };
 
   // ── Stany brzegowe ──────────────────────────────────────────────────────────
@@ -836,17 +794,13 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || zipping} className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={() => { const sel = allFiles.filter((f) => selected.has(f.name)); if (sel.length === 1) downloadFile(sel[0]); else downloadPackage(sel.map((f) => f.name)); }} disabled={!someSelected} className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.downloadSelected")}
                   </button>
-                  <button onClick={() => downloadMany(allFiles)} disabled={zipping} className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                    {zipping ? (
-                      <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
-                    ) : (
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    )}
-                    {zipping ? t("results.zipping") : t("results.zipAll")}
+                  <button onClick={() => downloadPackage()} className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    {t("results.zipAll")}
                   </button>
                 </div>
               </div>

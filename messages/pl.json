@@ -1315,7 +1315,8 @@
       "thSize": "Rozmiar",
       "download": "Pobierz",
       "zipError": "Nie udało się pobrać spakowanych plików. Spróbuj pobrać je pojedynczo przyciskiem „Pobierz” przy pliku.",
-      "bulkNote": "Pliki są duże — pobieram pojedynczo (strumieniowo do dysku)."
+      "bulkNote": "Pliki są duże — pobieram pojedynczo (strumieniowo do dysku).",
+      "preparingZip": "Przygotowuję paczkę ZIP — pobieranie zacznie się za chwilę…"
     },
     "fileType": {
       "smv": "Scena Smokeview",

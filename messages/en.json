@@ -1315,7 +1315,8 @@
       "thSize": "Size",
       "download": "Download",
       "zipError": "Could not download the packed files. Try downloading them one by one with the “Download” button next to each file.",
-      "bulkNote": "Files are large — downloading individually (streamed to disk)."
+      "bulkNote": "Files are large — downloading individually (streamed to disk).",
+      "preparingZip": "Preparing the ZIP package — the download will start shortly…"
     },
     "fileType": {
       "smv": "Smokeview scene",
