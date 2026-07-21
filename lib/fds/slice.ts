@@ -8,6 +8,7 @@
 export type Axis = "x" | "y" | "z";
 
 export interface FdsSlice {
+  id?: string;      // nazwa pliku .sf (np. "test_1_1.sf") — klucz stabilny do wyboru
   q: string;        // QUANTITY z FDS, np. "TEMPERATURE"
   unit: string;     // jednostka, np. "C"
   short: string;    // krótka nazwa z FDS
@@ -23,6 +24,20 @@ export interface FdsSlice {
   coords: "m" | "cell";   // czy zakresy są w metrach czy indeksach komórek
   vmin: number; vmax: number;
   data: string;     // base64 uint8[w*h], row-major, wiersz 0 = dół (y0)
+}
+
+// Kształt zapisany w kolumnie slice_json: nowy ({slices:[...]}) lub — dla starych
+// zleceń — pojedynczy przekrój. `normalizeSlices` sprowadza oba do tablicy.
+export type FdsSliceJson = FdsSlice | { slices: FdsSlice[] } | null;
+
+export function normalizeSlices(j: FdsSliceJson | null | undefined): FdsSlice[] {
+  if (!j) return [];
+  const anyj = j as { slices?: unknown; data?: unknown };
+  if (Array.isArray(anyj.slices)) {
+    return (anyj.slices as FdsSlice[]).filter((s) => s && typeof s.data === "string" && s.w > 0 && s.h > 0);
+  }
+  if (typeof anyj.data === "string") return [j as FdsSlice];
+  return [];
 }
 
 // Dekoduje base64 → Uint8Array o długości w*h. null gdy dane niespójne.

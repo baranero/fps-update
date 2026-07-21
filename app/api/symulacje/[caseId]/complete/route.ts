@@ -202,7 +202,8 @@ export async function POST(
     try {
       const decoded = Buffer.from(sliceJson, "base64").toString("utf8");
       const obj = JSON.parse(decoded);
-      if (obj && typeof obj === "object" && typeof obj.data === "string") {
+      // Nowy kształt {slices:[...]} lub — zgodność wstecz — pojedynczy {data:...}
+      if (obj && typeof obj === "object" && (Array.isArray(obj.slices) || typeof obj.data === "string")) {
         const { error: sliceErr } = await supabase
           .from("fds_submissions")
           .update({ slice_json: obj })

@@ -197,7 +197,8 @@ cat > "$WORKDIR/slice_frame.py" <<'PYEOF'
 import sys, os, glob, struct, json, base64
 
 WORK = sys.argv[1] if len(sys.argv) > 1 else "."
-MAXDIM = 96
+MAXDIM = 200
+MAXSLICES = 6
 
 def read_record(f):
     head = f.read(4)
@@ -410,27 +411,48 @@ def main():
         sys.stderr.write("brak plikow .sf w " + WORK + chr(10))
         return
     pref = ["TEMPERATURE", "VISIBILITY", "SOOT VISIBILITY", "SOOT DENSITY", "HRRPUV", "VELOCITY"]
-    best = None
+    cands = []
     for path in files:
         meta = read_header(path)
         if meta is None:
             continue
         q = meta["q"].upper()
         rank = pref.index(q) if q in pref else len(pref)
-        score = (rank, -meta["npts"])
-        if best is None or score < best[0]:
-            best = (score, path, meta)
-    if best is None:
+        cands.append((rank, path, meta))
+    if not cands:
         sys.stderr.write("znaleziono " + str(len(files)) + " plikow .sf, ale zaden nie ma czytelnego naglowka" + chr(10))
         return
-    _, path, meta = best
-    frame = read_last_frame(path, meta)
-    if frame is None:
-        sys.stderr.write("brak kompletnej klatki w " + os.path.basename(path) + " (FDS jeszcze nie zapisal pelnego kroku)" + chr(10))
+    # Zbuduj ostatnią klatkę dla każdego pliku, potem deduplikuj po (wielkosc,
+    # plaszczyzna, pozycja) — wybierajac najwiekszy fragment (multi-mesh) —
+    # i zwroc do MAXSLICES przekrojow posortowanych wg preferencji.
+    built = []
+    for rank, path, meta in cands:
+        frame = read_last_frame(path, meta)
+        if frame is None:
+            continue
+        o = build(path, meta, frame, meshes, smap)
+        if o is None:
+            continue
+        o["id"] = os.path.basename(path)
+        o["_rank"] = rank
+        o["_npts"] = meta["npts"]
+        built.append(o)
+    if not built:
+        sys.stderr.write("brak kompletnej klatki w zadnym z " + str(len(cands)) + " plikow .sf" + chr(10))
         return
-    out = build(path, meta, frame, meshes, smap)
-    if out is not None:
-        sys.stdout.write(json.dumps(out))
+    best = {}
+    for o in built:
+        key = (o["q"], o["plane"], round(o["pos"], 2))
+        cur = best.get(key)
+        if cur is None or o["_npts"] > cur["_npts"]:
+            best[key] = o
+    ordered = sorted(best.values(), key=lambda o: (o["_rank"], -o["_npts"]))
+    out = []
+    for o in ordered[:MAXSLICES]:
+        o.pop("_rank", None)
+        o.pop("_npts", None)
+        out.append(o)
+    sys.stdout.write(json.dumps({"slices": out}))
 
 main()
 PYEOF

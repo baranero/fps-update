@@ -7,7 +7,7 @@ import JSZip from "jszip";
 import LiveCharts from "./LiveCharts";
 import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
-import type { FdsSlice } from "@/lib/fds/slice";
+import type { FdsSliceJson } from "@/lib/fds/slice";
 import { explainFdsErrors, type FdsErrorInfo } from "@/lib/fds/errors";
 
 interface JobData {
@@ -29,7 +29,7 @@ interface JobData {
   fdsExitCode: number | null;
   devcCsv: string | null;
   hrrCsv: string | null;
-  sliceJson: FdsSlice | null;
+  sliceJson: FdsSliceJson | null;
   devcSetpoints: FdsDevc[] | null;
   stopRequested: boolean;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
@@ -914,7 +914,12 @@ export default function JobStatusPage({
 
           {/* Podgląd przekroju na żywo — mapa barwna SLCF (jak Smokeview) */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (
-            <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} />
+            <SliceView
+              slice={job.sliceJson}
+              running={isRunning && !fatalErr}
+              caseId={job.caseId}
+              done={job.status === "done"}
+            />
           )}
 
           {/* Wyniki na żywo — wykresy DEVC / HRR */}
