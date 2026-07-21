@@ -81,23 +81,76 @@
       }
     },
     "soonItems": {
-      "s1": { "title": "Fire load density", "desc": "Determining the fire load density (Q) for a fire zone based on the mass of combustible materials and their calorific value." },
-      "s2": { "title": "Portable firefighting equipment", "desc": "Calculator for the minimum required mass of extinguishing agent and the number of extinguishers for a given facility." },
-      "s3": { "title": "Fire ventilation", "desc": "Estimating flow rates for mechanical smoke-control systems of escape routes and underground car parks." }
+      "s1": {
+        "title": "Fire load density",
+        "desc": "Determining the fire load density (Q) for a fire zone based on the mass of combustible materials and their calorific value."
+      },
+      "s2": {
+        "title": "Portable firefighting equipment",
+        "desc": "Calculator for the minimum required mass of extinguishing agent and the number of extinguishers for a given facility."
+      },
+      "s3": {
+        "title": "Fire ventilation",
+        "desc": "Estimating flow rates for mechanical smoke-control systems of escape routes and underground car parks."
+      }
     }
   },
   "headers": {
-    "about": { "crumb": "About", "title": "About me", "desc": "Let's get to know each other — learn more about my experience, qualifications and comprehensive approach to fire safety engineering." },
-    "contact": { "crumb": "Contact", "title": "Get in touch", "desc": "Questions about the fire safety of your building? Call or send a message — I'll gladly advise you, discuss your project and prepare an individual quote." },
-    "cfd": { "crumb": "CFD Simulations", "title": "CFD Simulations", "desc": "Professional analysis of smoke and air flow in fire conditions — expert fire safety engineering for Warsaw, Łódź and all of Poland." },
-    "ibp": { "crumb": "Fire Safety Manual", "title": "Fire Safety Manual (IBP)", "desc": "Professional preparation of the Fire Safety Manual (IBP) in line with current regulations — expert services for Warsaw, Łódź and the Mazovia and Łódź regions." },
-    "operat": { "crumb": "Fire Report", "title": "Fire protection report", "desc": "Professional preparation of the fire protection reports required to obtain a waste-management permit — services for Warsaw, Łódź and the surrounding area." },
-    "audyt": { "crumb": "Audit", "title": "Fire safety audit", "desc": "Professional fire protection audit — fire safety engineering support for Warsaw, Łódź, Grodzisk Mazowiecki and the surrounding area." },
-    "scenariusz": { "crumb": "Scenario", "title": "Fire development scenario", "desc": "Professional fire scenarios for fire-alarm (SSP), voice-alarm (DSO), smoke-control and other fire-protection systems. Warsaw, Łódź and the Mazovia and Łódź regions." },
-    "blog": { "crumb": "Blog", "title": "Blog", "desc": "News, regulations and expert knowledge on fire protection and fire safety engineering." },
-    "regulamin": { "crumb": "Terms", "title": "Terms of Service", "desc": "Rules for using the website and the conditions for providing services electronically." },
-    "cookies": { "crumb": "Cookies", "title": "Cookie Policy", "desc": "Information about cookies and tracking technologies used on our website." },
-    "privacy": { "crumb": "Privacy", "title": "Privacy Policy", "desc": "The document setting out how Users' personal data is processed and protected." }
+    "about": {
+      "crumb": "About",
+      "title": "About me",
+      "desc": "Let's get to know each other — learn more about my experience, qualifications and comprehensive approach to fire safety engineering."
+    },
+    "contact": {
+      "crumb": "Contact",
+      "title": "Get in touch",
+      "desc": "Questions about the fire safety of your building? Call or send a message — I'll gladly advise you, discuss your project and prepare an individual quote."
+    },
+    "cfd": {
+      "crumb": "CFD Simulations",
+      "title": "CFD Simulations",
+      "desc": "Professional analysis of smoke and air flow in fire conditions — expert fire safety engineering for Warsaw, Łódź and all of Poland."
+    },
+    "ibp": {
+      "crumb": "Fire Safety Manual",
+      "title": "Fire Safety Manual (IBP)",
+      "desc": "Professional preparation of the Fire Safety Manual (IBP) in line with current regulations — expert services for Warsaw, Łódź and the Mazovia and Łódź regions."
+    },
+    "operat": {
+      "crumb": "Fire Report",
+      "title": "Fire protection report",
+      "desc": "Professional preparation of the fire protection reports required to obtain a waste-management permit — services for Warsaw, Łódź and the surrounding area."
+    },
+    "audyt": {
+      "crumb": "Audit",
+      "title": "Fire safety audit",
+      "desc": "Professional fire protection audit — fire safety engineering support for Warsaw, Łódź, Grodzisk Mazowiecki and the surrounding area."
+    },
+    "scenariusz": {
+      "crumb": "Scenario",
+      "title": "Fire development scenario",
+      "desc": "Professional fire scenarios for fire-alarm (SSP), voice-alarm (DSO), smoke-control and other fire-protection systems. Warsaw, Łódź and the Mazovia and Łódź regions."
+    },
+    "blog": {
+      "crumb": "Blog",
+      "title": "Blog",
+      "desc": "News, regulations and expert knowledge on fire protection and fire safety engineering."
+    },
+    "regulamin": {
+      "crumb": "Terms",
+      "title": "Terms of Service",
+      "desc": "Rules for using the website and the conditions for providing services electronically."
+    },
+    "cookies": {
+      "crumb": "Cookies",
+      "title": "Cookie Policy",
+      "desc": "Information about cookies and tracking technologies used on our website."
+    },
+    "privacy": {
+      "crumb": "Privacy",
+      "title": "Privacy Policy",
+      "desc": "The document setting out how Users' personal data is processed and protected."
+    }
   },
   "about": {
     "name": "Jakub Baran, MSc Eng. — Fire Safety",
@@ -141,12 +194,48 @@
       "imageAlt": "Computer CFD simulation of smoke and heat flow",
       "lead": "CFD (Computational Fluid Dynamics) simulations are advanced fire safety engineering analyses that model the flow of air and smoke and the temperature distribution under various fire conditions. They make it possible to accurately predict the behaviour of fire gases, the effectiveness of smoke-control systems and evacuation conditions — significantly improving building safety.",
       "sections": [
-        { "h": "Professional CFD simulations", "p": "I deliver advanced CFD simulations for fire ventilation using professional engineering software such as PyroSim, Pathfinder and Ventus. My services are aimed in particular at:", "list": ["Fire protection experts (rzeczoznawcy)", "Ventilation system designers and fire protection engineers", "Design and architecture offices", "Court experts"] },
-        { "h": "When is a CFD simulation required?", "p": "CFD simulations are required, among others, in tall and high-rise buildings, underground car parks, tunnels and wherever mechanical smoke-control systems are used or non-standard evacuation scenarios are planned. These requirements may stem from regulations, from a fire expert's recommendations or from individual risk analyses carried out by a fire engineer." },
-        { "h": "How much does a CFD simulation cost?", "p": "The cost of a CFD simulation depends on the architectural complexity of the building, the number of fire scenarios and the expected scope of the study. Average prices start from a few thousand złoty — every quote is prepared individually based on the drawings and specifications." },
-        { "h": "Why is a CFD simulation worth doing?", "p": "CFD simulations allow precise analysis of smoke spread, temperature and the effectiveness of ventilation and smoke-control systems. With them you can:", "list": ["Assess the effectiveness of building smoke-control systems", "Verify evacuation scenarios under fire conditions", "Optimise the ventilation layout for both safety and construction cost", "Meet strict regulatory and legal requirements"] },
-        { "h": "Work compliant with standards and guidelines", "p": "When running a simulation I fully adhere to the assumptions of the building design or concept. I account for all environmental factors that affect the result of the analysis. I rely on key engineering standards:", "list": ["CNBOP-PIB W-0003:2016 – guidelines for staircase smoke control", "PN-EN 12101-13:2022 – pressure differential systems (SRC)", "ITB 378/2002 – fire ventilation of escape routes", "NFPA 92, NFPA 204, VdS 2221, BS 7346-4 and other international standards"] },
-        { "h": "I work locally and remotely", "p": "I carry out CFD analyses in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also have the technical capability to collaborate fully remotely with offices from all over Poland." }
+        {
+          "h": "Professional CFD simulations",
+          "p": "I deliver advanced CFD simulations for fire ventilation using professional engineering software such as PyroSim, Pathfinder and Ventus. My services are aimed in particular at:",
+          "list": [
+            "Fire protection experts (rzeczoznawcy)",
+            "Ventilation system designers and fire protection engineers",
+            "Design and architecture offices",
+            "Court experts"
+          ]
+        },
+        {
+          "h": "When is a CFD simulation required?",
+          "p": "CFD simulations are required, among others, in tall and high-rise buildings, underground car parks, tunnels and wherever mechanical smoke-control systems are used or non-standard evacuation scenarios are planned. These requirements may stem from regulations, from a fire expert's recommendations or from individual risk analyses carried out by a fire engineer."
+        },
+        {
+          "h": "How much does a CFD simulation cost?",
+          "p": "The cost of a CFD simulation depends on the architectural complexity of the building, the number of fire scenarios and the expected scope of the study. Average prices start from a few thousand złoty — every quote is prepared individually based on the drawings and specifications."
+        },
+        {
+          "h": "Why is a CFD simulation worth doing?",
+          "p": "CFD simulations allow precise analysis of smoke spread, temperature and the effectiveness of ventilation and smoke-control systems. With them you can:",
+          "list": [
+            "Assess the effectiveness of building smoke-control systems",
+            "Verify evacuation scenarios under fire conditions",
+            "Optimise the ventilation layout for both safety and construction cost",
+            "Meet strict regulatory and legal requirements"
+          ]
+        },
+        {
+          "h": "Work compliant with standards and guidelines",
+          "p": "When running a simulation I fully adhere to the assumptions of the building design or concept. I account for all environmental factors that affect the result of the analysis. I rely on key engineering standards:",
+          "list": [
+            "CNBOP-PIB W-0003:2016 – guidelines for staircase smoke control",
+            "PN-EN 12101-13:2022 – pressure differential systems (SRC)",
+            "ITB 378/2002 – fire ventilation of escape routes",
+            "NFPA 92, NFPA 204, VdS 2221, BS 7346-4 and other international standards"
+          ]
+        },
+        {
+          "h": "I work locally and remotely",
+          "p": "I carry out CFD analyses in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also have the technical capability to collaborate fully remotely with offices from all over Poland."
+        }
       ],
       "cta": "Need a professional CFD simulation? Get in touch to discuss your project and receive a free quote tailored to your building."
     },
@@ -154,11 +243,42 @@
       "imageAlt": "Preparation of the Fire Safety Manual (IBP), Warsaw",
       "lead": "The Fire Safety Manual (IBP) is a key document defining the fire protection conditions in a building. As a fire safety engineering specialist, I offer comprehensive preparation of the IBP, precisely adapted to the specifics and architecture of your building, in full compliance with applicable law.",
       "sections": [
-        { "h": "When is the Fire Safety Manual required?", "p": "Under the law, owners, managers or users of buildings (or their parts forming separate fire zones) intended for public-use, collective-residence, production, storage and livestock functions are obliged to implement an IBP when at least one of the following conditions is met:", "list": ["the gross volume of the building or of its part forming a separate fire zone is 1000 m³ or more,", "the gross volume of a livestock building is 1500 m³ or more,", "the fire zone area of a facility other than a building is 1000 m² or more,", "an explosion hazard zone occurs in the building."] },
-        { "h": "When is the Manual not required?", "p": "This document is not strictly required for smaller facilities in which:", "list": ["the gross volume of the building does not exceed 1000 m³,", "the gross volume of a livestock building does not exceed 1500 m³,", "the fire zone area of a facility (that is not a building) does not exceed 1000 m²."] },
-        { "h": "Legal basis for preparing the IBP", "p": "The requirements for preparing the document are specified in §6 of the Regulation of the Minister of the Interior and Administration of 7 June 2010 on the fire protection of buildings, other structures and land (Journal of Laws 2023, item 822, as amended)." },
-        { "h": "Why commission the IBP from me?", "list": ["Knowledge and qualifications – I hold education and experience in fire safety engineering.", "Individual approach – I prepare each manual based on a thorough on-site audit, without copying ready-made templates.", "Regulatory compliance – I guarantee the document will be accepted by supervisory authorities (e.g. the State Fire Service).", "Comprehensive support – I help implement the manual's provisions in the building."] },
-        { "h": "Where do I work?", "p": "I provide Fire Safety Manual services locally in Warsaw, Grodzisk Mazowiecki, Łódź and across the entire Mazovia and Łódź regions (including Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew, Skierniewice)." }
+        {
+          "h": "When is the Fire Safety Manual required?",
+          "p": "Under the law, owners, managers or users of buildings (or their parts forming separate fire zones) intended for public-use, collective-residence, production, storage and livestock functions are obliged to implement an IBP when at least one of the following conditions is met:",
+          "list": [
+            "the gross volume of the building or of its part forming a separate fire zone is 1000 m³ or more,",
+            "the gross volume of a livestock building is 1500 m³ or more,",
+            "the fire zone area of a facility other than a building is 1000 m² or more,",
+            "an explosion hazard zone occurs in the building."
+          ]
+        },
+        {
+          "h": "When is the Manual not required?",
+          "p": "This document is not strictly required for smaller facilities in which:",
+          "list": [
+            "the gross volume of the building does not exceed 1000 m³,",
+            "the gross volume of a livestock building does not exceed 1500 m³,",
+            "the fire zone area of a facility (that is not a building) does not exceed 1000 m²."
+          ]
+        },
+        {
+          "h": "Legal basis for preparing the IBP",
+          "p": "The requirements for preparing the document are specified in §6 of the Regulation of the Minister of the Interior and Administration of 7 June 2010 on the fire protection of buildings, other structures and land (Journal of Laws 2023, item 822, as amended)."
+        },
+        {
+          "h": "Why commission the IBP from me?",
+          "list": [
+            "Knowledge and qualifications – I hold education and experience in fire safety engineering.",
+            "Individual approach – I prepare each manual based on a thorough on-site audit, without copying ready-made templates.",
+            "Regulatory compliance – I guarantee the document will be accepted by supervisory authorities (e.g. the State Fire Service).",
+            "Comprehensive support – I help implement the manual's provisions in the building."
+          ]
+        },
+        {
+          "h": "Where do I work?",
+          "p": "I provide Fire Safety Manual services locally in Warsaw, Grodzisk Mazowiecki, Łódź and across the entire Mazovia and Łódź regions (including Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew, Skierniewice)."
+        }
       ],
       "cta": "Does your building require a Fire Safety Manual? Get in touch to arrange the details and receive a quick quote for preparing the documentation."
     },
@@ -166,10 +286,30 @@
       "imageAlt": "Preparation of the fire protection report for waste storage sites",
       "lead": "The fire protection report (operat ppoż.) is a mandatory document required to obtain a permit for collecting, processing and/or generating waste. It is a key attachment to the application, assessing the compliance of waste-storage conditions with strict fire protection and safety engineering regulations.",
       "sections": [
-        { "h": "When is a fire protection report required?", "p": "Every investor and business owner applying for a permit to collect, process or generate waste is required by law to hold a current fire protection report. The document is attached to the application submitted to the competent authority. This obligation applies to industrial operations, production halls and open storage areas alike." },
-        { "h": "Who may legally prepare the report?", "p": "Depending on the authority issuing the permit, the report may only be prepared by a person with specific fire-protection qualifications. Where the authority is the voivodeship marshal or the regional director for environmental protection — a fire protection expert (rzeczoznawca). Where the deciding authority is the district governor (starosta):", "list": ["A fire engineer or a Master of Fire Engineering,", "A graduate of SGSP (now the Fire University) in Fire Safety Engineering."], "note": "As a fire safety engineer I hold full authority to prepare reports for district-level authorities (starostwa)." },
-        { "h": "Legal basis", "list": ["Act of 14 December 2012 on waste (Journal of Laws 2023, item 1587, as amended)", "Act of 27 April 2001 – Environmental Protection Law (Journal of Laws 2024, item 54, as amended)"] },
-        { "h": "Where do I prepare fire protection reports?", "p": "I prepare fire protection reports for businesses and investors in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also work with and support companies in Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice." }
+        {
+          "h": "When is a fire protection report required?",
+          "p": "Every investor and business owner applying for a permit to collect, process or generate waste is required by law to hold a current fire protection report. The document is attached to the application submitted to the competent authority. This obligation applies to industrial operations, production halls and open storage areas alike."
+        },
+        {
+          "h": "Who may legally prepare the report?",
+          "p": "Depending on the authority issuing the permit, the report may only be prepared by a person with specific fire-protection qualifications. Where the authority is the voivodeship marshal or the regional director for environmental protection — a fire protection expert (rzeczoznawca). Where the deciding authority is the district governor (starosta):",
+          "list": [
+            "A fire engineer or a Master of Fire Engineering,",
+            "A graduate of SGSP (now the Fire University) in Fire Safety Engineering."
+          ],
+          "note": "As a fire safety engineer I hold full authority to prepare reports for district-level authorities (starostwa)."
+        },
+        {
+          "h": "Legal basis",
+          "list": [
+            "Act of 14 December 2012 on waste (Journal of Laws 2023, item 1587, as amended)",
+            "Act of 27 April 2001 – Environmental Protection Law (Journal of Laws 2024, item 54, as amended)"
+          ]
+        },
+        {
+          "h": "Where do I prepare fire protection reports?",
+          "p": "I prepare fire protection reports for businesses and investors in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also work with and support companies in Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice."
+        }
       ],
       "cta": "Opening a waste collection or processing site? Commission me to prepare the fire protection report. Get in touch for a free consultation and quote."
     },
@@ -177,11 +317,47 @@
       "imageAlt": "Expert fire safety audit of a building, Warsaw",
       "lead": "A fire safety audit is a detailed analysis of a building's fire safety status and its compliance with applicable regulations. As fire safety engineering experts, we identify potential hazards and irregularities that may affect the safety of the building's users.",
       "sections": [
-        { "h": "Scope of the fire safety audit", "list": ["Assessment of the building's fire protection conditions", "Verification of firefighting equipment and fire systems", "Checking evacuation conditions and the correctness of escape route signage", "Analysis of fire emergency procedures", "Review of fire protection documentation (e.g. IBP)", "Assessment of the validity and currency of fire protection training"], "note": "After the audit we deliver a detailed engineering report together with concrete recommendations for the necessary corrective actions." },
-        { "h": "Why carry out an audit?", "list": ["You increase the real safety of the building's users", "You avoid legal sanctions and financial penalties from supervisory authorities", "You enable a smooth adaptation of the building to current construction and fire regulations", "You obtain clear recommendations from a fire safety engineer"] },
-        { "h": "Who is the service for?", "p": "Our fire safety audit is aimed in particular at:", "list": ["Owners and managers of residential and office buildings", "Businesses operating in commercial facilities, halls and warehouses", "Public, educational and administrative institutions", "Investors preparing new developments or adaptations of existing buildings"] },
-        { "h": "Legal basis for the audit", "list": ["Act of 24 August 1991 on fire protection (Journal of Laws 2025, item 188)"] },
-        { "h": "Where do we carry out fire safety audits?", "p": "We carry out fire safety audits in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. We also work in cities such as Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice." }
+        {
+          "h": "Scope of the fire safety audit",
+          "list": [
+            "Assessment of the building's fire protection conditions",
+            "Verification of firefighting equipment and fire systems",
+            "Checking evacuation conditions and the correctness of escape route signage",
+            "Analysis of fire emergency procedures",
+            "Review of fire protection documentation (e.g. IBP)",
+            "Assessment of the validity and currency of fire protection training"
+          ],
+          "note": "After the audit we deliver a detailed engineering report together with concrete recommendations for the necessary corrective actions."
+        },
+        {
+          "h": "Why carry out an audit?",
+          "list": [
+            "You increase the real safety of the building's users",
+            "You avoid legal sanctions and financial penalties from supervisory authorities",
+            "You enable a smooth adaptation of the building to current construction and fire regulations",
+            "You obtain clear recommendations from a fire safety engineer"
+          ]
+        },
+        {
+          "h": "Who is the service for?",
+          "p": "Our fire safety audit is aimed in particular at:",
+          "list": [
+            "Owners and managers of residential and office buildings",
+            "Businesses operating in commercial facilities, halls and warehouses",
+            "Public, educational and administrative institutions",
+            "Investors preparing new developments or adaptations of existing buildings"
+          ]
+        },
+        {
+          "h": "Legal basis for the audit",
+          "list": [
+            "Act of 24 August 1991 on fire protection (Journal of Laws 2025, item 188)"
+          ]
+        },
+        {
+          "h": "Where do we carry out fire safety audits?",
+          "p": "We carry out fire safety audits in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. We also work in cities such as Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice."
+        }
       ],
       "cta": "Get in touch to arrange an audit or receive an individual offer. Take care of your building's safety today!"
     },
@@ -189,10 +365,41 @@
       "imageAlt": "Preparation of a fire development scenario for a building – design documentation",
       "lead": "Under § 5(3) of the Regulation of the Minister of the Interior and Administration of 5 August 2023 (Journal of Laws 2023, item 1563), the technical design for buildings in which fire-protection devices are planned must obligatorily include a fire development scenario. It is a key engineering design document whose purpose is to demonstrate that the technical solutions used in the building ensure effective fire detection, alarming, efficient evacuation and the correct activation and interaction of all fire-protection devices under conditions of a real emergency.",
       "sections": [
-        { "h": "What should a fire scenario contain?", "list": ["A detailed characterisation of the fire and its development over time", "A description of the operating principle and integration of SSP, DSO, sprinklers, smoke control and fire dampers", "The chronology of activation of automatic and manual devices in matrix control logic", "Response times and precise threshold values (e.g. temperature, smoke density)", "An analysis of conditions and calculation of the time available for safe evacuation"] },
-        { "h": "For whom is it required?", "p": "A fire scenario must be prepared for facilities in which the following are designed:", "list": ["Fire alarm system (SSP)", "Smoke-control or fire-ventilation systems", "DSO – voice alarm system", "Sprinkler, deluge and other extinguishing systems"], "note": "Preparing a correct scenario is mandatory when agreeing the design with a fire protection expert (rzeczoznawca)." },
-        { "h": "Why entrust this task to a specialist?", "p": "Entrusting this task to an experienced fire safety engineer means:", "list": ["A guarantee of full compliance with current regulations and standards", "Significantly easier and faster approval by the fire protection expert", "Confidence that fire-protection systems will be correctly integrated and act in the right sequence", "Minimised risk of costly design and execution errors"] },
-        { "h": "Where do I prepare fire scenarios?", "p": "I prepare fire development scenarios for projects in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also successfully work in cities such as Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice." }
+        {
+          "h": "What should a fire scenario contain?",
+          "list": [
+            "A detailed characterisation of the fire and its development over time",
+            "A description of the operating principle and integration of SSP, DSO, sprinklers, smoke control and fire dampers",
+            "The chronology of activation of automatic and manual devices in matrix control logic",
+            "Response times and precise threshold values (e.g. temperature, smoke density)",
+            "An analysis of conditions and calculation of the time available for safe evacuation"
+          ]
+        },
+        {
+          "h": "For whom is it required?",
+          "p": "A fire scenario must be prepared for facilities in which the following are designed:",
+          "list": [
+            "Fire alarm system (SSP)",
+            "Smoke-control or fire-ventilation systems",
+            "DSO – voice alarm system",
+            "Sprinkler, deluge and other extinguishing systems"
+          ],
+          "note": "Preparing a correct scenario is mandatory when agreeing the design with a fire protection expert (rzeczoznawca)."
+        },
+        {
+          "h": "Why entrust this task to a specialist?",
+          "p": "Entrusting this task to an experienced fire safety engineer means:",
+          "list": [
+            "A guarantee of full compliance with current regulations and standards",
+            "Significantly easier and faster approval by the fire protection expert",
+            "Confidence that fire-protection systems will be correctly integrated and act in the right sequence",
+            "Minimised risk of costly design and execution errors"
+          ]
+        },
+        {
+          "h": "Where do I prepare fire scenarios?",
+          "p": "I prepare fire development scenarios for projects in Warsaw, Łódź, Grodzisk Mazowiecki and across the whole Mazovia and Łódź regions. I also successfully work in cities such as Pruszków, Milanówek, Brwinów, Żyrardów, Sochaczew and Skierniewice."
+        }
       ],
       "cta": "Do you need a professionally prepared fire scenario for your project? I provide full design support and smooth cooperation with the fire protection expert. Get in touch today!"
     }
@@ -226,46 +433,125 @@
   },
   "articles": {
     "nowa-norma-pn-b-02877-4-2025-07": {
-      "tags": ["Standards", "Smoke control", "PN-B-02877"],
+      "tags": [
+        "Standards",
+        "Smoke control",
+        "PN-B-02877"
+      ],
       "blocks": [
-        { "type": "p", "text": "In July 2025 the Polish Committee for Standardization published the new standard PN-B-02877-4:2025-07, titled “Natural smoke and heat exhaust systems – Part 4: Design principles”. The document officially replaces the withdrawn PN-B-02877-4 standard from 2001 together with its highly significant amendment (Az1) of September 2006. The revision introduces fundamental changes to the design methodology, and comparing it with the historical requirements reveals a major step towards optimisation and adapting the regulations to modern large-area construction." },
-        { "type": "p", "text": "Below are the key differences and new solutions introduced in the 2025 document." },
-        { "type": "h", "n": "01", "text": "A revolution in permitted smoke zone sizes" },
-        { "type": "p", "text": "The most important change from an architectural standpoint is the increase in the permitted size of smoke zones. The Az1 amendment introduced in 2006 strictly limited the maximum under-roof area of a single smoke zone to just 2,600 m². The new 2025 standard significantly relaxes this limit — the basic maximum smoke zone area in production and storage buildings is now 4,000 m². The document even allows this area to be increased by up to 50% (that is, up to 6,000 m²), but this then requires a proportional increase in the total aerodynamic free area of the smoke exhaust devices by 5% for every 100 m² of excess started." },
-        { "type": "h", "n": "02", "text": "A system approach instead of an installation one" },
-        { "type": "p", "text": "The previous term “natural smoke and heat exhaust installations” has been abandoned in favour of the term “systems”. The difference is substantive — the definition now integrally covers both the devices for removing smoke and hot fire gases and the devices supplying make-up air. The standard strongly emphasises that ensuring an inflow of fresh air is a necessary condition for the effectiveness of the entire system." },
-        { "type": "h", "n": "03", "text": "Design Groups (GP) instead of the old calculation formulas" },
-        { "type": "p", "text": "The mathematical side of sizing the system has changed fundamentally. The earlier complicated formulas for the corrected height of the smoke-free layer (which were also amended in the 2006 revision) have been withdrawn in favour of selecting ready values of the minimum aerodynamic free area from dedicated tables. The system is sized by assigning the zone to one of five Design Groups (GP1–GP5). The choice of GP depends, among other things, on the fire load density, the expected fire spread rate, the storage height and the protection of the zone by fixed water extinguishing systems." },
-        { "type": "h", "n": "04", "text": "Wall-mounted smoke exhaust devices and air make-up" },
-        { "type": "p", "text": "The new standard formalises the principles for designing and positioning wall-mounted smoke exhaust devices, requiring, among other things, their installation on opposite walls and automatic opening on the leeward side. At the same time an absolute requirement has been formulated: the total effective area of the make-up openings may under no circumstances be smaller than the minimum required aerodynamic free area of smoke exhaust for the given zone." },
-        { "type": "h", "n": "05", "text": "Defined rules for cooperation with sprinkler systems" },
-        { "type": "p", "text": "The 2025 standard comprehensively takes into account the presence of fixed automatic water extinguishing systems (sprinklers). Their presence makes it easier to assign a lower Design Group, but imposes strict control requirements. In zones protected by sprinklers, the smoke exhaust device — designed to ensure evacuation — must activate automatically on a signal from the fire alarm system, but obligatorily before the water extinguishing system itself operates." },
-        { "type": "h", "n": "06", "text": "Procedures, acceptance tests and failures" },
-        { "type": "p", "text": "The updated document introduces strict guidelines for the control logic and for testing the infrastructure. Detailed rules for carrying out start-ups and acceptance tests have been formulated, and an obligation was introduced to perform periodic inspections at least once a year (unless the manufacturer specifies more frequent technical visits)." },
-        { "type": "quote", "text": "In summary, PN-B-02877-4:2025-07 is a significant step in fire safety engineering. Moving away from the 2,600 m² smoke zone limit from 2006 — painful for investors — towards a new methodology based on Design Groups gives engineering offices a tool that is consistent, predictable and flexibly matched to the requirements of today's logistics and production projects." }
+        {
+          "type": "p",
+          "text": "In July 2025 the Polish Committee for Standardization published the new standard PN-B-02877-4:2025-07, titled “Natural smoke and heat exhaust systems – Part 4: Design principles”. The document officially replaces the withdrawn PN-B-02877-4 standard from 2001 together with its highly significant amendment (Az1) of September 2006. The revision introduces fundamental changes to the design methodology, and comparing it with the historical requirements reveals a major step towards optimisation and adapting the regulations to modern large-area construction."
+        },
+        {
+          "type": "p",
+          "text": "Below are the key differences and new solutions introduced in the 2025 document."
+        },
+        {
+          "type": "h",
+          "n": "01",
+          "text": "A revolution in permitted smoke zone sizes"
+        },
+        {
+          "type": "p",
+          "text": "The most important change from an architectural standpoint is the increase in the permitted size of smoke zones. The Az1 amendment introduced in 2006 strictly limited the maximum under-roof area of a single smoke zone to just 2,600 m². The new 2025 standard significantly relaxes this limit — the basic maximum smoke zone area in production and storage buildings is now 4,000 m². The document even allows this area to be increased by up to 50% (that is, up to 6,000 m²), but this then requires a proportional increase in the total aerodynamic free area of the smoke exhaust devices by 5% for every 100 m² of excess started."
+        },
+        {
+          "type": "h",
+          "n": "02",
+          "text": "A system approach instead of an installation one"
+        },
+        {
+          "type": "p",
+          "text": "The previous term “natural smoke and heat exhaust installations” has been abandoned in favour of the term “systems”. The difference is substantive — the definition now integrally covers both the devices for removing smoke and hot fire gases and the devices supplying make-up air. The standard strongly emphasises that ensuring an inflow of fresh air is a necessary condition for the effectiveness of the entire system."
+        },
+        {
+          "type": "h",
+          "n": "03",
+          "text": "Design Groups (GP) instead of the old calculation formulas"
+        },
+        {
+          "type": "p",
+          "text": "The mathematical side of sizing the system has changed fundamentally. The earlier complicated formulas for the corrected height of the smoke-free layer (which were also amended in the 2006 revision) have been withdrawn in favour of selecting ready values of the minimum aerodynamic free area from dedicated tables. The system is sized by assigning the zone to one of five Design Groups (GP1–GP5). The choice of GP depends, among other things, on the fire load density, the expected fire spread rate, the storage height and the protection of the zone by fixed water extinguishing systems."
+        },
+        {
+          "type": "h",
+          "n": "04",
+          "text": "Wall-mounted smoke exhaust devices and air make-up"
+        },
+        {
+          "type": "p",
+          "text": "The new standard formalises the principles for designing and positioning wall-mounted smoke exhaust devices, requiring, among other things, their installation on opposite walls and automatic opening on the leeward side. At the same time an absolute requirement has been formulated: the total effective area of the make-up openings may under no circumstances be smaller than the minimum required aerodynamic free area of smoke exhaust for the given zone."
+        },
+        {
+          "type": "h",
+          "n": "05",
+          "text": "Defined rules for cooperation with sprinkler systems"
+        },
+        {
+          "type": "p",
+          "text": "The 2025 standard comprehensively takes into account the presence of fixed automatic water extinguishing systems (sprinklers). Their presence makes it easier to assign a lower Design Group, but imposes strict control requirements. In zones protected by sprinklers, the smoke exhaust device — designed to ensure evacuation — must activate automatically on a signal from the fire alarm system, but obligatorily before the water extinguishing system itself operates."
+        },
+        {
+          "type": "h",
+          "n": "06",
+          "text": "Procedures, acceptance tests and failures"
+        },
+        {
+          "type": "p",
+          "text": "The updated document introduces strict guidelines for the control logic and for testing the infrastructure. Detailed rules for carrying out start-ups and acceptance tests have been formulated, and an obligation was introduced to perform periodic inspections at least once a year (unless the manufacturer specifies more frequent technical visits)."
+        },
+        {
+          "type": "quote",
+          "text": "In summary, PN-B-02877-4:2025-07 is a significant step in fire safety engineering. Moving away from the 2,600 m² smoke zone limit from 2006 — painful for investors — towards a new methodology based on Design Groups gives engineering offices a tool that is consistent, predictable and flexibly matched to the requirements of today's logistics and production projects."
+        }
       ]
     },
     "symulacja-cfd-w-oddymianiu-klatek-schodowych": {
-      "tags": ["CFD simulations", "Smoke control", "Evacuation"],
+      "tags": [
+        "CFD simulations",
+        "Smoke control",
+        "Evacuation"
+      ],
       "blocks": [
-        { "type": "p", "text": "When is a CFD simulation required for a staircase smoke-control design?" },
-        { "type": "p", "text": "In an era of ever-growing fire safety requirements for buildings, designers and investors increasingly reach for engineering tools that let them verify the effectiveness of the solutions used. One such tool is CFD (Computational Fluid Dynamics) simulation, which is becoming an increasingly common standard when designing staircase smoke-control systems." },
-        { "type": "p", "text": "If the smoke-control design was prepared based on the CNBOP-PIB W-0003:2016 design guidelines, that document tells us in which cases we are obliged to run a simulation and which fire and environmental parameters should be included in the analysis." },
-        { "type": "h", "text": "Conditions that require a CFD simulation" },
-        { "type": "list", "items": [
-          "the staircase area (A_KS) on any storey is greater than 40 m²,",
-          "the staircase space is connected to adjacent corridors or halls and the travel distance from the most remote door to the boundary of the staircase's calculation area is greater than 5 m (the boundaries of the staircase calculation area are given in Appendix 1),",
-          "the staircase space is connected to adjacent corridors and halls with a travel distance from the boundary of the staircase's calculation area to the end of the corridor greater than 10 m,",
-          "the width of corridors connected to a non-separated staircase exceeds 3 m,",
-          "the staircase has an architecture other than that described in the guidelines (examples in Appendix 1),",
-          "the area of the remaining inter-storey openings does not meet the condition C ≤ 10% (A+B) referred to in section 6.2 of the guidelines,",
-          "the area of the stair shaft does not meet the condition D ≤ 25% (A+B) referred to in section 6.2 of the guidelines,",
-          "the staircase forms a vertical escape route in a high-rise building classified in human hazard category ZL IV,",
-          "make-up air in the natural smoke-control system flows in through two doors in a series arrangement, connecting the staircase space with the outside, more than 5 m apart,",
-          "mechanical air supply is provided differently than specified in section 6.5 of the guidelines,",
-          "in a high-rise ZL IV building there are corridors adjacent to the staircase (not separated by doors)."
-        ] },
-        { "type": "linkbox", "text": "The guidelines are available at:", "linkText": "Click here", "href": "https://cnbop.pl/app/uploads/2025/02/Wytyczne_Systemy-oddymiania-klatek-schodowych_04.06.2019.pdf" }
+        {
+          "type": "p",
+          "text": "When is a CFD simulation required for a staircase smoke-control design?"
+        },
+        {
+          "type": "p",
+          "text": "In an era of ever-growing fire safety requirements for buildings, designers and investors increasingly reach for engineering tools that let them verify the effectiveness of the solutions used. One such tool is CFD (Computational Fluid Dynamics) simulation, which is becoming an increasingly common standard when designing staircase smoke-control systems."
+        },
+        {
+          "type": "p",
+          "text": "If the smoke-control design was prepared based on the CNBOP-PIB W-0003:2016 design guidelines, that document tells us in which cases we are obliged to run a simulation and which fire and environmental parameters should be included in the analysis."
+        },
+        {
+          "type": "h",
+          "text": "Conditions that require a CFD simulation"
+        },
+        {
+          "type": "list",
+          "items": [
+            "the staircase area (A_KS) on any storey is greater than 40 m²,",
+            "the staircase space is connected to adjacent corridors or halls and the travel distance from the most remote door to the boundary of the staircase's calculation area is greater than 5 m (the boundaries of the staircase calculation area are given in Appendix 1),",
+            "the staircase space is connected to adjacent corridors and halls with a travel distance from the boundary of the staircase's calculation area to the end of the corridor greater than 10 m,",
+            "the width of corridors connected to a non-separated staircase exceeds 3 m,",
+            "the staircase has an architecture other than that described in the guidelines (examples in Appendix 1),",
+            "the area of the remaining inter-storey openings does not meet the condition C ≤ 10% (A+B) referred to in section 6.2 of the guidelines,",
+            "the area of the stair shaft does not meet the condition D ≤ 25% (A+B) referred to in section 6.2 of the guidelines,",
+            "the staircase forms a vertical escape route in a high-rise building classified in human hazard category ZL IV,",
+            "make-up air in the natural smoke-control system flows in through two doors in a series arrangement, connecting the staircase space with the outside, more than 5 m apart,",
+            "mechanical air supply is provided differently than specified in section 6.5 of the guidelines,",
+            "in a high-rise ZL IV building there are corridors adjacent to the staircase (not separated by doors)."
+          ]
+        },
+        {
+          "type": "linkbox",
+          "text": "The guidelines are available at:",
+          "linkText": "Click here",
+          "href": "https://cnbop.pl/app/uploads/2025/02/Wytyczne_Systemy-oddymiania-klatek-schodowych_04.06.2019.pdf"
+        }
       ]
     }
   },
@@ -274,100 +560,177 @@
       "intro": "These Terms of Service set out the general terms, rules and manner of using the Fire Protection Solutions website. These Terms are the document referred to in Article 8 of the Act of 18 July 2002 on providing services electronically.",
       "footer": "These Terms take effect on the date of publication. Last updated: {date}",
       "sections": [
-        { "h": "§ 1. General provisions", "ordered": true, "items": [
-          "The owner and Administrator of the website is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
-          "The company is entered in the CEIDG business register and holds NIP: 6182094888 and REGON: 528892780.",
-          "The Service Provider can be contacted by email at biuro@fp-solutions.pl and by phone at +48 790 782 993."
-        ] },
-        { "h": "§ 2. Definitions", "items": [
-          "Website – the website available at the domain fp-solutions.pl (or another relevant main domain).",
-          "Service Provider – Fire Protection Solutions Jakub Baran.",
-          "User – any natural person, legal person or organisational unit using the Website.",
-          "Electronic services – services provided electronically by the Service Provider to the User via the Website (e.g. the contact form)."
-        ] },
-        { "h": "§ 3. Type and scope of services provided", "ordered": true, "items": [
-          "The Website is primarily informational. It presents the Service Provider's offer in the field of fire safety engineering (including Fire Safety Manuals, CFD simulations and audits).",
-          "Via the Website the Service Provider provides free electronic services, allowing Users to send messages using interactive email links and (where applicable) contact forms."
-        ] },
-        { "h": "§ 4. Technical requirements and rules of use", "ordered": true, "items": [
-          "Correct use of the Website requires a terminal device with internet access and a standard web browser (e.g. Chrome, Firefox, Safari, Edge).",
-          "The User is obliged to use the Website in a manner consistent with the law and good practice, respecting personal rights and the copyright and intellectual property of the Service Provider and third parties.",
-          "The User is prohibited from providing content of an unlawful nature."
-        ] },
-        { "h": "§ 5. Intellectual property", "lead": "All rights to the Website, including economic copyright and intellectual property rights to its name, internet domain, and to the templates, forms, logos and images published on the Website (except for materials under external licences), belong to the Service Provider. They may be used only in the manner specified in and consistent with these Terms, or with the express written consent of the Service Provider." },
-        { "h": "§ 6. Liability", "ordered": true, "items": [
-          "Information contained on the Website is general in nature and does not constitute a binding commercial offer within the meaning of the Civil Code, but merely an invitation to negotiate.",
-          "The Service Provider is not liable for decisions made by the User on the basis of the materials and information presented on the Website without prior direct consultation and the conclusion of an appropriate engineering-services contract."
-        ] },
-        { "h": "§ 7. Complaints procedure", "ordered": true, "items": [
-          "The User may submit a complaint regarding the operation of the Website and the services provided electronically.",
-          "Complaints should be submitted electronically to: biuro@fp-solutions.pl.",
-          "The Service Provider examines complaints without delay, no later than within 14 days of receipt, informing the User of the outcome at the email address from which the complaint was sent."
-        ] },
-        { "h": "§ 8. Final provisions", "ordered": true, "items": [
-          "Matters not regulated in these Terms are governed by the generally applicable provisions of Polish law.",
-          "The Service Provider reserves the right to amend these Terms for important reasons (e.g. changes in the law, changes in the way services are provided). Users will be informed of changes through publication of the new content on the Website.",
-          "Matters relating to the processing of personal data and cookies are regulated in detail in separate documents: the Privacy Policy and the Cookie Policy."
-        ] }
+        {
+          "h": "§ 1. General provisions",
+          "ordered": true,
+          "items": [
+            "The owner and Administrator of the website is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
+            "The company is entered in the CEIDG business register and holds NIP: 6182094888 and REGON: 528892780.",
+            "The Service Provider can be contacted by email at biuro@fp-solutions.pl and by phone at +48 790 782 993."
+          ]
+        },
+        {
+          "h": "§ 2. Definitions",
+          "items": [
+            "Website – the website available at the domain fp-solutions.pl (or another relevant main domain).",
+            "Service Provider – Fire Protection Solutions Jakub Baran.",
+            "User – any natural person, legal person or organisational unit using the Website.",
+            "Electronic services – services provided electronically by the Service Provider to the User via the Website (e.g. the contact form)."
+          ]
+        },
+        {
+          "h": "§ 3. Type and scope of services provided",
+          "ordered": true,
+          "items": [
+            "The Website is primarily informational. It presents the Service Provider's offer in the field of fire safety engineering (including Fire Safety Manuals, CFD simulations and audits).",
+            "Via the Website the Service Provider provides free electronic services, allowing Users to send messages using interactive email links and (where applicable) contact forms."
+          ]
+        },
+        {
+          "h": "§ 4. Technical requirements and rules of use",
+          "ordered": true,
+          "items": [
+            "Correct use of the Website requires a terminal device with internet access and a standard web browser (e.g. Chrome, Firefox, Safari, Edge).",
+            "The User is obliged to use the Website in a manner consistent with the law and good practice, respecting personal rights and the copyright and intellectual property of the Service Provider and third parties.",
+            "The User is prohibited from providing content of an unlawful nature."
+          ]
+        },
+        {
+          "h": "§ 5. Intellectual property",
+          "lead": "All rights to the Website, including economic copyright and intellectual property rights to its name, internet domain, and to the templates, forms, logos and images published on the Website (except for materials under external licences), belong to the Service Provider. They may be used only in the manner specified in and consistent with these Terms, or with the express written consent of the Service Provider."
+        },
+        {
+          "h": "§ 6. Liability",
+          "ordered": true,
+          "items": [
+            "Information contained on the Website is general in nature and does not constitute a binding commercial offer within the meaning of the Civil Code, but merely an invitation to negotiate.",
+            "The Service Provider is not liable for decisions made by the User on the basis of the materials and information presented on the Website without prior direct consultation and the conclusion of an appropriate engineering-services contract."
+          ]
+        },
+        {
+          "h": "§ 7. Complaints procedure",
+          "ordered": true,
+          "items": [
+            "The User may submit a complaint regarding the operation of the Website and the services provided electronically.",
+            "Complaints should be submitted electronically to: biuro@fp-solutions.pl.",
+            "The Service Provider examines complaints without delay, no later than within 14 days of receipt, informing the User of the outcome at the email address from which the complaint was sent."
+          ]
+        },
+        {
+          "h": "§ 8. Final provisions",
+          "ordered": true,
+          "items": [
+            "Matters not regulated in these Terms are governed by the generally applicable provisions of Polish law.",
+            "The Service Provider reserves the right to amend these Terms for important reasons (e.g. changes in the law, changes in the way services are provided). Users will be informed of changes through publication of the new content on the Website.",
+            "Matters relating to the processing of personal data and cookies are regulated in detail in separate documents: the Privacy Policy and the Cookie Policy."
+          ]
+        }
       ]
     },
     "cookies": {
       "intro": "This Cookie Policy sets out the rules for storing and accessing data on the devices of Users using the Fire Protection Solutions website, for the purpose of the Administrator providing services electronically.",
       "footer": "Document last updated: {date}",
       "sections": [
-        { "h": "§ 1. General information", "ordered": true, "items": [
-          "The Administrator of the website and the entity placing cookies on the User's terminal device is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland (NIP: 6182094888).",
-          "The Website automatically collects only the information contained in cookies. It does not automatically collect any other information about Users."
-        ] },
-        { "h": "§ 2. What are cookies?", "lead": "Cookies are IT data, in particular small text files, that are stored on the User's terminal device (computer, smartphone, tablet) and are intended for use with the Website's pages. Cookies usually contain the name of the website they come from, the time they are stored on the device and a unique number." },
-        { "h": "§ 3. Types of cookies used", "lead": "The Website uses the following types of cookies:", "items": [
-          "Essential (technical) cookies: absolutely necessary for the correct functioning of the website. They provide the basic security and accessibility functions of the Website.",
-          "Analytics / performance cookies: allow the collection of information about how the website is used, which helps us improve its structure and content (e.g. Google Analytics).",
-          "Functional cookies: allow the User's selected settings to be “remembered” and the interface to be personalised (e.g. the chosen light/dark mode)."
-        ] },
-        { "h": "§ 4. Managing cookies", "ordered": true, "items": [
-          "Most web browsers accept the storage of cookies on the User's terminal device by default.",
-          "The User may change their cookie settings at any time. These settings can be changed to block the automatic handling of cookies in the browser settings or to inform the User each time cookies are placed on the device.",
-          "Detailed information on the options and ways of handling cookies is available in the software (web browser) settings, e.g. Google Chrome, Mozilla Firefox, Safari, Microsoft Edge.",
-          "Limiting the use of cookies may affect some functionalities available on the Website (e.g. the inability to remember dark-mode preferences)."
-        ] },
-        { "h": "§ 5. Final provisions and contact", "ordered": true, "items": [
-          "More information about the processing of your personal data can be found in our Privacy Policy.",
-          "If you have any questions about the cookie policy, please contact us by email at: biuro@fp-solutions.pl."
-        ] }
+        {
+          "h": "§ 1. General information",
+          "ordered": true,
+          "items": [
+            "The Administrator of the website and the entity placing cookies on the User's terminal device is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland (NIP: 6182094888).",
+            "The Website automatically collects only the information contained in cookies. It does not automatically collect any other information about Users."
+          ]
+        },
+        {
+          "h": "§ 2. What are cookies?",
+          "lead": "Cookies are IT data, in particular small text files, that are stored on the User's terminal device (computer, smartphone, tablet) and are intended for use with the Website's pages. Cookies usually contain the name of the website they come from, the time they are stored on the device and a unique number."
+        },
+        {
+          "h": "§ 3. Types of cookies used",
+          "lead": "The Website uses the following types of cookies:",
+          "items": [
+            "Essential (technical) cookies: absolutely necessary for the correct functioning of the website. They provide the basic security and accessibility functions of the Website.",
+            "Analytics / performance cookies: allow the collection of information about how the website is used, which helps us improve its structure and content (e.g. Google Analytics).",
+            "Functional cookies: allow the User's selected settings to be “remembered” and the interface to be personalised (e.g. the chosen light/dark mode)."
+          ]
+        },
+        {
+          "h": "§ 4. Managing cookies",
+          "ordered": true,
+          "items": [
+            "Most web browsers accept the storage of cookies on the User's terminal device by default.",
+            "The User may change their cookie settings at any time. These settings can be changed to block the automatic handling of cookies in the browser settings or to inform the User each time cookies are placed on the device.",
+            "Detailed information on the options and ways of handling cookies is available in the software (web browser) settings, e.g. Google Chrome, Mozilla Firefox, Safari, Microsoft Edge.",
+            "Limiting the use of cookies may affect some functionalities available on the Website (e.g. the inability to remember dark-mode preferences)."
+          ]
+        },
+        {
+          "h": "§ 5. Final provisions and contact",
+          "ordered": true,
+          "items": [
+            "More information about the processing of your personal data can be found in our Privacy Policy.",
+            "If you have any questions about the cookie policy, please contact us by email at: biuro@fp-solutions.pl."
+          ]
+        }
       ]
     },
     "privacy": {
       "intro": "This Privacy Policy contains general information about the processing of personal data of visitors to the website and clients using the services of Fire Protection Solutions. This document has been prepared on the basis of Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (GDPR).",
       "footer": "Document last updated: {date}",
       "sections": [
-        { "h": "§ 1. Personal Data Controller", "ordered": true, "items": [
-          "The Controller of your personal data is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
-          "The company is entered in the Central Register and Information on Business Activity (CEIDG) and holds NIP: 6182094888 and REGON: 528892780.",
-          "The Controller can be contacted on matters relating to personal data protection by email at: biuro@fp-solutions.pl."
-        ] },
-        { "h": "§ 2. Purposes, legal bases and duration of processing", "lead": "The Controller processes personal data for the following purposes:", "ordered": true, "items": [
-          "Contact and handling of enquiries – on the basis of Art. 6(1)(f) GDPR (the Controller's legitimate interest). Data (e.g. name, surname, email, phone number) are processed in order to respond to enquiries sent via the form or by email. This data is stored for the period necessary to handle the enquiry.",
-          "Provision of fire safety engineering services (including Fire Safety Manuals, CFD simulations, audits, fire protection reports) – on the basis of Art. 6(1)(b) GDPR (necessity to perform a contract). Data is processed for the duration of the contract and until claims arising from it become time-barred.",
-          "Fulfilment of legal obligations (accounting, taxes) – on the basis of Art. 6(1)(c) GDPR. Data is stored for the period required by generally applicable law (usually 5 years from the end of the calendar year in which the tax payment deadline fell)."
-        ] },
-        { "h": "§ 3. Recipients of personal data", "lead": "For the correct functioning of the website and the delivery of the fire safety services provided, the Controller uses external providers. Data may be transferred to:", "items": [
-          "the accounting office serving the Controller;",
-          "hosting and email service providers;",
-          "providers of software for managing the business and engineering projects;",
-          "state authorities (e.g. the Tax Office) where this results from applicable law."
-        ], "note": "The Controller entrusts data only to entities that guarantee the application of appropriate personal-data protection and security measures required by law." },
-        { "h": "§ 4. Rights of data subjects", "lead": "In accordance with the GDPR, every User has:", "items": [
-          "The right of access to their data and to receive a copy of it;",
-          "The right to rectification (correction) of their data;",
-          "The right to erasure of data (where there are no grounds for it to be processed);",
-          "The right to restrict the processing of personal data;",
-          "The right to data portability;",
-          "The right to object to processing based on the Controller's legitimate interest."
-        ], "note": "In addition, the User has the right to lodge a complaint with the supervisory authority – the President of the Personal Data Protection Office (PUODO) – if they consider that the processing of their data infringes the law." },
-        { "h": "§ 5. Data security", "lead": "The Controller applies appropriate technical and organisational measures to protect the personal data processed, proportionate to the risks and the categories of data protected. In particular, it protects data against disclosure to unauthorised persons, seizure by an unauthorised person, processing in breach of applicable law, and alteration, loss, damage or destruction (including through the use of SSL certificates on the site)." },
-        { "h": "§ 6. Cookies and tracking technologies", "lead": "The website automatically collects only the information contained in cookies. They serve the correct operation of the site as well as statistical and analytical purposes. The detailed rules for using and managing cookies are described in a separate document: the Cookie Policy." },
-        { "h": "§ 7. Final provisions", "lead": "The Controller reserves the right to make changes to this Privacy Policy. Changes may result from the development of internet technology, changes in generally applicable law and the development of the fire safety engineering services provided by the company. Users will be informed of any changes in a visible and understandable manner on this page." }
+        {
+          "h": "§ 1. Personal Data Controller",
+          "ordered": true,
+          "items": [
+            "The Controller of your personal data is Fire Protection Solutions Jakub Baran, registered at: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
+            "The company is entered in the Central Register and Information on Business Activity (CEIDG) and holds NIP: 6182094888 and REGON: 528892780.",
+            "The Controller can be contacted on matters relating to personal data protection by email at: biuro@fp-solutions.pl."
+          ]
+        },
+        {
+          "h": "§ 2. Purposes, legal bases and duration of processing",
+          "lead": "The Controller processes personal data for the following purposes:",
+          "ordered": true,
+          "items": [
+            "Contact and handling of enquiries – on the basis of Art. 6(1)(f) GDPR (the Controller's legitimate interest). Data (e.g. name, surname, email, phone number) are processed in order to respond to enquiries sent via the form or by email. This data is stored for the period necessary to handle the enquiry.",
+            "Provision of fire safety engineering services (including Fire Safety Manuals, CFD simulations, audits, fire protection reports) – on the basis of Art. 6(1)(b) GDPR (necessity to perform a contract). Data is processed for the duration of the contract and until claims arising from it become time-barred.",
+            "Fulfilment of legal obligations (accounting, taxes) – on the basis of Art. 6(1)(c) GDPR. Data is stored for the period required by generally applicable law (usually 5 years from the end of the calendar year in which the tax payment deadline fell)."
+          ]
+        },
+        {
+          "h": "§ 3. Recipients of personal data",
+          "lead": "For the correct functioning of the website and the delivery of the fire safety services provided, the Controller uses external providers. Data may be transferred to:",
+          "items": [
+            "the accounting office serving the Controller;",
+            "hosting and email service providers;",
+            "providers of software for managing the business and engineering projects;",
+            "state authorities (e.g. the Tax Office) where this results from applicable law."
+          ],
+          "note": "The Controller entrusts data only to entities that guarantee the application of appropriate personal-data protection and security measures required by law."
+        },
+        {
+          "h": "§ 4. Rights of data subjects",
+          "lead": "In accordance with the GDPR, every User has:",
+          "items": [
+            "The right of access to their data and to receive a copy of it;",
+            "The right to rectification (correction) of their data;",
+            "The right to erasure of data (where there are no grounds for it to be processed);",
+            "The right to restrict the processing of personal data;",
+            "The right to data portability;",
+            "The right to object to processing based on the Controller's legitimate interest."
+          ],
+          "note": "In addition, the User has the right to lodge a complaint with the supervisory authority – the President of the Personal Data Protection Office (PUODO) – if they consider that the processing of their data infringes the law."
+        },
+        {
+          "h": "§ 5. Data security",
+          "lead": "The Controller applies appropriate technical and organisational measures to protect the personal data processed, proportionate to the risks and the categories of data protected. In particular, it protects data against disclosure to unauthorised persons, seizure by an unauthorised person, processing in breach of applicable law, and alteration, loss, damage or destruction (including through the use of SSL certificates on the site)."
+        },
+        {
+          "h": "§ 6. Cookies and tracking technologies",
+          "lead": "The website automatically collects only the information contained in cookies. They serve the correct operation of the site as well as statistical and analytical purposes. The detailed rules for using and managing cookies are described in a separate document: the Cookie Policy."
+        },
+        {
+          "h": "§ 7. Final provisions",
+          "lead": "The Controller reserves the right to make changes to this Privacy Policy. Changes may result from the development of internet technology, changes in generally applicable law and the development of the fire safety engineering services provided by the company. Users will be informed of any changes in a visible and understandable manner on this page."
+        }
       ]
     }
   },
@@ -828,6 +1191,229 @@
       "deleting": "Deleting…",
       "mismatch": "The email address you entered doesn't match.",
       "error": "Account deletion error. Please try again or contact us."
+    }
+  },
+  "symDetail": {
+    "back": "CFD Cloud",
+    "notFound": {
+      "title": "Job not found",
+      "body": "Job {caseId} does not exist or you do not have access to it.",
+      "hint": "Check the job number in your confirmation e-mail.",
+      "history": "Simulation history",
+      "newJob": "New job"
+    },
+    "conn": {
+      "title": "Server connection error",
+      "body": "Try refreshing the page.",
+      "back": "← Back to simulations"
+    },
+    "status": {
+      "pending": {
+        "label": "Accepted",
+        "desc": "Job saved, starting the compute server…"
+      },
+      "dispatched": {
+        "label": "Server starting",
+        "desc": "Compute machine is booting, installing FDS…"
+      },
+      "running": {
+        "label": "Computing",
+        "desc": "FDS is running on the cloud server."
+      },
+      "done": {
+        "label": "Done",
+        "desc": "Computation finished. Results available below."
+      },
+      "failed": {
+        "label": "Error",
+        "desc": "The computation ended with an error. Please contact us."
+      },
+      "cancelled": {
+        "label": "Cancelled",
+        "desc": "The computation was cancelled by the user."
+      }
+    },
+    "card": {
+      "sinceAccepted": "Time since accepted:",
+      "fdsSince": "FDS since:",
+      "estimated": "estimated:",
+      "totalTime": "Total time:",
+      "machine": "Selected machine:",
+      "machineNote": "(Hetzner Cloud, AMD EPYC)"
+    },
+    "actions": {
+      "stop": "Stop computation",
+      "stopping": "Stopping…",
+      "confirmStopQ": "Stop the computation now? Results computed so far will be saved.",
+      "yesStop": "Yes, stop",
+      "no": "No",
+      "confirmDeleteActive": "Delete the running simulation?",
+      "confirmDelete": "Delete the job?",
+      "deleteActiveBody": "The compute server will be stopped and the job, input file and all results permanently deleted. This cannot be undone.",
+      "deleteBody": "The job, input file and results will be permanently deleted. This cannot be undone.",
+      "deleting": "Deleting…",
+      "yesStopDelete": "Yes, stop and delete",
+      "yesDelete": "Yes, delete",
+      "cancel": "Cancel",
+      "stopAndDelete": "Stop and delete",
+      "deleteJob": "Delete job",
+      "annStopBold": "Stop computation",
+      "annStop": "ends the simulation at the current step. Results computed so far are saved and available for download. You are billed only for actual server usage.",
+      "annDelete": "permanently deletes the job, input file and results; this cannot be undone.",
+      "annDeleteActive": "Note: the simulation is running — deleting will stop the paid server and discard the running computation without saving results.",
+      "softStopTitle": "Stopping on request…",
+      "softStopBody": "FDS is finishing the current time step and saving results. The job will soon switch to “Done” with files to download."
+    },
+    "timeline": {
+      "title": "Progress",
+      "accepted": "Job accepted",
+      "serverUp": "Server started",
+      "fds": "FDS computation",
+      "resultsReady": "Results ready"
+    },
+    "tiles": {
+      "machine": "Machine",
+      "cells": "Cells",
+      "simTime": "Sim. time",
+      "vcpuHours": "vCPU-hours",
+      "netPrice": "Net price",
+      "thousands": "k"
+    },
+    "progress": {
+      "title": "Computation progress",
+      "refresh": "refreshes every 5 s",
+      "basic": "Basic",
+      "advanced": "Advanced",
+      "duration": "Duration",
+      "simProgress": "Simulation progress",
+      "fdsInit": "FDS initialization…",
+      "doneLabel": "Completed",
+      "doneEst": "Completed (est.)",
+      "remaining": "Remaining",
+      "finished": "finished",
+      "estProgress": "estimated progress",
+      "waitingFirst": "Waiting for first data from the server… (appears ~15 s after FDS starts)",
+      "waitingData": "Waiting for data from the server…",
+      "lastEvents": "Latest events",
+      "fdsVersion": "FDS version",
+      "chid": "CHID",
+      "timestep": "Time step",
+      "dtStep": "Step Δt",
+      "predTime": "Projected time",
+      "mpiMeshes": "MPI meshes",
+      "cells": "Cells",
+      "fdsStart": "FDS start"
+    },
+    "results": {
+      "title": "Result files",
+      "downloadSelected": "Download selected",
+      "zipAll": "ZIP (all)",
+      "zipping": "Packing…",
+      "thFile": "File",
+      "thType": "Type",
+      "thCreated": "Created",
+      "thSize": "Size",
+      "download": "Download",
+      "zipError": "Could not download the packed files. Try downloading them one by one with the “Download” button next to each file."
+    },
+    "fileType": {
+      "smv": "Smokeview scene",
+      "csv": "Device data",
+      "log": "Computation log",
+      "s3d": "3D smoke",
+      "q": "3D data",
+      "sf": "Slice",
+      "bf": "Boundary",
+      "prt5": "Particles",
+      "fds": "FDS file",
+      "other": "File"
+    },
+    "warn": {
+      "title": "Warning: errors detected in the FDS log",
+      "body": "The computation was closed, but FDS reported the errors below — results may be incomplete or unreliable. Verify them before use."
+    },
+    "payment": {
+      "verifying": "Payment verification takes a moment…",
+      "cancelledMsg": "The payment was cancelled. You can try again.",
+      "done": "Payment completed",
+      "amount": "Amount:",
+      "net": "net",
+      "awaiting": "Awaiting payment",
+      "toPay": "To pay:",
+      "gross": "gross",
+      "note": "Amount billed by actual server usage and result storage.",
+      "pay": "Pay {amount}",
+      "redirecting": "Redirecting…"
+    },
+    "cancelled": {
+      "title": "Computation cancelled.",
+      "body": "The compute server was stopped. You can submit a new job with the same file."
+    },
+    "failed": {
+      "launchTitle": "Could not start the computation.",
+      "interruptedTitle": "The computation was interrupted by an error.",
+      "launchBody": "The compute server did not start correctly (machine boot, FDS installation, or file download).",
+      "interruptedBody": "FDS rejected the input file and stopped the computation. Below is an explanation and a log excerpt with the error messages.",
+      "serverFinishing": "The server is finishing — the status will switch to “Error” shortly.",
+      "exitCode": "Exit code: {code}.",
+      "whatMeans": "What does this error mean?",
+      "howToFix": "How to fix:",
+      "rawConsole": "Raw lines from the FDS console",
+      "noCharge": "You will not be charged for a failed job. For questions, quote the job number:"
+    },
+    "errorCode": "ERROR",
+    "live": {
+      "title": "Live results",
+      "refresh": "refreshes every 3 s",
+      "waiting": "Waiting for the first results from the server. The HRR chart appears for every simulation once FDS writes the first time steps; DEVC charts — when the model defines measurement devices (detectors, BEAM, thermocouples…).",
+      "diag": "diag: received HRR {hrr} chars, DEVC {devc} chars — but could not parse as CSV",
+      "hrrTitle": "HRR — heat release rate",
+      "devcTitle": "DEVC devices ({count})",
+      "toggleHint": "click to show/hide a series",
+      "unit": "unit: {unit}",
+      "activations": "DEVC activations (setpoints)",
+      "threshold": "setpoint",
+      "timeAxis": "time [s]"
+    },
+    "slice": {
+      "title": "Slice preview",
+      "titleWith": "Slice preview — {label}",
+      "empty": "The colored slice map appears when the model contains at least one &SLCF slice (e.g. temperature or visibility at a given height) and FDS writes the first time steps.",
+      "planeInfo": "{plane} slice · {axis} = {pos} {unit}",
+      "planeH": "horizontal (top view)",
+      "planeV": "vertical ({ax}{ay})",
+      "planeShortH": "horiz.",
+      "planeShortV": "vert.",
+      "unit": "unit: {unit}",
+      "refresh": "refreshes every ~10 s",
+      "slicePick": "Slice:",
+      "crisp": "Sharp cells",
+      "smooth": "Smooth",
+      "fullAnim": "Full animation (.sf)",
+      "loading": "Loading…",
+      "closeAnim": "Close animation",
+      "animError": "Could not load the full animation from the .sf file.",
+      "blackMark": "in black: {lo}–{hi} {unit}",
+      "steppedBack": "stepped back in time",
+      "clearSel": "clear selection",
+      "play": "▶ Play",
+      "pause": "❚❚ Pause",
+      "backToLive": "⏭ back to latest (live)",
+      "dragHint": "Drag to mark a value range in black",
+      "footAnim": "Animation from the .sf file ({total} steps, {shown} sampled).",
+      "footLive": "The time slider goes back to earlier frames collected during this run. After completion, the full animation from the .sf file is available.",
+      "footDone": "Click “Full animation (.sf)” to scrub through all time steps.",
+      "footTail": "Drag the slider on the legend to mark a value range in black. Full resolution in the .sf files (Smokeview).",
+      "quantity": {
+        "TEMPERATURE": "Temperature",
+        "VISIBILITY": "Visibility",
+        "SOOTVIS": "Visibility",
+        "SOOTDENS": "Smoke density",
+        "HRRPUV": "HRRPUV (power density)",
+        "VELOCITY": "Flow velocity",
+        "PRESSURE": "Pressure",
+        "LAYER": "Smoke layer height"
+      }
     }
   }
 }

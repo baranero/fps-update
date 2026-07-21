@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
@@ -59,6 +60,7 @@ function buildRows(time: number[], series: FdsCsvSeries[]): Array<Record<string,
 }
 
 export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: LiveChartsProps) {
+  const t = useTranslations("symDetail");
   const dark = useIsDark();
   const axis = dark ? "#94a3b8" : "#64748b";
   const grid = dark ? "#334155" : "#e2e8f0";
@@ -124,16 +126,12 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
     const devcLen = devcCsv?.length ?? 0;
     const gotData = hrrLen > 0 || devcLen > 0;
     return (
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Wyniki na żywo</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-4 max-w-lg mx-auto">
-          Czekam na pierwsze wyniki z serwera. Wykres <span className="font-semibold">HRR</span> pojawia się dla każdej
-          symulacji, gdy FDS zapisze pierwsze kroki czasowe; wykresy <span className="font-semibold">DEVC</span> —
-          gdy model ma zdefiniowane urządzenia pomiarowe (czujki, BEAM, termopary…).
-        </p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{t("live.title")}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-4 max-w-lg mx-auto">{t("live.waiting")}</p>
         {gotData && (
           <p className="text-[11px] text-amber-600 dark:text-amber-400 text-center font-mono">
-            diag: odebrano HRR {hrrLen} zn., DEVC {devcLen} zn. — ale nie udało się odczytać jako CSV
+            {t("live.diag", { hrr: hrrLen, devc: devcLen })}
           </p>
         )}
       </div>
@@ -141,11 +139,11 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
-        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Wyniki na żywo</span>
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("live.title")}</span>
         {running && (
-          <span className="text-[10px] text-slate-500 dark:text-slate-400">odświeżanie co 3 s</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">{t("live.refresh")}</span>
         )}
       </div>
 
@@ -154,14 +152,14 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
         {hrrSeries && (
           <div>
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-              HRR — moc pożaru {hrrSeries.unit ? `[${hrrSeries.unit}]` : ""}
+              {t("live.hrrTitle")} {hrrSeries.unit ? `[${hrrSeries.unit}]` : ""}
             </p>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={hrrRows} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                 <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]}
                   tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
-                  label={{ value: "czas [s]", position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
+                  label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
                 <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
                 <Line type="monotone" dataKey={hrrSeries.name} stroke="#dc2626" dot={false}
@@ -176,9 +174,9 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Urządzenia DEVC ({devc.series.length})
+                {t("live.devcTitle", { count: devc.series.length })}
               </p>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">kliknij, aby pokazać/ukryć serię</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">{t("live.toggleHint")}</span>
             </div>
 
             <div className="space-y-2 mb-3">
@@ -215,13 +213,13 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
                 const rows = buildRows(devc.time, shown);
                 return (
                   <div key={unit}>
-                    <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mb-1">jednostka: {unit}</p>
+                    <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mb-1">{t("live.unit", { unit })}</p>
                     <ResponsiveContainer width="100%" height={240}>
                       <LineChart data={rows} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                         <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]}
                           tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
-                          label={{ value: "czas [s]", position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
+                          label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
                         <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
                         <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -243,7 +241,7 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
         {activations.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-              Aktywacje DEVC (setpointy)
+              {t("live.activations")}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {activations.map((a) => (
@@ -256,7 +254,7 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
                   <div className="min-w-0">
                     <p className="font-mono font-semibold text-slate-700 dark:text-slate-200 truncate">{a.id}</p>
                     <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                      {a.quantity ?? "—"} · próg {a.setpoint}
+                      {a.quantity ?? "—"} · {t("live.threshold")} {a.setpoint}
                     </p>
                   </div>
                   <span className={`font-mono font-bold shrink-0 ml-2 ${

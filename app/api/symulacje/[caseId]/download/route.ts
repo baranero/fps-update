@@ -22,15 +22,22 @@ export async function GET(
   const key = `results/${caseId}/${base}`;
   try {
     const url = await signedResultUrl(key, 300);
-    const upstream = await fetch(url);
-    if (!upstream.ok || !upstream.body) {
+    // Przekaż nagłówek Range dalej — pozwala kliientowi tanio sprawdzić rozmiar
+    // (Range: bytes=0-0 → Content-Range z całkowitym rozmiarem) przed pobraniem
+    // całości do animacji.
+    const range = req.headers.get("range");
+    const upstream = await fetch(url, range ? { headers: { Range: range } } : undefined);
+    if ((!upstream.ok && upstream.status !== 206) || !upstream.body) {
       return NextResponse.json({ error: "Nie znaleziono pliku." }, { status: 404 });
     }
 
     const headers = new Headers();
     headers.set("Content-Type", upstream.headers.get("content-type") ?? "application/octet-stream");
+    headers.set("Accept-Ranges", "bytes");
     const len = upstream.headers.get("content-length");
     if (len) headers.set("Content-Length", len);
+    const cr = upstream.headers.get("content-range");
+    if (cr) headers.set("Content-Range", cr);
     // filename oraz filename* (RFC 5987) — poprawne polskie znaki w nazwie
     headers.set(
       "Content-Disposition",
@@ -38,7 +45,7 @@ export async function GET(
     );
     headers.set("Cache-Control", "private, max-age=0, no-store");
 
-    return new Response(upstream.body, { status: 200, headers });
+    return new Response(upstream.body, { status: upstream.status, headers });
   } catch (err) {
     console.error(`download proxy [${caseId}/${base}]:`, err);
     return NextResponse.json({ error: "Błąd pobierania pliku." }, { status: 500 });

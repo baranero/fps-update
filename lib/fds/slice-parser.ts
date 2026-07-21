@@ -45,7 +45,10 @@ function decodeStr(dv: DataView, r: Rec): string {
   return new TextDecoder("latin1").decode(bytes).replace(/\0/g, " ").trim();
 }
 
-export function parseSfFrames(buf: ArrayBuffer, maxFrames = 90, maxDim = 160): SfFrames | null {
+// Domyślnie parsujemy blisko rozdzielczości natywnej (maxDim 400) — plik jest już
+// u klienta, więc możemy zachować pełny detal siatki FDS. maxFrames ogranicza
+// liczbę klatek osi czasu (pamięć), nie rozdzielczość przestrzenną.
+export function parseSfFrames(buf: ArrayBuffer, maxFrames = 120, maxDim = 400): SfFrames | null {
   const dv = new DataView(buf);
   let off = 0;
   const r1 = readRecord(dv, off); if (!r1) return null; off = r1.next;
