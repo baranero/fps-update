@@ -326,12 +326,16 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     const hrrF = job.results.find((f) => f.name.toLowerCase().endsWith("_hrr.csv"));
     if (!devcF && !hrrF) return;
     let cancelled = false;
-    const load = async (url?: string) => {
-      if (!url) return null;
-      try { return await (await fetch(url)).text(); } catch { return null; }
+    // Doczytywanie pełnych CSV przez proxy (same-origin) — nie wprost z magazynu,
+    // żeby uniknąć blokady CORS (jak przy pobieraniu plików / ZIP).
+    const load = async (name?: string) => {
+      if (!name) return null;
+      try {
+        return await (await fetch(`/api/symulacje/${caseId}/download?file=${encodeURIComponent(name)}`)).text();
+      } catch { return null; }
     };
     (async () => {
-      const [devc, hrr] = await Promise.all([load(devcF?.url), load(hrrF?.url)]);
+      const [devc, hrr] = await Promise.all([load(devcF?.name), load(hrrF?.name)]);
       if (!cancelled) setFinalCsv({ devc, hrr });
     })();
     return () => { cancelled = true; };
