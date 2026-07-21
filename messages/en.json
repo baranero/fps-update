@@ -1307,14 +1307,15 @@
     "results": {
       "title": "Result files",
       "downloadSelected": "Download selected",
-      "zipAll": "ZIP (all)",
+      "zipAll": "Download all",
       "zipping": "Packing…",
       "thFile": "File",
       "thType": "Type",
       "thCreated": "Created",
       "thSize": "Size",
       "download": "Download",
-      "zipError": "Could not download the packed files. Try downloading them one by one with the “Download” button next to each file."
+      "zipError": "Could not download the packed files. Try downloading them one by one with the “Download” button next to each file.",
+      "bulkNote": "Files are large — downloading individually (streamed to disk)."
     },
     "fileType": {
       "smv": "Smokeview scene",

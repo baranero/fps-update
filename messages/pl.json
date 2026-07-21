@@ -1307,14 +1307,15 @@
     "results": {
       "title": "Pliki wynikowe",
       "downloadSelected": "Pobierz zaznaczone",
-      "zipAll": "ZIP (wszystkie)",
+      "zipAll": "Pobierz wszystkie",
       "zipping": "Pakuję…",
       "thFile": "Plik",
       "thType": "Typ",
       "thCreated": "Utworzono",
       "thSize": "Rozmiar",
       "download": "Pobierz",
-      "zipError": "Nie udało się pobrać spakowanych plików. Spróbuj pobrać je pojedynczo przyciskiem „Pobierz” przy pliku."
+      "zipError": "Nie udało się pobrać spakowanych plików. Spróbuj pobrać je pojedynczo przyciskiem „Pobierz” przy pliku.",
+      "bulkNote": "Pliki są duże — pobieram pojedynczo (strumieniowo do dysku)."
     },
     "fileType": {
       "smv": "Scena Smokeview",

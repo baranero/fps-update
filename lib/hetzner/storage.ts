@@ -23,7 +23,19 @@ export async function listResults(caseId: string) {
 }
 
 export async function signedResultUrl(key: string, expiresIn = 604800) {
-  return getSignedUrl(s3(), new GetObjectCommand({ Bucket: BUCKET(), Key: key }), { expiresIn });
+  // ResponseContentDisposition sprawia, że bezpośredni link (użyty w <a download>)
+  // pobiera plik na dysk z właściwą nazwą — także cross-origin, bez pośrednictwa
+  // serwera (istotne dla dużych plików FDS, gdzie proxy trafiałoby w limity funkcji).
+  const filename = (key.split("/").pop() ?? "download").replace(/[^\x20-\x7E]/g, "_");
+  return getSignedUrl(
+    s3(),
+    new GetObjectCommand({
+      Bucket: BUCKET(),
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${filename}"`,
+    }),
+    { expiresIn }
+  );
 }
 
 export async function deleteResults(caseId: string) {
