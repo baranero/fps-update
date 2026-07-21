@@ -81,6 +81,7 @@ async function handleGet(caseId: string) {
     fdsExitCode: data.fds_exit_code ?? null,
     devcCsv: data.devc_csv ?? null,
     hrrCsv: data.hrr_csv ?? null,
+    sliceJson: data.slice_json ?? null,
     devcSetpoints: data.devc_setpoints ?? null,
     stopRequested: data.stop_requested === true,
     results,

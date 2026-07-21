@@ -130,12 +130,13 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode, log, devcCsv, hrrCsv } = body as {
+  const { status, exitCode, log, devcCsv, hrrCsv, sliceJson } = body as {
     status?: string;
     exitCode?: number;
     log?: string;
     devcCsv?: string;
     hrrCsv?: string;
+    sliceJson?: string;
   };
 
   const supabase = createAdminClient();
@@ -191,6 +192,26 @@ export async function POST(
       .update({ started_at: new Date().toISOString() })
       .eq("case_id", caseId)
       .is("started_at", null);
+  }
+
+  // Podgląd przekroju na żywo — OSOBNY, best-effort zapis. Celowo poza głównym
+  // UPDATE: gdy kolumna slice_json jeszcze nie istnieje (nieuruchomiona
+  // migration_slice_stream.sql), błąd dotyczy tylko przekroju i NIE psuje
+  // strumienia DEVC/HRR/logu powyżej.
+  if (sliceJson) {
+    try {
+      const decoded = Buffer.from(sliceJson, "base64").toString("utf8");
+      const obj = JSON.parse(decoded);
+      if (obj && typeof obj === "object" && typeof obj.data === "string") {
+        const { error: sliceErr } = await supabase
+          .from("fds_submissions")
+          .update({ slice_json: obj })
+          .eq("case_id", caseId);
+        if (sliceErr) {
+          console.error(`complete webhook: slice_json update error [${caseId}] (uruchom migration_slice_stream.sql?):`, sliceErr.message);
+        }
+      }
+    } catch { /* ignore — niepoprawny payload przekroju */ }
   }
 
   // Safety net: usuń VM Hetzner przy failed (na wypadek gdy cloud-init nie zdążył się sam usunąć)

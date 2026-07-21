@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import JSZip from "jszip";
 import LiveCharts from "./LiveCharts";
+import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
+import type { FdsSlice } from "@/lib/fds/slice";
 import { explainFdsErrors, type FdsErrorInfo } from "@/lib/fds/errors";
 
 interface JobData {
@@ -27,6 +29,7 @@ interface JobData {
   fdsExitCode: number | null;
   devcCsv: string | null;
   hrrCsv: string | null;
+  sliceJson: FdsSlice | null;
   devcSetpoints: FdsDevc[] | null;
   stopRequested: boolean;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
@@ -397,29 +400,27 @@ export default function JobStatusPage({
   const toggleAll = () =>
     setSelected(allSelected ? new Set() : new Set(allFiles.map((f) => f.name)));
 
-  const downloadFile = async (f: { name: string; url: string }) => {
-    try {
-      const res = await fetch(f.url);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = f.name;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      window.open(f.url, "_blank");
-    }
+  // Pobieranie przez własny proxy (same-origin) — omija CORS magazynu Hetzner,
+  // który blokuje bezpośredni fetch podpisanych URL-i z przeglądarki (ZIP).
+  const proxyUrl = (name: string) =>
+    `/api/symulacje/${caseId}/download?file=${encodeURIComponent(name)}`;
+
+  const downloadFile = (f: { name: string }) => {
+    const a = document.createElement("a");
+    a.href = proxyUrl(f.name);
+    a.download = f.name;
+    a.click();
   };
 
-  const downloadZip = async (files: Array<{ name: string; url: string }>) => {
+  const downloadZip = async (files: Array<{ name: string }>) => {
     if (files.length === 0) return;
     setZipping(true);
     try {
       const zip = new JSZip();
       await Promise.all(
         files.map(async (f) => {
-          const res = await fetch(f.url);
+          const res = await fetch(proxyUrl(f.name));
+          if (!res.ok) throw new Error(`pobieranie ${f.name}: ${res.status}`);
           const blob = await res.blob();
           zip.file(f.name, blob);
         })
@@ -431,6 +432,9 @@ export default function JobStatusPage({
       a.download = `${caseId}.zip`;
       a.click();
       URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("downloadZip error:", err);
+      alert("Nie udało się pobrać spakowanych plików. Spróbuj pobrać je pojedynczo przyciskiem „Pobierz” przy pliku.");
     } finally {
       setZipping(false);
     }
@@ -907,6 +911,11 @@ export default function JobStatusPage({
               </div>
             );
           })()}
+
+          {/* Podgląd przekroju na żywo — mapa barwna SLCF (jak Smokeview) */}
+          {(job.status === "running" || job.status === "done" || job.status === "failed") && (
+            <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} />
+          )}
 
           {/* Wyniki na żywo — wykresy DEVC / HRR */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (

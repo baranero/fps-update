@@ -37,6 +37,12 @@ function fmtT(t: number): string {
   return t >= 100 ? `${Math.round(t)}` : t.toFixed(1);
 }
 
+// Wartość odczytywana z wykresu — zawsze 2 miejsca po przecinku
+function fmtVal(v: number | string | Array<number | string>): string {
+  const n = typeof v === "number" ? v : parseFloat(String(v));
+  return Number.isFinite(n) ? n.toFixed(2) : "—";
+}
+
 // Zbuduj dane dla recharts z serii o wspólnej osi czasu (z opcjonalnym przerzedzeniem)
 function buildRows(time: number[], series: FdsCsvSeries[]): Array<Record<string, number | null>> {
   const stride = time.length > 800 ? Math.ceil(time.length / 800) : 1;
@@ -157,7 +163,7 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
                   tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
                   label={{ value: "czas [s]", position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
                 <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
-                <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} />
+                <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
                 <Line type="monotone" dataKey={hrrSeries.name} stroke="#dc2626" dot={false}
                   isAnimationActive={false} connectNulls strokeWidth={1.8} />
               </LineChart>
@@ -217,7 +223,7 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
                           tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
                           label={{ value: "czas [s]", position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
                         <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
-                        <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} />
+                        <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         {shown.map((s) => (
                           <Line key={s.name} type="monotone" dataKey={s.name}
