@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-export const maxDuration = 300; // Vercel Pro+ respektuje; gdzie indziej ignorowane
+export const maxDuration = 60; // Limit planu Vercel hobby (max 60 s); podnieś po przejściu na Pro
 
 import { NextRequest, NextResponse } from "next/server";
 import { PassThrough, Readable } from "stream";
