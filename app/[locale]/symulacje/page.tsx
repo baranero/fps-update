@@ -39,6 +39,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 export default function PulpitPage() {
   const t = useTranslations("symDashboard");
+  const tr = useTranslations("symulacje");
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [userName, setUserName] = useState<string>("");
@@ -134,6 +135,31 @@ export default function PulpitPage() {
   return (
     <Shell>
       <div className="space-y-10">
+
+        {/* Baner „już wkrótce" — dla użytkowników bez dostępu do uruchamiania symulacji */}
+        {!canRun && (
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-primary/25 bg-primary/[0.06] p-4 sm:p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{tr("restricted.badge")}</span>
+              </div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{tr("restricted.title")}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{tr("restricted.lead")}</p>
+            </div>
+            <a
+              href="mailto:biuro@fp-solutions.pl"
+              className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+            >
+              {tr("restricted.emailCta")}
+            </a>
+          </div>
+        )}
 
         {/* Header + CTA */}
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">

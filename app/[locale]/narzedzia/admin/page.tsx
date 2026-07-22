@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import AdminAnalytics from "./AdminAnalytics";
 import SimDrawer from "./SimDrawer";
@@ -17,7 +17,26 @@ type Sim = {
 type User = {
   id: string; email: string; created_at: string; last_sign_in_at: string | null;
   total: number; done: number; revenue: number;
+  // Dane do faktury (z profiles) — podgląd dla admina
+  full_name: string; company: string; nip: string; phone: string; address: string;
+  profile_updated_at: string | null;
 };
+
+function hasInvoiceData(u: User): boolean {
+  return !!(u.full_name || u.company || u.nip || u.phone || u.address);
+}
+
+/* ── Szczegół danych do faktury ── */
+function DetailField({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
+  return (
+    <div className={wide ? "sm:col-span-2" : undefined}>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</p>
+      <p className={`mt-0.5 text-xs ${value ? "text-slate-700 dark:text-slate-200" : "text-slate-400 dark:text-slate-600"} break-words`}>
+        {value || "—"}
+      </p>
+    </div>
+  );
+}
 type Stats = {
   counts: { total: number; pending: number; running: number; done: number; failed: number; revenue: number; unpaid: number; users: number };
   recent: Sim[];
@@ -174,6 +193,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [usersSearch, setUsersSearch] = useState("");
   const [usersLoading, setUsersLoading] = useState(false);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   // Load stats on mount (also serves as auth check)
   useEffect(() => {
@@ -248,7 +268,13 @@ export default function AdminPage() {
 
   const c = stats!.counts;
   const filteredUsers = usersSearch
-    ? users.filter(u => u.email.toLowerCase().includes(usersSearch.toLowerCase()))
+    ? users.filter(u => {
+        const q = usersSearch.toLowerCase();
+        return u.email.toLowerCase().includes(q)
+          || u.full_name.toLowerCase().includes(q)
+          || u.company.toLowerCase().includes(q)
+          || u.nip.toLowerCase().includes(q);
+      })
     : users;
 
   const totalPages = Math.ceil(simsTotal / 50);
@@ -500,10 +526,10 @@ export default function AdminPage() {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="Szukaj po emailu…"
+              placeholder="Szukaj: email, nazwa, firma, NIP…"
               value={usersSearch}
               onChange={e => setUsersSearch(e.target.value)}
-              className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-[#1E232E] px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary w-64"
+              className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-[#1E232E] px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary w-72"
             />
             <span className="text-xs text-slate-500 dark:text-slate-400 self-center">{filteredUsers.length} użytkowników</span>
           </div>
@@ -515,28 +541,70 @@ export default function AdminPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <table className="w-full text-xs">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
+              <table className="w-full text-xs min-w-[860px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
-                    {["Email", "Zarejestrowany", "Ostatnie logowanie", "Symulacje", "Zakończone", "Przychód"].map(h => (
+                    {["Email", "Klient / firma", "Zarejestrowany", "Ostatnie logowanie", "Symulacje", "Zakończone", "Przychód"].map(h => (
                       <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{h}</th>
                     ))}
+                    <th className="px-3 py-2" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredUsers.map(u => (
-                    <tr key={u.id} className="bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                      <td className="px-3 py-2.5 font-medium text-slate-800 dark:text-slate-200">{u.email}</td>
-                      <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{fmtDateTime(u.created_at)}</td>
-                      <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{u.last_sign_in_at ? fmtDateTime(u.last_sign_in_at) : "—"}</td>
-                      <td className="px-3 py-2.5 tabular-nums text-slate-600 dark:text-slate-300 font-medium">{u.total || "—"}</td>
-                      <td className="px-3 py-2.5 tabular-nums text-green-600 dark:text-green-400 font-medium">{u.done || "—"}</td>
-                      <td className="px-3 py-2.5 tabular-nums text-primary font-medium">{u.revenue ? fmtPrice(u.revenue) : "—"}</td>
-                    </tr>
-                  ))}
+                  {filteredUsers.map(u => {
+                    const open = expandedUser === u.id;
+                    return (
+                      <Fragment key={u.id}>
+                        <tr
+                          onClick={() => setExpandedUser(open ? null : u.id)}
+                          title="Pokaż / ukryj dane do faktury"
+                          className="cursor-pointer bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                        >
+                          <td className="px-3 py-2.5 font-medium text-slate-800 dark:text-slate-200">{u.email}</td>
+                          <td className="px-3 py-2.5">
+                            {u.full_name
+                              ? <span className="text-slate-700 dark:text-slate-200">{u.full_name}</span>
+                              : <span className="text-slate-400 dark:text-slate-600">—</span>}
+                            {u.company && <div className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-[180px]">{u.company}</div>}
+                          </td>
+                          <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{fmtDateTime(u.created_at)}</td>
+                          <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{u.last_sign_in_at ? fmtDateTime(u.last_sign_in_at) : "—"}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-slate-600 dark:text-slate-300 font-medium">{u.total || "—"}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-green-600 dark:text-green-400 font-medium">{u.done || "—"}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-primary font-medium">{u.revenue ? fmtPrice(u.revenue) : "—"}</td>
+                          <td className="px-3 py-2.5 text-right">
+                            <svg className={`inline h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </td>
+                        </tr>
+                        {open && (
+                          <tr className="bg-slate-50 dark:bg-slate-900/30">
+                            <td colSpan={8} className="px-4 py-4">
+                              {hasInvoiceData(u) ? (
+                                <>
+                                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dane do faktury</p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3">
+                                    <DetailField label="Imię i nazwisko" value={u.full_name} />
+                                    <DetailField label="Firma" value={u.company} />
+                                    <DetailField label="NIP" value={u.nip} />
+                                    <DetailField label="Telefon" value={u.phone} />
+                                    <DetailField label="Adres" value={u.address} wide />
+                                    <DetailField label="Zaktualizowano" value={u.profile_updated_at ? fmtDateTime(u.profile_updated_at) : ""} />
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-xs text-slate-400 dark:text-slate-500">Ten użytkownik nie uzupełnił jeszcze danych do faktury.</p>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
                   {filteredUsers.length === 0 && (
-                    <tr><td colSpan={6} className="px-3 py-10 text-center text-slate-400">Brak użytkowników</td></tr>
+                    <tr><td colSpan={8} className="px-3 py-10 text-center text-slate-400">Brak użytkowników</td></tr>
                   )}
                 </tbody>
               </table>

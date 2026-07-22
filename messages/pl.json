@@ -1125,10 +1125,10 @@
       "blad": "Błąd"
     },
     "restricted": {
-      "badge": "Dostęp ograniczony",
-      "title": "Uruchamianie symulacji jest chwilowo niedostępne",
-      "lead": "Obliczenia CFD/FDS w chmurze są obecnie dostępne wyłącznie dla wybranych klientów — zanim uruchomimy płatności online.",
-      "body": "Chcesz uzyskać dostęp do swojego konta? Napisz lub zadzwoń, a włączymy Ci możliwość uruchamiania symulacji.",
+      "badge": "Już wkrótce",
+      "title": "Symulacje CFD w chmurze — już wkrótce",
+      "lead": "Uruchamianie obliczeń CFD/FDS bezpośrednio z panelu jest na finiszu przygotowań. Udostępnimy je już wkrótce.",
+      "body": "Chcesz uzyskać dostęp wcześniej? Napisz lub zadzwoń, a włączymy Twoje konto.",
       "emailCta": "Napisz do nas",
       "phoneCta": "Zadzwoń",
       "back": "← Wróć do Pulpitu"

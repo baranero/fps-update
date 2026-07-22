@@ -1125,10 +1125,10 @@
       "blad": "Error"
     },
     "restricted": {
-      "badge": "Restricted access",
-      "title": "Running simulations is temporarily unavailable",
-      "lead": "Cloud CFD/FDS computations are currently available to selected clients only — until we launch online payments.",
-      "body": "Want access for your account? Email or call us and we'll enable simulation runs for you.",
+      "badge": "Coming soon",
+      "title": "Cloud CFD simulations — coming soon",
+      "lead": "Running CFD/FDS computations straight from the panel is in the final stage of preparation. We'll make it available soon.",
+      "body": "Want early access? Email or call us and we'll enable your account.",
       "emailCta": "Email us",
       "phoneCta": "Call us",
       "back": "← Back to dashboard"
