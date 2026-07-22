@@ -398,7 +398,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
             <Link href="/symulacje/historia" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
               {t("notFound.history")}
             </Link>
-            <Link href="/symulacje" className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Link href="/symulacje/nowa" className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               {t("notFound.newJob")}
             </Link>
           </div>

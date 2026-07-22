@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import InvoiceDataForm from "@/components/InvoiceDataForm";
 
 type Profile = {
   full_name: string;
@@ -55,12 +56,12 @@ function Toast({ msg, onDismiss }: { msg: Msg; onDismiss: () => void }) {
 }
 
 const quickLinks = [
-  { key: "newSim", href: "/symulacje", accent: true, icon: "M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" },
+  { key: "newSim", href: "/symulacje/nowa", accent: true, icon: "M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" },
   { key: "history", href: "/symulacje/historia", accent: false, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
   { key: "calc", href: "/narzedzia/kalkulatory", accent: false, icon: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" },
   { key: "reports", href: "/narzedzia/raporty", accent: false, icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-  { key: "billing", href: "/narzedzia/rozliczenia", accent: false, icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" },
-  { key: "stats", href: "/narzedzia/statystyki", accent: false, icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+  { key: "billing", href: "/symulacje/rozliczenia", accent: false, icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" },
+  { key: "stats", href: "/symulacje/statystyki", accent: false, icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
 ];
 
 function ProfilForm() {
@@ -76,10 +77,6 @@ function ProfilForm() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<Msg | null>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [pwCurrent, setPwCurrent] = useState("");
   const [pwNew, setPwNew] = useState("");
@@ -157,25 +154,6 @@ function ProfilForm() {
     router.refresh();
   }
 
-  async function handleSave(e: FormEvent) {
-    e.preventDefault();
-    setSaveLoading(true);
-    setSaveMsg(null);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ id: user.id, ...profile, updated_at: new Date().toISOString() });
-
-    showMsg(setSaveMsg, saveTimerRef, error
-      ? { ok: false, text: t("invoice.saveErr") }
-      : { ok: true, text: t("invoice.savedOk") }
-    );
-    setSaveLoading(false);
-  }
-
   async function handlePassword(e: FormEvent) {
     e.preventDefault();
     if (pwNew.length < 8) {
@@ -227,28 +205,6 @@ function ProfilForm() {
     router.push("/");
   }
 
-  const field = (
-    label: string,
-    key: keyof Profile,
-    opts?: { placeholder?: string; hint?: string }
-  ) => (
-    <div>
-      <label className="block mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
-        {label}
-      </label>
-      {opts?.hint && (
-        <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">{opts.hint}</p>
-      )}
-      <input
-        type="text"
-        value={profile[key]}
-        onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
-        placeholder={opts?.placeholder}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-primary dark:focus:border-primary transition-colors"
-      />
-    </div>
-  );
-
   if (loading) return (
     <div className="space-y-6 max-w-3xl">
       <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
@@ -275,7 +231,7 @@ function ProfilForm() {
     { label: t("stats.simulations"), value: String(stats?.simsTotal ?? 0), href: "/symulacje/historia" },
     { label: t("stats.active"), value: String(stats?.simsActive ?? 0), href: "/symulacje/historia" },
     { label: t("stats.reports"), value: String(stats?.reports ?? 0), href: "/narzedzia/raporty" },
-    { label: t("stats.spent"), value: `${(stats?.spentPaid ?? 0).toLocaleString(locale === "en" ? "en-GB" : "pl-PL")} zł`, href: "/narzedzia/rozliczenia" },
+    { label: t("stats.spent"), value: `${(stats?.spentPaid ?? 0).toLocaleString(locale === "en" ? "en-GB" : "pl-PL")} zł`, href: "/symulacje/rozliczenia" },
   ];
 
   return (
@@ -386,7 +342,7 @@ function ProfilForm() {
             </div>
           </div>
           <Link
-            href="/narzedzia/rozliczenia"
+            href="/symulacje/rozliczenia"
             className="shrink-0 rounded-lg bg-primary hover:bg-primary/90 px-4 py-2 text-sm font-semibold text-white transition-colors"
           >
             {t("billing.cta")}
@@ -394,29 +350,8 @@ function ProfilForm() {
         </div>
       </section>
 
-      {/* Dane do faktur */}
-      <section className="border-t border-slate-200 dark:border-slate-700 pt-8">
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">{t("invoice.title")}</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-          {t("invoice.subtitle")}
-        </p>
-        <form onSubmit={handleSave} className="space-y-4 max-w-lg">
-          {field(t("invoice.fullName"), "full_name", { placeholder: t("invoice.phFullName") })}
-          {field(t("invoice.company"), "company", { placeholder: t("invoice.phCompany") })}
-          {field(t("invoice.nip"), "nip", { placeholder: t("invoice.phNip"), hint: t("invoice.nipHint") })}
-          {field(t("invoice.phone"), "phone", { placeholder: t("invoice.phPhone") })}
-          {field(t("invoice.address"), "address", { placeholder: t("invoice.phAddress") })}
-
-          {saveMsg && <Toast msg={saveMsg} onDismiss={() => setSaveMsg(null)} />}
-          <button
-            type="submit"
-            disabled={saveLoading}
-            className="rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-60 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
-          >
-            {saveLoading ? t("invoice.saving") : t("invoice.save")}
-          </button>
-        </form>
-      </section>
+      {/* Dane do faktur — zunifikowane dane rozliczeniowe (wspólne z Rozliczeniami) */}
+      <InvoiceDataForm variant="section" />
 
       {/* Bezpieczeństwo / hasło */}
       <section className="border-t border-slate-200 dark:border-slate-700 pt-8">

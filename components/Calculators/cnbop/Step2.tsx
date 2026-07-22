@@ -186,14 +186,14 @@ export default function Step2({
                   <div key={l.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-3.5">
                     <span className="text-sm font-medium text-slate-400 w-5 shrink-0">{idx + 1}.</span>
                     <UnitInput
-                      label={`Szer. (y) [min ${toStr(minDims.y)}m i y ≥ x]`}
+                      label={`Szerokość spocznika [min ${toStr(minDims.y)}m i y ≥ x]`}
                       unit="m"
                       value={l.width}
                       onChange={(val) => updateArrayData("landings", l.id, "width", val)}
                       className={toNum(l.width) > 0 && toNum(l.width) < minDims.y ? "!border-red-400 focus:ring-red-100" : ""}
                     />
                     <UnitInput
-                      label="Głębokość z rzutu"
+                      label="Długość spocznika"
                       unit="m"
                       value={l.depth}
                       onChange={(val) => updateArrayData("landings", l.id, "depth", val)}

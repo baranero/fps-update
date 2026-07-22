@@ -109,7 +109,7 @@ downsample() {
   awk -v step="$step" 'NR<=2 || (NR-2) % step == 0' "$f"
 }
 
-# Wyślij bieżące wyniki DEVC/HRR + ostatnią klatkę przekroju (podgląd na żywo)
+# Wyślij bieżące wyniki DEVC/HRR + partię nowych klatek przekroju (podgląd na żywo)
 send_data() {
   local devc_file hrr_file devc hrr slice
   devc_file=$(ls -1 *_devc.csv 2>/dev/null | head -1 || true)
@@ -190,15 +190,20 @@ curl -sLf \\
 log "Input ready: $(wc -c < "$FILE_NAME") bytes"
 
 # ── Skrypt podglądu przekroju (.sf → JSON) — „na żywo jak Smokeview" ──────────
-# Wyciąga OSTATNIĄ kompletną klatkę wybranego przekroju SLCF, downsampluje siatkę
-# do ≤96×96 i kwantyzuje wartości do uint8 (payload = w*h bajtów). Tylko stdlib
-# Pythona — brak zależności pip, by nie ryzykować niezawodności cloud-init.
+# Wyciąga NOWE klatki wybranych przekrojów SLCF od ostatniego cyklu (stan w
+# .slice_state.json): najnowsza klatka w pełnej rozdzielczości (data) + do MAXFRAMES
+# klatek pośrednich w lżejszej rozdzielczości (frames[]), by przekrój płynął klatka
+# po klatce. Downsampling + kwantyzacja do uint8. Tylko stdlib Pythona — brak
+# zależności pip, by nie ryzykować niezawodności cloud-init.
 cat > "$WORKDIR/slice_frame.py" <<'PYEOF'
 import sys, os, glob, struct, json, base64
 
 WORK = sys.argv[1] if len(sys.argv) > 1 else "."
-MAXDIM = 200
+MAXDIM_LATEST = 200
+MAXDIM_HIST = 96
 MAXSLICES = 6
+MAXFRAMES = 6
+STATE_FILE = os.path.join(WORK, ".slice_state.json")
 
 def read_record(f):
     head = f.read(4)
@@ -289,44 +294,36 @@ def read_header(path):
     finally:
         f.close()
 
-def read_last_frame(path, meta):
-    npts = meta["npts"]
-    frame_bytes = 12 + 8 + npts * 4
+def count_frames(path, meta):
+    frame_bytes = 12 + 8 + meta["npts"] * 4
     try:
         size = os.path.getsize(path)
     except Exception:
-        return None
+        return 0
     avail = size - meta["start"]
     if avail < frame_bytes:
+        return 0
+    return avail // frame_bytes
+
+def read_frame_at(f, meta, idx):
+    npts = meta["npts"]
+    frame_bytes = 12 + 8 + npts * 4
+    f.seek(meta["start"] + (idx - 1) * frame_bytes)
+    trec = read_record(f)
+    drec = read_record(f)
+    if trec is None or drec is None or len(trec) < 4 or len(drec) < npts * 4:
         return None
-    nframes = avail // frame_bytes
-    try:
-        f = open(path, "rb")
-    except Exception:
-        return None
-    try:
-        idx = nframes
-        while idx >= 1:
-            f.seek(meta["start"] + (idx - 1) * frame_bytes)
-            trec = read_record(f)
-            drec = read_record(f)
-            if trec is not None and drec is not None and len(trec) >= 4 and len(drec) >= npts * 4:
-                (t,) = struct.unpack("<f", trec[:4])
-                vals = struct.unpack("<" + str(npts) + "f", drec[:npts * 4])
-                return {"t": t, "vals": vals}
-            idx -= 1
-        return None
-    finally:
-        f.close()
+    (t,) = struct.unpack("<f", trec[:4])
+    vals = struct.unpack("<" + str(npts) + "f", drec[:npts * 4])
+    return {"t": t, "vals": vals}
 
 def coord(amin, amax, cnt, i):
     if not cnt:
         return float(i)
     return amin + (amax - amin) * (float(i) / float(cnt))
 
-def build(path, meta, frame, meshes, smap):
+def base_geom(path, meta, meshes, smap):
     nx = meta["nx"]; ny = meta["ny"]; nz = meta["nz"]
-    vals = frame["vals"]
     if nx == 1:
         plane = "x"; NH = ny; NV = nz; ax = "y"; ay = "z"; stepv = ny
         hlo = meta["j1"]; hhi = meta["j2"]; vlo = meta["k1"]; vhi = meta["k2"]; clo = meta["i1"]
@@ -336,38 +333,6 @@ def build(path, meta, frame, meshes, smap):
     else:
         plane = "z"; NH = nx; NV = ny; ax = "x"; ay = "y"; stepv = nx
         hlo = meta["i1"]; hhi = meta["i2"]; vlo = meta["j1"]; vhi = meta["j2"]; clo = meta["k1"]
-
-    def val_at(h, v):
-        return vals[v * stepv + h]
-
-    sh = 1
-    while (NH + sh - 1) // sh > MAXDIM:
-        sh += 1
-    sv = 1
-    while (NV + sv - 1) // sv > MAXDIM:
-        sv += 1
-
-    vmin = None; vmax = None
-    rows = []
-    v = 0
-    while v < NV:
-        row = []
-        h = 0
-        while h < NH:
-            x = val_at(h, v)
-            if x == x and x != float("inf") and x != float("-inf"):
-                if vmin is None or x < vmin: vmin = x
-                if vmax is None or x > vmax: vmax = x
-            row.append(x)
-            h += sh
-        rows.append(row)
-        v += sv
-    if vmin is None:
-        return None
-    if vmax <= vmin:
-        vmax = vmin + 1.0
-    span = vmax - vmin
-
     mesh = None
     mi = smap.get(os.path.basename(path))
     if mi is not None and 0 <= mi < len(meshes):
@@ -384,7 +349,41 @@ def build(path, meta, frame, meshes, smap):
         y1 = coord(lo[ay], hi[ay], cnt[ay], vhi)
         pos = coord(lo[plane], hi[plane], cnt[plane], clo)
         kind = "m"
+    return {"plane": plane, "NH": NH, "NV": NV, "ax": ax, "ay": ay, "stepv": stepv,
+            "x0": x0, "x1": x1, "y0": y0, "y1": y1, "pos": pos, "coords": kind}
 
+def steps_for(NH, NV, maxdim):
+    sh = 1
+    while (NH + sh - 1) // sh > maxdim:
+        sh += 1
+    sv = 1
+    while (NV + sv - 1) // sv > maxdim:
+        sv += 1
+    return sh, sv
+
+def quantize(vals, g, maxdim):
+    NH = g["NH"]; NV = g["NV"]; stepv = g["stepv"]
+    sh, sv = steps_for(NH, NV, maxdim)
+    vmin = None; vmax = None
+    rows = []
+    v = 0
+    while v < NV:
+        row = []
+        h = 0
+        while h < NH:
+            x = vals[v * stepv + h]
+            if x == x and x != float("inf") and x != float("-inf"):
+                if vmin is None or x < vmin: vmin = x
+                if vmax is None or x > vmax: vmax = x
+            row.append(x)
+            h += sh
+        rows.append(row)
+        v += sv
+    if vmin is None:
+        return None
+    if vmax <= vmin:
+        vmax = vmin + 1.0
+    span = vmax - vmin
     buf = bytearray()
     for row in rows:
         for x in row:
@@ -396,13 +395,27 @@ def build(path, meta, frame, meshes, smap):
                 if q > 255: q = 255
                 buf.append(q)
     data = base64.b64encode(bytes(buf)).decode("ascii")
-
     w = len(rows[0]) if rows else 0
-    return {"q": meta["q"], "unit": meta["unit"], "short": meta["short"],
-            "t": round(frame["t"], 2), "w": w, "h": len(rows),
-            "plane": plane, "pos": round(pos, 3), "ax": ax, "ay": ay,
-            "x0": round(x0, 3), "x1": round(x1, 3), "y0": round(y0, 3), "y1": round(y1, 3),
-            "coords": kind, "vmin": round(vmin, 3), "vmax": round(vmax, 3), "data": data}
+    return {"w": w, "h": len(rows), "vmin": round(vmin, 3), "vmax": round(vmax, 3), "data": data}
+
+def load_state():
+    try:
+        fh = open(STATE_FILE, "r")
+        s = json.load(fh)
+        fh.close()
+        if isinstance(s, dict):
+            return s
+    except Exception:
+        pass
+    return {}
+
+def save_state(s):
+    try:
+        fh = open(STATE_FILE, "w")
+        json.dump(s, fh)
+        fh.close()
+    except Exception:
+        pass
 
 def main():
     meshes, smap = parse_smv(WORK)
@@ -422,36 +435,76 @@ def main():
     if not cands:
         sys.stderr.write("znaleziono " + str(len(files)) + " plikow .sf, ale zaden nie ma czytelnego naglowka" + chr(10))
         return
-    # Zbuduj ostatnią klatkę dla każdego pliku, potem deduplikuj po (wielkosc,
-    # plaszczyzna, pozycja) — wybierajac najwiekszy fragment (multi-mesh) —
-    # i zwroc do MAXSLICES przekrojow posortowanych wg preferencji.
-    built = []
+    # Deduplikuj po (wielkosc, plaszczyzna, pozycja) wybierajac najwiekszy fragment
+    # (multi-mesh). Geometria z samego naglowka — bez czytania klatek.
+    winners = {}
     for rank, path, meta in cands:
-        frame = read_last_frame(path, meta)
-        if frame is None:
+        g = base_geom(path, meta, meshes, smap)
+        key = (meta["q"], g["plane"], round(g["pos"], 2))
+        cur = winners.get(key)
+        if cur is None or meta["npts"] > cur[2]["npts"]:
+            winners[key] = (rank, path, meta, g)
+    ordered = sorted(winners.values(), key=lambda w: (w[0], -w[2]["npts"]))
+    state = load_state()
+    out = []
+    for rank, path, meta, g in ordered[:MAXSLICES]:
+        bname = os.path.basename(path)
+        total = count_frames(path, meta)
+        if total < 1:
             continue
-        o = build(path, meta, frame, meshes, smap)
-        if o is None:
+        sent = state.get(bname, 0)
+        if not isinstance(sent, int) or sent < 0 or sent > total:
+            sent = 0
+        lo = sent + 1
+        hi = total
+        if lo > hi:
+            lo = hi
+        # Ogranicz partie do najnowszych MAXFRAMES+1 klatek (najnowsza + historia),
+        # by uniknac ogromnego payloadu przy pierwszym cyklu / po zastoju.
+        if hi - lo + 1 > MAXFRAMES + 1:
+            lo = hi - MAXFRAMES
+        try:
+            f = open(path, "rb")
+        except Exception:
             continue
-        o["id"] = os.path.basename(path)
-        o["_rank"] = rank
-        o["_npts"] = meta["npts"]
-        built.append(o)
-    if not built:
+        frames = []
+        try:
+            idx = lo
+            while idx <= hi:
+                fr = read_frame_at(f, meta, idx)
+                if fr is not None:
+                    frames.append(fr)
+                idx += 1
+        finally:
+            f.close()
+        if not frames:
+            continue
+        latest = frames[-1]
+        qz = quantize(latest["vals"], g, MAXDIM_LATEST)
+        if qz is None:
+            continue
+        o = {"id": bname, "q": meta["q"], "unit": meta["unit"], "short": meta["short"],
+             "plane": g["plane"], "pos": round(g["pos"], 3), "ax": g["ax"], "ay": g["ay"],
+             "x0": round(g["x0"], 3), "x1": round(g["x1"], 3), "y0": round(g["y0"], 3), "y1": round(g["y1"], 3),
+             "coords": g["coords"], "t": round(latest["t"], 2),
+             "w": qz["w"], "h": qz["h"], "vmin": qz["vmin"], "vmax": qz["vmax"], "data": qz["data"]}
+        hframes = []
+        j = 0
+        while j < len(frames) - 1:
+            fr = frames[j]
+            hz = quantize(fr["vals"], g, MAXDIM_HIST)
+            if hz is not None:
+                hframes.append({"t": round(fr["t"], 2), "vmin": hz["vmin"], "vmax": hz["vmax"],
+                                "w": hz["w"], "h": hz["h"], "d": hz["data"]})
+            j += 1
+        if hframes:
+            o["frames"] = hframes
+        out.append(o)
+        state[bname] = total
+    save_state(state)
+    if not out:
         sys.stderr.write("brak kompletnej klatki w zadnym z " + str(len(cands)) + " plikow .sf" + chr(10))
         return
-    best = {}
-    for o in built:
-        key = (o["q"], o["plane"], round(o["pos"], 2))
-        cur = best.get(key)
-        if cur is None or o["_npts"] > cur["_npts"]:
-            best[key] = o
-    ordered = sorted(best.values(), key=lambda o: (o["_rank"], -o["_npts"]))
-    out = []
-    for o in ordered[:MAXSLICES]:
-        o.pop("_rank", None)
-        o.pop("_npts", None)
-        out.append(o)
     sys.stdout.write(json.dumps({"slices": out}))
 
 main()
@@ -464,14 +517,14 @@ command -v python3 >/dev/null 2>&1 || { log "Instaluję python3 (podgląd przekr
 notify '{"status":"running"}'
 log "Starting FDS: $NCORES MPI processes..."
 
-# Wysyłaj logi co 5s w tle; wyniki DEVC/HRR co ~10s (co 2. iteracja)
+# Podgląd na żywo co 5s: log + wyniki DEVC/HRR + partia klatek przekroju.
+# send_data dosyła klatki przyrostowo (od ostatnio wysłanej), więc przekrój płynie
+# klatka po klatce zamiast przeskakiwać do najnowszej.
 (
-  i=0
   while true; do
     sleep 5
     send_log
-    i=$((i + 1))
-    [ $((i % 2)) -eq 0 ] && send_data
+    send_data
   done
 ) &
 LOG_PID=$!

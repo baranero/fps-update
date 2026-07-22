@@ -142,7 +142,7 @@ const Hero = () => {
                 {t("ctaContact")}
               </Link>
               <Link
-                href="/symulacje"
+                href="/symulacje/nowa"
                 className="rounded-xl border border-primary/30 bg-primary/10 px-7 py-3.5 text-[14px] font-bold text-primary transition-colors hover:bg-primary/20"
               >
                 {t("ctaRun")}

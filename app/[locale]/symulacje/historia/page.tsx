@@ -17,6 +17,8 @@ type Submission = {
   total_cells: number;
 };
 
+type FilterTab = "all" | "active" | "done" | "failed" | "cancelled";
+
 const STATUS_CLS: Record<string, string> = {
   pending:    "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
   dispatched: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
@@ -59,6 +61,7 @@ export default function HistoriaSymulacjiPage() {
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterTab>("all");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -119,6 +122,24 @@ export default function HistoriaSymulacjiPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filtered = submissions.filter((s) => {
+    if (filter === "active")    return ACTIVE.has(s.status);
+    if (filter === "done")      return s.status === "done";
+    if (filter === "failed")    return s.status === "failed" || s.status === "error";
+    if (filter === "cancelled") return s.status === "cancelled";
+    return true;
+  });
+
+  const TABS: Array<{ id: FilterTab; label: string; count: number }> = (
+    [
+      { id: "all",       label: t("tabAll"),       count: submissions.length },
+      { id: "active",    label: t("tabActive"),    count: submissions.filter((s) => ACTIVE.has(s.status)).length },
+      { id: "done",      label: t("tabDone"),      count: submissions.filter((s) => s.status === "done").length },
+      { id: "failed",    label: t("tabFailed"),    count: submissions.filter((s) => s.status === "failed" || s.status === "error").length },
+      { id: "cancelled", label: t("tabCancelled"), count: submissions.filter((s) => s.status === "cancelled").length },
+    ] as Array<{ id: FilterTab; label: string; count: number }>
+  ).filter((tab) => tab.id === "all" || tab.count > 0);
 
   return (
     <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
@@ -184,7 +205,7 @@ export default function HistoriaSymulacjiPage() {
           ) : submissions.length === 0 ? (
             <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{t("empty")}</p>
-              <Link href="/symulacje" className="text-sm font-medium text-primary hover:underline">
+              <Link href="/symulacje/nowa" className="text-sm font-medium text-primary hover:underline">
                 {t("emptyCta")}
               </Link>
             </div>
@@ -194,9 +215,40 @@ export default function HistoriaSymulacjiPage() {
               <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
             )}
 
+            {/* Filtr: aktywne vs zakończone */}
+            <div role="tablist" aria-label={t("filterLabel")} className="flex flex-wrap gap-1 border-b border-slate-200 dark:border-slate-700">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={filter === tab.id}
+                  onClick={() => setFilter(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                    filter === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                      filter === tab.id
+                        ? "bg-primary/10 text-primary"
+                        : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {filtered.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">{t("noFilterResults")}</p>
+            ) : (
             <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {submissions.map((s) => (
+                {filtered.map((s) => (
                   <div key={s.case_id} className="bg-white dark:bg-[#1E232E]">
                     {confirmDelete === s.case_id ? (
                       <div className="flex items-center gap-3 px-4 py-4">
@@ -279,6 +331,7 @@ export default function HistoriaSymulacjiPage() {
                 ))}
               </div>
             </div>
+            )}
             </>
           )}
 

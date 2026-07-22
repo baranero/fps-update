@@ -36,6 +36,8 @@ export interface CompOpening {
   w: string;
   h: string;
   area: string;
+  // second leaf width for door_double; empty ⇒ equal to the first leaf (2 × w)
+  w2?: string;
 }
 
 export interface CompGroup {
@@ -44,10 +46,27 @@ export interface CompGroup {
   distances: string[];
 }
 
+// dimensions / geom_cv / acz_cv use Cv to relate geometric ↔ active area.
+// size_acz: geometric size given as dimensions OR area (sizeMethod), plus the
+// active area (Acz) entered directly from the datasheet — no Cv assumption.
+export type VentInputMethod = 'dimensions' | 'geom_cv' | 'acz_cv' | 'size_acz';
+export type VentSizeMethod = 'dimensions' | 'geom';
+
+export interface VentUnit {
+  id: number;
+  inputMethod: VentInputMethod;
+  width: string; height: string; cv: string; count: string;
+  ageom: string; acz: string;
+  // only for the size_acz method — how the geometric size is provided
+  sizeMethod: VentSizeMethod;
+}
+
 export interface Step4Data {
-  ventInputMethod: 'dimensions' | 'geom_cv' | 'acz_cv';
-  ventWidth: string; ventHeight: string; cv: string; count: string;
-  ventAcz: string; ventAgeom: string;
+  vents: VentUnit[];
+
+  // Manual override of the recommended system type; null = follow the automatic
+  // determineSystemType() recommendation.
+  systemTypeOverride: 'GRAVITATIONAL' | 'MECHANICAL' | null;
 
   compInputMethod: 'known_acz' | 'calculate';
   compArrangement: 'parallel' | 'series';
@@ -93,6 +112,119 @@ export const toNum = (val: string | number): number => {
 export const toStr = (val: number, decimals: number = 2): string => {
   return val.toFixed(decimals).replace(".", ",");
 };
+
+export function defaultVent(id?: number): VentUnit {
+  return {
+    id: id ?? Date.now(),
+    inputMethod: 'dimensions',
+    width: '', height: '', cv: '0,60', count: '1',
+    ageom: '', acz: '',
+    sizeMethod: 'dimensions',
+  };
+}
+
+export function isVentEmpty(v: VentUnit): boolean {
+  return !v.width && !v.height && !v.ageom && !v.acz;
+}
+
+// Aerodynamic (czynna) and geometric area for a single smoke damper (klapa).
+// count multiplies the dimensions and size_acz methods; the Cv-only area methods
+// (geom_cv / acz_cv) take a total value (matching the catalog helper).
+export function ventUnitAreas(v: VentUnit): { Acz: number; Ageom: number } {
+  const cv = toNum(v.cv) || 0.6;
+  if (v.inputMethod === 'dimensions') {
+    const Ageom = toNum(v.width) * toNum(v.height) * (toNum(v.count) || 1);
+    return { Acz: Ageom * cv, Ageom };
+  }
+  if (v.inputMethod === 'geom_cv') {
+    const Ageom = toNum(v.ageom);
+    return { Acz: Ageom * cv, Ageom };
+  }
+  if (v.inputMethod === 'size_acz') {
+    const n = toNum(v.count) || 1;
+    const geomPer = v.sizeMethod === 'geom' ? toNum(v.ageom) : toNum(v.width) * toNum(v.height);
+    return { Acz: toNum(v.acz) * n, Ageom: geomPer * n };
+  }
+  const Acz = toNum(v.acz);
+  return { Acz, Ageom: cv > 0 ? Acz / cv : 0 };
+}
+
+export function totalVentAreas(vents: VentUnit[]): { Acz: number; Ageom: number } {
+  return (vents ?? []).reduce(
+    (acc, v) => {
+      const { Acz, Ageom } = ventUnitAreas(v);
+      return { Acz: acc.Acz + Acz, Ageom: acc.Ageom + Ageom };
+    },
+    { Acz: 0, Ageom: 0 }
+  );
+}
+
+// Fills in any missing/added VentUnit fields (e.g. sizeMethod) so vents saved by
+// an older version of the calculator restore cleanly.
+function coerceVentUnit(v: any, idx: number): VentUnit {
+  const base = defaultVent(typeof v?.id === 'number' ? v.id : Date.now() + idx);
+  if (!v || typeof v !== 'object') return base;
+  const validMethods: VentInputMethod[] = ['dimensions', 'geom_cv', 'acz_cv', 'size_acz'];
+  return {
+    ...base,
+    inputMethod: validMethods.includes(v.inputMethod) ? v.inputMethod : 'dimensions',
+    sizeMethod: v.sizeMethod === 'geom' ? 'geom' : 'dimensions',
+    width: v.width ?? '',
+    height: v.height ?? '',
+    cv: v.cv ?? '0,60',
+    count: v.count ?? '1',
+    ageom: v.ageom ?? '',
+    acz: v.acz ?? '',
+  };
+}
+
+// Restores a Step4Data from history / share URLs, migrating the pre-multi-vent
+// shape (single ventInputMethod/ventWidth/… fields) into a one-element vents[].
+export function normalizeStep4Data(raw: any): Step4Data {
+  const fallbackGroups: CompGroup[] = [{
+    id: Date.now(),
+    openings: [{ id: Date.now() + 1, type: 'door_single', w: '', h: '', area: '' }],
+    distances: [],
+  }];
+
+  if (!raw || typeof raw !== 'object') {
+    return {
+      vents: [defaultVent()],
+      systemTypeOverride: null,
+      compInputMethod: 'calculate', compArrangement: 'parallel', compAcz: '',
+      compGroups: fallbackGroups,
+      Ae: '', Adrzwi: '', installationType: 'wall', ductPressureLoss: '',
+    };
+  }
+
+  const ventsRaw: any[] = Array.isArray(raw.vents) && raw.vents.length > 0
+    ? raw.vents
+    : [{
+        inputMethod: raw.ventInputMethod ?? 'dimensions',
+        width: raw.ventWidth ?? '',
+        height: raw.ventHeight ?? '',
+        cv: raw.cv ?? '0,60',
+        count: raw.count ?? '1',
+        ageom: raw.ventAgeom ?? '',
+        acz: raw.ventAcz ?? '',
+      }];
+  const vents: VentUnit[] = ventsRaw.map((v, i) => coerceVentUnit(v, i));
+
+  return {
+    vents,
+    systemTypeOverride: raw.systemTypeOverride === 'GRAVITATIONAL' || raw.systemTypeOverride === 'MECHANICAL'
+      ? raw.systemTypeOverride
+      : null,
+    compInputMethod: raw.compInputMethod ?? 'calculate',
+    compArrangement: raw.compArrangement ?? 'parallel',
+    compAcz: raw.compAcz ?? '',
+    compGroups: Array.isArray(raw.compGroups) && raw.compGroups.length > 0 ? raw.compGroups : fallbackGroups,
+    Ae: raw.Ae ?? '',
+    Adrzwi: raw.Adrzwi ?? '',
+    installationType: raw.installationType ?? 'wall',
+    ductPressureLoss: raw.ductPressureLoss ?? '',
+  };
+}
 
 export function classifyBuildingHeight(
   heightType: 'floors' | 'meters', heightValue: number, categoryZL: string
@@ -155,7 +287,13 @@ export function calculateCFDWarnings(AKS: number, AB: number, C: number, D: numb
 
 export function openingGeomArea(o: CompOpening): number {
   if (o.type === 'door_single') return toNum(o.w) * toNum(o.h);
-  if (o.type === 'door_double') return 2 * toNum(o.w) * toNum(o.h);
+  if (o.type === 'door_double') {
+    const w1 = toNum(o.w);
+    const w2 = toNum(o.w2);
+    // second leaf unset ⇒ both leaves equal (2 × w1); otherwise (w1 + w2)
+    const totalWidth = w2 > 0 ? w1 + w2 : 2 * w1;
+    return totalWidth * toNum(o.h);
+  }
   return toNum(o.area);
 }
 
@@ -174,14 +312,17 @@ export function calculateCompGroups(groups: CompGroup[]): {
 
     const effs = group.openings.map(openingGeomArea);
 
-    totalAgeom += effs.reduce((s, a) => s + a, 0);
-
     if (group.openings.length === 1) {
+      totalAgeom += effs[0];
       totalAeff += effs[0];
     } else {
+      // Układ szeregowy: miarodajny jest najmniejszy otwór (przewężenie) —
+      // powierzchni (ani czynnej, ani geometrycznej) nie sumujemy.
       const valid = effs.filter(a => a > 0);
       if (valid.length > 0) {
-        totalAeff += Math.min(...valid);
+        const smallest = Math.min(...valid);
+        totalAgeom += smallest;
+        totalAeff += smallest;
       }
     }
   }

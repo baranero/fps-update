@@ -9,6 +9,7 @@ import {
   determineSystemType, classifyBuildingHeight, calculateStaircaseAreas,
   calculateCFDWarnings, calculateGravitational, calculateMechanical,
   calculateCompGroups, validateStep2, CalculationResults,
+  defaultVent, totalVentAreas, normalizeStep4Data,
   toNum, toStr,
 } from "@/lib/calculations/cnbop";
 import { generateEngineeringPDF, CNBOPReportData } from "@/lib/utils/generatePDF";
@@ -40,9 +41,8 @@ const initialStep1: Step1Data = {
 };
 
 const initialStep4: Step4Data = {
-  ventInputMethod: "dimensions",
-  ventWidth: "", ventHeight: "", cv: "0,60", count: "1",
-  ventAcz: "", ventAgeom: "",
+  vents: [defaultVent(1)],
+  systemTypeOverride: null,
   compInputMethod: "calculate",
   compArrangement: "parallel",
   compAcz: "",
@@ -102,7 +102,7 @@ function CNBOPWizardInner() {
     setStep1Data(snapshot.step1Data);
     setStep2aData(snapshot.step2aData);
     setStep2Data(snapshot.step2Data);
-    setStep4Data(snapshot.step4Data);
+    setStep4Data(normalizeStep4Data(snapshot.step4Data));
     setCFDCond(snapshot.cfDCond);
     setAeHelper(snapshot.aeHelper);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,7 +167,12 @@ function CNBOPWizardInner() {
     return base;
   }, [step1Data.categoryZL]);
 
-  const systemType = useMemo(() => determineSystemType(step1Data), [step1Data]);
+  const recommendedSystemType = useMemo(() => determineSystemType(step1Data), [step1Data]);
+  // Effective system type — manual override (from Step 3) wins over the recommendation.
+  const systemType = useMemo(
+    () => step4Data.systemTypeOverride ?? recommendedSystemType,
+    [step4Data.systemTypeOverride, recommendedSystemType]
+  );
 
   const getMinDimensions = (type: string) => {
     if (type === "single_family") return { x: 0.8, y: 0.8 };
@@ -210,19 +215,7 @@ function CNBOPWizardInner() {
 
   const anyCFD = Object.values(cfnWarnings).some(Boolean) || Object.values(extraCFD).some(Boolean);
 
-  const actualVent = useMemo(() => {
-    const cv = toNum(step4Data.cv) || 0.6;
-    if (step4Data.ventInputMethod === "dimensions") {
-      const Ageom = toNum(step4Data.ventWidth) * toNum(step4Data.ventHeight) * (toNum(step4Data.count) || 1);
-      return { Acz: Ageom * cv, Ageom };
-    }
-    if (step4Data.ventInputMethod === "geom_cv") {
-      const Ageom = toNum(step4Data.ventAgeom);
-      return { Acz: Ageom * cv, Ageom };
-    }
-    const Acz = toNum(step4Data.ventAcz);
-    return { Acz, Ageom: cv > 0 ? Acz / cv : 0 };
-  }, [step4Data]);
+  const actualVent = useMemo(() => totalVentAreas(step4Data.vents), [step4Data]);
 
   const results = useMemo<CalculationResults | null>(() => {
     if (!hasCalculated) return null;
@@ -306,7 +299,7 @@ function CNBOPWizardInner() {
     setHasCalculated(true);
     setStep(4);
     scrollToTabs();
-    const sysType = determineSystemType(step1Data);
+    const sysType = systemType;
     const label = `${step1Data.categoryZL.replace("_", " ")}, ${step1Data.buildingHeightGroup}, ${sysType === "GRAVITATIONAL" ? "graw." : "mech."}`;
     saveHistory({ label, step1Data, step2aData, step2Data, step4Data, cfDCond, aeHelper });
     setHistory(loadHistory());
@@ -323,7 +316,7 @@ function CNBOPWizardInner() {
     setStep1Data(entry.step1Data);
     setStep2aData(entry.step2aData);
     setStep2Data(entry.step2Data);
-    setStep4Data(entry.step4Data);
+    setStep4Data(normalizeStep4Data(entry.step4Data));
     setCFDCond(entry.cfDCond);
     setAeHelper(entry.aeHelper);
     setHasCalculated(false);
@@ -527,6 +520,7 @@ function CNBOPWizardInner() {
         {step === 3 && (
           <Step4
             systemType={systemType}
+            recommendedSystemType={recommendedSystemType}
             step1Data={step1Data}
             data={step4Data} setData={setStep4Data}
             aeHelper={aeHelper} setAeHelper={setAeHelper}

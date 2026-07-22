@@ -68,7 +68,7 @@ const CloudSpotlight = () => {
             </div>
 
             <Link
-              href="/symulacje"
+              href="/symulacje/nowa"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-[14px] font-extrabold text-white transition-colors hover:bg-primary/90"
             >
               {t("cta")}

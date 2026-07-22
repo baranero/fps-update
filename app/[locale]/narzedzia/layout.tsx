@@ -41,8 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               { name: t("mobile.pn"), href: "/narzedzia/kalkulatory/oddymianie-klatek-pn", exact: false },
               { name: t("mobile.quick"), href: "/narzedzia/kalkulatory/oddymianie-grawitacyjne", exact: false },
               { name: t("mobile.reports"), href: "/narzedzia/raporty", exact: false },
-              { name: t("mobile.billing"), href: "/narzedzia/rozliczenia", exact: false },
-              { name: t("mobile.stats"), href: "/narzedzia/statystyki", exact: false },
+              { name: t("cfdCloud"), href: "/symulacje", exact: false },
               ...(userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL
                 ? [{ name: t("mobile.admin"), href: "/narzedzia/admin", exact: false }]
                 : []),
@@ -131,6 +130,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               }`}
             >
               {t("title")}
+            </Link>
+
+            {/* Przejście do obszaru symulacji (CFD Cloud) */}
+            <Link
+              href="/symulacje"
+              className="flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+            >
+              <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
+              </svg>
+              <span className="truncate">{t("cfdCloud")}</span>
             </Link>
 
             {/* Nav */}
@@ -227,32 +237,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <span className="truncate">{t("reportsHistory")}</span>
-                    </Link>
-                    <Link
-                      href="/narzedzia/rozliczenia"
-                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
-                        active("/narzedzia/rozliczenia")
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                      </svg>
-                      <span className="truncate">{t("billing")}</span>
-                    </Link>
-                    <Link
-                      href="/narzedzia/statystyki"
-                      className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
-                        active("/narzedzia/statystyki")
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      <span className="truncate">{t("stats")}</span>
                     </Link>
                   </div>
                 </div>

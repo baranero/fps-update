@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  decodeSliceData, turboCss, TURBO_LUT,
+  decodeSliceData, decodeB64Grid, turboCss, TURBO_LUT,
   normalizeSlices, type FdsSlice, type FdsSliceJson,
 } from "@/lib/fds/slice";
 import { parseSfFrames, type SfFrames } from "@/lib/fds/slice-parser";
@@ -95,15 +95,38 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
 
   const liveGrid = useMemo(() => (sel ? decodeSliceData(sel) : null), [sel]);
 
+  // Dołóż do osi czasu WSZYSTKIE klatki z bieżącej partii (pośrednie `sel.frames`
+  // + najnowsza `sel.data`), deduplikując po czasie `t` i utrzymując kolejność
+  // rosnącą. Dzięki temu podgląd płynie klatka po klatce, zamiast przeskakiwać
+  // do najnowszej co cykl webhooka. Zgodność wstecz: gdy brak `frames`,
+  // dokładana jest tylko pojedyncza bieżąca klatka (jak dawniej).
   useEffect(() => {
-    if (!sel || !liveGrid) return;
+    if (!sel) return;
+    const incoming: Frame[] = [];
+    if (sel.frames && sel.frames.length) {
+      for (const fr of sel.frames) {
+        const fw = fr.w ?? sel.w;
+        const fh = fr.h ?? sel.h;
+        const grid = decodeB64Grid(fr.d, fw, fh);
+        if (grid) incoming.push({ t: fr.t, data: grid, w: fw, h: fh, vmin: fr.vmin, vmax: fr.vmax });
+      }
+    }
+    if (liveGrid) {
+      incoming.push({ t: sel.t, data: liveGrid, w: sel.w, h: sel.h, vmin: sel.vmin, vmax: sel.vmax });
+    }
+    if (!incoming.length) return;
+
     setHist((prev) => {
-      const arr = prev[selKey] ?? [];
-      const last = arr[arr.length - 1];
-      if (last && last.t === sel.t && last.data.length === liveGrid.length) return prev;
-      const next = [...arr, { t: sel.t, data: liveGrid, w: sel.w, h: sel.h, vmin: sel.vmin, vmax: sel.vmax }];
-      if (next.length > MAX_HIST) next.shift();
-      return { ...prev, [selKey]: next };
+      const arr = prev[selKey] ? prev[selKey].slice() : [];
+      const seen = new Set(arr.map((f) => f.t));
+      let changed = false;
+      for (const f of incoming) {
+        if (!seen.has(f.t)) { arr.push(f); seen.add(f.t); changed = true; }
+      }
+      if (!changed) return prev;
+      arr.sort((a, b) => a.t - b.t);
+      while (arr.length > MAX_HIST) arr.shift();
+      return { ...prev, [selKey]: arr };
     });
   }, [sel, liveGrid, selKey]);
 

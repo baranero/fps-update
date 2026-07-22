@@ -6,6 +6,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { createServer, selectServerType } from "@/lib/hetzner/client";
 import { generateCloudInit } from "@/lib/hetzner/cloud-init";
 import { parseFds, estimateCost, type FdsParseResult } from "@/lib/fds/parser";
+import { isSimAllowed } from "@/lib/utils/adminCheck";
 
 const BUCKET = "fds-files";
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB — twardy limit rozmiaru pliku .fds
@@ -189,6 +190,16 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Wymagane logowanie." }, { status: 401 });
     }
+
+    // Dostęp do uruchamiania symulacji tymczasowo ograniczony — zanim wdrożymy
+    // płatności, płatny serwer w chmurze może odpalić wyłącznie zaufany użytkownik.
+    if (!isSimAllowed(user.email)) {
+      return NextResponse.json(
+        { error: "Uruchamianie symulacji jest obecnie dostępne wyłącznie dla wybranych klientów. Skontaktuj się z nami: biuro@fp-solutions.pl" },
+        { status: 403 }
+      );
+    }
+
     const userId = user.id;
     const name = (form.get("name") as string | null)?.trim() || user.email?.split("@")[0] || "Użytkownik";
     const email = (form.get("email") as string | null)?.trim() || user.email || "";

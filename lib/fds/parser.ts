@@ -260,7 +260,13 @@ const THROUGHPUT    = 240_000; // cell-timesteps/s per rdzeń MPI (Hetzner CCX)
 const FIRE_VEL      = 5.0;     // m/s — zakładana prędkość charakterystyczna przepływu
 const CFL_FACTOR    = 0.8;     // współczynnik CFL (domyślny w FDS)
 const DEFAULT_DX    = 0.10;    // m — zakładany rozmiar komórki gdy brak XB
-const MARKUP        = 10;      // ~10x marża na koszcie serwera
+// Progresywna marża: wysoka na drobnych zleceniach, malejąca wraz ze wzrostem
+// zużycia (koszt chmury + storage w €). MARKUP_MIN = dotychczasowe 10× — duże
+// zlecenia nie drożeją względem poprzedniego cennika.
+const MARKUP_MAX    = 25;      // małe zlecenia (zużycie ≤ COST_LO_EUR)
+const MARKUP_MIN    = 10;      // duże zlecenia (zużycie ≥ COST_HI_EUR)
+const COST_LO_EUR   = 0.05;    // € zużycia — poniżej: pełna MARKUP_MAX
+const COST_HI_EUR   = 3.0;     // € zużycia — powyżej: pełna MARKUP_MIN
 const EUR_PLN       = 4.3;
 const OVERHEAD_H    = 10 / 60; // ~10 min: boot + upload wyników + auto-delete
 
@@ -270,6 +276,15 @@ const STORAGE_EUR_PER_GB = 0.031; // €0.0119 storage/m-c + €0.019 egress ≈
 function estimateOutputGb(cells: number, tEnd: number): number {
   // Szacunek: ~0.3 GB na milion komórek na minutę symulacji (slice + csv + smv)
   return Math.max(0.05, (cells / 1_000_000) * 0.3 * (tEnd / 60));
+}
+
+// Progresywna marża w funkcji realnego zużycia (koszt surowy w €).
+// Log-interpolacja między progami — stawka spada gładko, bez skoków na progach.
+function progressiveMarkup(rawCostEur: number): number {
+  if (rawCostEur <= COST_LO_EUR) return MARKUP_MAX;
+  if (rawCostEur >= COST_HI_EUR) return MARKUP_MIN;
+  const t = Math.log(rawCostEur / COST_LO_EUR) / Math.log(COST_HI_EUR / COST_LO_EUR); // 0..1
+  return MARKUP_MAX - (MARKUP_MAX - MARKUP_MIN) * t;
 }
 
 export function estimateCost(parsed: FdsParseResult): FdsEstimate {
@@ -301,7 +316,8 @@ export function estimateCost(parsed: FdsParseResult): FdsEstimate {
   const vcpuHours        = billedHours * server.cores;
   const estimatedOutputGb = estimateOutputGb(cells, tEnd);
   const storageCostEur   = estimatedOutputGb * STORAGE_EUR_PER_GB;
-  const price            = Math.max(1, Math.round((cloudCostEur + storageCostEur) * MARKUP * EUR_PLN));
+  const rawCostEur       = cloudCostEur + storageCostEur;
+  const price            = Math.max(1, Math.round(rawCostEur * progressiveMarkup(rawCostEur) * EUR_PLN));
 
   let complexity: FdsEstimate["complexity"];
   if (cells < 500_000)        complexity = "mała";
@@ -334,5 +350,6 @@ export function computeFinalPrice(opts: {
   const billedHours    = Math.max(1 / 60, opts.serverHours) + 3 / 60;
   const cloudCostEur    = billedHours * server.eurPerHour;
   const storageCostEur  = Math.max(0, opts.storageGb) * STORAGE_EUR_PER_GB;
-  return Math.max(1, Math.round((cloudCostEur + storageCostEur) * MARKUP * EUR_PLN));
+  const rawCostEur      = cloudCostEur + storageCostEur;
+  return Math.max(1, Math.round(rawCostEur * progressiveMarkup(rawCostEur) * EUR_PLN));
 }

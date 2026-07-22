@@ -30,12 +30,6 @@ export interface CNBOPReportData {
 
 const CONTACT_EMAIL = "biuro@fp-solutions.pl";
 
-const VENT_METHOD_LABELS: Record<string, string> = {
-  'dimensions': 'Podano wymiary klapy: szerokość × wysokość × współczynnik aerodynamiczny Cv × liczba sztuk',
-  'geom_cv': 'Podano powierzchnię geometryczną klapy i współczynnik aerodynamiczny Cv',
-  'acz_cv': 'Podano bezpośrednio wymaganą powierzchnię czynną Acz',
-};
-
 const HEIGHT_GROUP_LABELS: Record<string, string> = {
   'N': 'Niski (N) — do 12 m lub do 4 kond.',
   'SW': 'Średniowysoki (SW) — 12–25 m lub 5–9 kond.',
@@ -178,28 +172,37 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
       });
     }
 
-    // 3. Klapa dymowa — dobór i weryfikacja
+    // 3. Klapy dymowe — dobór i weryfikacja
     checkPageBreak(60);
-    let ventDesc = "";
-    if (data.step4.ventInputMethod === 'dimensions') {
-      ventDesc = `${data.step4.ventWidth} m × ${data.step4.ventHeight} m, Cv = ${data.step4.cv}, liczba sztuk: ${data.step4.count}`;
-    } else if (data.step4.ventInputMethod === 'geom_cv') {
-      ventDesc = `Powierzchnia geometryczna Aₑₐₒₘ = ${data.step4.ventAgeom} m², Cv = ${data.step4.cv}`;
-    } else {
-      ventDesc = `Powierzchnia czynna Aᴄᴢ= ${data.step4.ventAcz} m²`;
-    }
+    const vents = data.step4.vents ?? [];
+    const ventDesc = vents.map((v, i) => {
+      const prefix = vents.length > 1 ? `Klapa ${i + 1}: ` : "";
+      if (v.inputMethod === 'dimensions') {
+        return `${prefix}${v.width} m × ${v.height} m, Cv = ${v.cv}, liczba sztuk: ${v.count}`;
+      }
+      if (v.inputMethod === 'geom_cv') {
+        return `${prefix}pow. geometryczna Aₑₐₒₘ = ${v.ageom} m², Cv = ${v.cv}`;
+      }
+      if (v.inputMethod === 'size_acz') {
+        const size = v.sizeMethod === 'geom'
+          ? `pow. geometryczna Aₑₐₒₘ = ${v.ageom} m²`
+          : `${v.width} m × ${v.height} m`;
+        return `${prefix}${size}, pow. czynna Aᴄᴢ = ${v.acz} m², liczba sztuk: ${v.count}`;
+      }
+      return `${prefix}pow. czynna Aᴄᴢ = ${v.acz} m²`;
+    }).join("\n") || "—";
 
     const ventOk = data.actualVent.Acz >= (data.results.Acz || 0);
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 10, theme: "plain", styles: commonTableStyles, headStyles: headerStyles,
-      head: [["3. Dobór Klapy Dymowej", "Wartość"]],
+      head: [["3. Dobór Klap Dymowych", "Wartość"]],
       body: [
-        ["Metoda wprowadzania parametrów klapy", VENT_METHOD_LABELS[data.step4.ventInputMethod]],
-        ["Wprowadzone dane klapy", ventDesc],
-        ["Powierzchnia geometryczna klapy dymowej (Aₑₐₒₘ, dobrana)", `${data.actualVent.Ageom.toFixed(2).replace('.', ',')} m²`],
-        ["Powierzchnia czynna klapy dymowej (Aᴄᴢ, dobrana)", `${data.actualVent.Acz.toFixed(2).replace('.', ',')} m²`],
-        ["Minimalna wymagana pow. czynna klapy wg CNBOP (Aᴄᴢ, min)", `${data.results.Acz?.toFixed(2).replace('.', ',')} m²`],
-        ["Status klapy dymowej", ventOk ? "SPEŁNIONY — dobrana klapa pokrywa wymagane minimum" : "NIEWYSTARCZAJĄCY — wymagana klapa o większej pow. czynnej"],
+        ["Liczba dobranych klap dymowych", String(vents.length)],
+        ["Wprowadzone dane klap", ventDesc],
+        ["Powierzchnia geometryczna klap dymowych (Aₑₐₒₘ, łącznie)", `${data.actualVent.Ageom.toFixed(2).replace('.', ',')} m²`],
+        ["Powierzchnia czynna klap dymowych (Aᴄᴢ, łącznie)", `${data.actualVent.Acz.toFixed(2).replace('.', ',')} m²`],
+        ["Minimalna wymagana pow. czynna wg CNBOP (Aᴄᴢ, min)", `${data.results.Acz?.toFixed(2).replace('.', ',')} m²`],
+        ["Status klap dymowych", ventOk ? "SPEŁNIONY — dobrane klapy pokrywają wymagane minimum" : "NIEWYSTARCZAJĄCY — wymagana większa łączna pow. czynna klap"],
       ],
       alternateRowStyles: { fillColor: [250, 250, 250] },
       columnStyles: { 0: { cellWidth: 130 }, 1: { fontStyle: "bold" } },
@@ -222,8 +225,18 @@ export async function generateEngineeringPDF(data: CNBOPReportData, fileName: st
       if (compMethod === 'known_acz') {
         compBody.push(["Zadeklarowana pow. czynna napowietrzania (Aᴄᴢ_komp, podana)", `${data.step4.compAcz} m²`]);
       } else {
-        compBody.push(["Obliczona efektywna pow. napowietrzania (Aₑff_komp, obliczona)", `${data.compCalc.providedAeff.toFixed(2).replace('.', ',')} m²`]);
-        compBody.push(["Suma geometryczna otworów napowietrzających (Aₑₐₒₘ_komp)", `${data.compCalc.providedAgeom.toFixed(2).replace('.', ',')} m²`]);
+        const isSeries = data.step4.compArrangement === 'series';
+        compBody.push([
+          isSeries
+            ? "Miarodajna pow. napowietrzania — układ szeregowy (najmniejszy otwór)"
+            : "Obliczona efektywna pow. napowietrzania (Aₑff_komp, obliczona)",
+          `${data.compCalc.providedAeff.toFixed(2).replace('.', ',')} m²`,
+        ]);
+        // W układzie równoległym powierzchnie się sumują — w szeregowym miarodajny
+        // jest sam najmniejszy otwór, więc nie pokazujemy osobnej sumy geometrycznej.
+        if (!isSeries) {
+          compBody.push(["Suma geometryczna otworów napowietrzających (Aₑₐₒₘ_komp)", `${data.compCalc.providedAgeom.toFixed(2).replace('.', ',')} m²`]);
+        }
         if (data.results.Akomp_eff) {
           const compOk = data.compCalc.providedAeff >= data.results.Akomp_eff;
           compBody.push(["Wymagana minimalna pow. efektywna napowietrzania (Aₑff_komp, min = 1,3 × Aₑₐₒₘ_klapy)", `${data.results.Akomp_eff.toFixed(2).replace('.', ',')} m²`]);

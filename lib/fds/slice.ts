@@ -7,6 +7,17 @@
 
 export type Axis = "x" | "y" | "z";
 
+// Pojedyncza klatka pośrednia w partii strumieniowanej na żywo. Niesie własne
+// vmin/vmax/w/h, bo skala barwna jest normalizowana per klatka, a klatki historii
+// bywają w lżejszej rozdzielczości niż klatka bieżąca (`FdsSlice.data`).
+export interface FdsSliceFrame {
+  t: number;              // czas symulacji klatki [s]
+  vmin: number; vmax: number;
+  w?: number;             // szerokość siatki klatki (domyślnie FdsSlice.w)
+  h?: number;             // wysokość siatki klatki (domyślnie FdsSlice.h)
+  d: string;              // base64 uint8[w*h], row-major, wiersz 0 = dół (y0)
+}
+
 export interface FdsSlice {
   id?: string;      // nazwa pliku .sf (np. "test_1_1.sf") — klucz stabilny do wyboru
   q: string;        // QUANTITY z FDS, np. "TEMPERATURE"
@@ -24,6 +35,9 @@ export interface FdsSlice {
   coords: "m" | "cell";   // czy zakresy są w metrach czy indeksach komórek
   vmin: number; vmax: number;
   data: string;     // base64 uint8[w*h], row-major, wiersz 0 = dół (y0)
+  // Klatki pośrednie (starsze od `data`) dosłane w tej samej partii — pozwalają
+  // odtworzyć płynny przebieg „klatka po klatce", zamiast skoku do najnowszej.
+  frames?: FdsSliceFrame[];
 }
 
 // Kształt zapisany w kolumnie slice_json: nowy ({slices:[...]}) lub — dla starych
@@ -41,10 +55,10 @@ export function normalizeSlices(j: FdsSliceJson | null | undefined): FdsSlice[] 
 }
 
 // Dekoduje base64 → Uint8Array o długości w*h. null gdy dane niespójne.
-export function decodeSliceData(s: FdsSlice): Uint8Array | null {
+export function decodeB64Grid(b64: string, w: number, h: number): Uint8Array | null {
   try {
-    const bin = atob(s.data);
-    const n = s.w * s.h;
+    const bin = atob(b64);
+    const n = w * h;
     if (bin.length < n || n <= 0) return null;
     const a = new Uint8Array(n);
     for (let i = 0; i < n; i++) a[i] = bin.charCodeAt(i);
@@ -52,6 +66,10 @@ export function decodeSliceData(s: FdsSlice): Uint8Array | null {
   } catch {
     return null;
   }
+}
+
+export function decodeSliceData(s: FdsSlice): Uint8Array | null {
+  return decodeB64Grid(s.data, s.w, s.h);
 }
 
 // ── Mapa barwna „turbo" ──────────────────────────────────────────────────────
