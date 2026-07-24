@@ -513,6 +513,67 @@ PYEOF
 # Zapewnij python3 do podglądu przekroju (także na obrazie snapshot) — best-effort
 command -v python3 >/dev/null 2>&1 || { log "Instaluję python3 (podgląd przekroju)..."; apt-get update -qq 2>/dev/null && apt-get install -y python3 2>/dev/null || true; }
 
+# ── Magazyn wyników (Object Storage) ──────────────────────────────────────────
+# Konfigurowany PRZED startem FDS, bo migawki wyników lecą już w trakcie obliczeń.
+RESULTS_PREFIX="results/$CASE_ID"
+export AWS_ACCESS_KEY_ID="$STORAGE_ACCESS_KEY"
+export AWS_SECRET_ACCESS_KEY="$STORAGE_SECRET_KEY"
+
+if ! command -v aws &>/dev/null; then
+  log "Instaluję awscli (upload wyników)..."
+  apt-get update -qq 2>/dev/null || true
+  apt-get install -y awscli 2>/dev/null || true
+fi
+
+upload_file() {
+  local f="$1"
+  [ -f "$f" ] || return 0
+  local bname
+  bname=$(basename "$f")
+  log "  → $bname"
+  aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$bname" \\
+    --endpoint-url "$STORAGE_ENDPOINT" \\
+    --region "$STORAGE_REGION" \\
+    --quiet 2>/dev/null || true
+}
+
+# Migawka wyników W TRAKCIE obliczeń — użytkownik pobiera częściowe wyniki BEZ
+# zatrzymywania symulacji. Pliki lądują pod tym samym prefiksem co finalne, więc
+# istniejące pobieranie (pojedynczy plik / ZIP) działa bez zmian, a końcowy upload
+# nadpisze je kompletnymi wersjami. Best-effort: pliki są dopisywane przez FDS,
+# więc migawka bywa ucięta na ostatnim rekordzie — to akceptowalne dla podglądu.
+snapshot_results() {
+  command -v aws >/dev/null 2>&1 || return 0
+  local n=0
+  for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do
+    [ -f "$f" ] || continue
+    aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$(basename "$f")" \\
+      --endpoint-url "$STORAGE_ENDPOINT" \\
+      --region "$STORAGE_REGION" \\
+      --quiet 2>/dev/null || true
+    n=$((n + 1))
+  done
+  if [ "$n" -eq 0 ]; then
+    return 0
+  fi
+  # Manifest migawki: do jakiego CZASU SYMULACJI sięgają wysłane pliki. Czytamy
+  # ostatnie "Simulation Time:" z logu FDS. Wysyłany NA KOŃCU — jego obecność
+  # oznacza, że komplet plików migawki jest już w magazynie.
+  local simt
+  simt=$(grep -a "Simulation Time:" fds_output.log 2>/dev/null | tail -1 | sed -e "s/.*Simulation Time:[ ]*//" -e "s/[ ]*s.*//" | tr -d "[:space:]" || true)
+  # -1 = nie udało się odczytać czasu (UI pokaże „nieznany zakres" zamiast 0%).
+  case "$simt" in
+    ''|*[!0-9.eE+-]*) simt="-1" ;;
+  esac
+  printf '{"t":%s,"at":"%s"}' "$simt" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _snapshot.json
+  aws s3 cp _snapshot.json "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/_snapshot.json" \\
+    --endpoint-url "$STORAGE_ENDPOINT" \\
+    --region "$STORAGE_REGION" \\
+    --quiet 2>/dev/null || true
+  log "migawka wynikow: wyslano $n plikow, t=$simt s (pobieranie w trakcie obliczen)"
+  return 0
+}
+
 # ── Uruchom FDS ───────────────────────────────────────────────────────────────
 notify '{"status":"running"}'
 log "Starting FDS: $NCORES MPI processes..."
@@ -529,6 +590,16 @@ log "Starting FDS: $NCORES MPI processes..."
 ) &
 LOG_PID=$!
 
+# Migawki wyników co 2 min w OSOBNEJ pętli — wolny upload nie może opóźniać
+# podglądu na żywo powyżej.
+(
+  while true; do
+    sleep 120
+    snapshot_results
+  done
+) &
+SNAP_PID=$!
+
 export OMP_NUM_THREADS="$OMP_THREADS"
 set +eo pipefail
 mpiexec -n "\${NCORES}" "$FDS_BIN" "$FILE_NAME" 2>&1 | tee fds_output.log
@@ -544,33 +615,16 @@ if [ "\${FDS_EXIT}" -eq 0 ] && grep -qiE "improperly set-up|forrtl: severe|Fatal
 fi
 
 kill $LOG_PID 2>/dev/null || true
+kill $SNAP_PID 2>/dev/null || true
 log "FDS finished (exit: $FDS_EXIT)"
 send_log
 send_data
 
 # ── Upload wyników do Hetzner Object Storage ──────────────────────────────────
+# Magazyn, RESULTS_PREFIX i upload_file skonfigurowane wyżej (przed startem FDS),
+# bo migawki częściowych wyników leciały już w trakcie obliczeń. Ten przebieg
+# nadpisuje je kompletnymi plikami.
 log "Uploading results to Hetzner Object Storage..."
-RESULTS_PREFIX="results/$CASE_ID"
-
-export AWS_ACCESS_KEY_ID="$STORAGE_ACCESS_KEY"
-export AWS_SECRET_ACCESS_KEY="$STORAGE_SECRET_KEY"
-
-if ! command -v aws &>/dev/null; then
-  apt-get update -qq
-  apt-get install -y awscli 2>/dev/null
-fi
-
-upload_file() {
-  local f="$1"
-  [ -f "$f" ] || return 0
-  local bname
-  bname=$(basename "$f")
-  log "  → $bname"
-  aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$bname" \\
-    --endpoint-url "$STORAGE_ENDPOINT" \\
-    --region "$STORAGE_REGION" \\
-    --quiet 2>/dev/null || true
-}
 
 for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do
   upload_file "$f"

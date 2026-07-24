@@ -19,6 +19,11 @@ export function fmtPrice(p: number | null | undefined, opts?: { decimals?: boole
   return p.toLocaleString("pl-PL", digits) + " zł";
 }
 
+export function fmtEur(v: number | null | undefined, decimals = 2): string {
+  if (v == null) return "—";
+  return v.toLocaleString("pl-PL", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + " €";
+}
+
 export function fmtHours(h: number | null | undefined): string {
   if (h == null) return "—";
   if (h < 1) return Math.round(h * 60) + " min";

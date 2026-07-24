@@ -1377,6 +1377,21 @@
       "bulkNote": "Pliki są duże — pobieram pojedynczo (strumieniowo do dysku).",
       "preparingZip": "Przygotowuję paczkę ZIP — pobieranie zacznie się za chwilę…"
     },
+    "partial": {
+      "title": "Wyniki częściowe",
+      "lead": "Pobierz dotychczasowe wyniki bez zatrzymywania symulacji — obliczenia lecą dalej.",
+      "downloadAll": "Pobierz dotychczasowe wyniki",
+      "refresh": "Odśwież",
+      "refreshing": "Odświeżanie…",
+      "loading": "Sprawdzam magazyn…",
+      "empty": "Pierwsza migawka pojawi się po kilku minutach obliczeń.",
+      "coverage": "Wyniki obejmują przebieg do t = {t} s z {tEnd} s ({pct}% symulacji)",
+      "coverageUnknown": "Nie udało się ustalić, do jakiego czasu symulacji sięga ta migawka.",
+      "snapAt": "Migawka z {time}",
+      "filesCount": "{n, plural, one {# plik} few {# pliki} many {# plików} other {# pliku}}",
+      "showFiles": "Pokaż listę plików ({n})",
+      "note": "Migawka odświeżana co ok. 2 min. Pliki binarne mogą być ucięte na ostatnim rekordzie — po zakończeniu zostaną zastąpione kompletnymi."
+    },
     "fileType": {
       "smv": "Scena Smokeview",
       "csv": "Dane urządzeń",

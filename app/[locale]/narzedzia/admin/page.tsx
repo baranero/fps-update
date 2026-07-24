@@ -3,9 +3,19 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import AdminAnalytics from "./AdminAnalytics";
+import AdminInfra from "./AdminInfra";
 import SimDrawer from "./SimDrawer";
 import { statusMeta, ADMIN_STATUS_KEYS } from "@/lib/status";
-import { fmtDateTime, fmtPrice, fmtHours } from "@/lib/format";
+import { fmtDateTime, fmtPrice, fmtHours, fmtEur } from "@/lib/format";
+import { EUR_PLN } from "@/lib/fds/parser";
+
+// Marża wiersza listy = cena klienta − koszt serwera Hetzner (przeliczony na zł).
+// UWAGA: bez kosztu magazynu — ten wymaga LIST po buckecie, więc pełne rozliczenie
+// (serwer + storage) liczy dopiero szuflada szczegółów.
+function rowMarginPln(r: { price: number | null; hetzner_cost_eur?: number | null }): number | null {
+  if (r.price == null || r.hetzner_cost_eur == null) return null;
+  return r.price - r.hetzner_cost_eur * EUR_PLN;
+}
 
 /* ── Types ── */
 type Sim = {
@@ -13,6 +23,7 @@ type Sim = {
   status: string; created_at: string; completed_at: string | null;
   price: number | null; server_type: string | null; wall_hours: number | null;
   total_cells: number | null;
+  hetzner_cost_eur?: number | null; hetzner_runtime_h?: number | null;
 };
 type User = {
   id: string; email: string; created_at: string; last_sign_in_at: string | null;
@@ -44,11 +55,13 @@ type Stats = {
 
 /* ── CSV eksport ── */
 function exportSimsCsv(rows: Sim[]) {
-  const header = ["Case ID", "Email", "Nazwa", "Plik", "Status", "Serwer", "Komorki", "Czas (h)", "Cena (zl)", "Utworzono", "Ukonczono"];
+  const header = ["Case ID", "Email", "Nazwa", "Plik", "Status", "Serwer", "Komorki", "Czas (h)", "Cena (zl)", "Koszt Hetzner (EUR)", "Marza bez storage (zl)", "Utworzono", "Ukonczono"];
   const body = rows.map((r) => [
     r.case_id, r.email, r.name, r.file_name, statusMeta(r.status).label,
     r.server_type ?? "", r.total_cells ?? "", r.wall_hours ?? "",
     r.price != null ? String(r.price).replace(".", ",") : "",
+    r.hetzner_cost_eur != null ? r.hetzner_cost_eur.toFixed(2).replace(".", ",") : "",
+    (() => { const m = rowMarginPln(r); return m != null ? m.toFixed(2).replace(".", ",") : ""; })(),
     new Date(r.created_at).toLocaleString("pl-PL"),
     r.completed_at ? new Date(r.completed_at).toLocaleString("pl-PL") : "",
   ]);
@@ -177,7 +190,7 @@ function PriceCell({ caseId, initial, onChange }: { caseId: string; initial: num
 /* ── Main page ── */
 export default function AdminPage() {
   const [access, setAccess] = useState<"loading" | "ok" | "denied">("loading");
-  const [tab, setTab] = useState<"pulpit" | "analityka" | "symulacje" | "uzytkownicy">("pulpit");
+  const [tab, setTab] = useState<"pulpit" | "analityka" | "symulacje" | "uzytkownicy" | "infrastruktura">("pulpit");
   const [stats, setStats] = useState<Stats | null>(null);
   const [drawerSim, setDrawerSim] = useState<Sim | null>(null);
 
@@ -223,6 +236,19 @@ export default function AdminPage() {
   }, [tab, simsPage, simsStatus, access, loadSims]);
 
   const handleSearch = () => { setSimsPage(1); loadSims(1, simsStatus, simsSearch); };
+
+  // Trwałe usunięcie cudzego zlecenia (serwer + pliki + rekord). Nieodwracalne.
+  const deleteSim = useCallback(async (caseId: string) => {
+    if (!window.confirm(`Usunąć zlecenie ${caseId}?\n\nOperacja nieodwracalna — skasuje serwer (jeśli aktywny), plik wejściowy i wyniki z magazynu.`)) return;
+    const res = await fetch(`/api/admin/symulacje/${caseId}`, { method: "DELETE" });
+    if (res.ok) {
+      setSims(prev => prev.filter(x => x.case_id !== caseId));
+      setSimsTotal(t => Math.max(0, t - 1));
+      setDrawerSim(prev => (prev?.case_id === caseId ? null : prev));
+    } else {
+      window.alert("Nie udało się usunąć zlecenia. Spróbuj ponownie.");
+    }
+  }, []);
 
   // Skok z Pulpitu do zakładki Symulacje z ustawionym filtrem statusu
   const jumpToSims = (status: string) => {
@@ -293,14 +319,14 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div role="tablist" aria-label="Sekcje panelu" className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
-        {(["pulpit", "analityka", "symulacje", "uzytkownicy"] as const).map((t) => (
+        {(["pulpit", "analityka", "symulacje", "uzytkownicy", "infrastruktura"] as const).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t
                 ? "border-primary text-primary"
                 : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             }`}>
-            {t === "pulpit" ? "Pulpit" : t === "analityka" ? "Analityka" : t === "symulacje" ? "Symulacje" : "Użytkownicy"}
+            {t === "pulpit" ? "Pulpit" : t === "analityka" ? "Analityka" : t === "symulacje" ? "Symulacje" : t === "uzytkownicy" ? "Użytkownicy" : "Infrastruktura"}
           </button>
         ))}
       </div>
@@ -391,6 +417,9 @@ export default function AdminPage() {
       {/* ── ANALITYKA ── */}
       {tab === "analityka" && <AdminAnalytics />}
 
+      {/* ── INFRASTRUKTURA (Hetzner: serwery + storage, koszty) ── */}
+      {tab === "infrastruktura" && <AdminInfra />}
+
       {/* ── SYMULACJE ── */}
       {tab === "symulacje" && (
         <div className="space-y-4">
@@ -441,10 +470,10 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
-              <table className="w-full text-xs min-w-[900px]">
+              <table className="w-full text-xs min-w-[1000px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
-                    {["Status", "Case ID", "Email", "Plik", "Serwer", "Czas", "Cena", "Data"].map(h => (
+                    {["Status", "Case ID", "Email", "Plik", "Serwer", "Czas", "Cena", "Koszt HZ", "Marża", "Data"].map(h => (
                       <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{h}</th>
                     ))}
                     <th className="px-3 py-2" />
@@ -468,6 +497,26 @@ export default function AdminPage() {
                         <PriceCell caseId={r.case_id} initial={r.price}
                           onChange={(p) => setSims(prev => prev.map(x => x.case_id === r.case_id ? { ...x, price: p } : x))} />
                       </td>
+                      <td className="px-3 py-2.5 tabular-nums text-slate-500 dark:text-slate-400 whitespace-nowrap" title={r.hetzner_runtime_h != null ? `Czas życia serwera: ${fmtHours(r.hetzner_runtime_h)}` : undefined}>
+                        {fmtEur(r.hetzner_cost_eur)}
+                      </td>
+                      {(() => {
+                        const m = rowMarginPln(r);
+                        return (
+                          <td
+                            className={`px-3 py-2.5 tabular-nums whitespace-nowrap font-semibold ${
+                              m == null
+                                ? "text-slate-400 dark:text-slate-600"
+                                : m >= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                            }`}
+                            title="Cena klienta − koszt serwera Hetzner (bez magazynu). Pełne rozliczenie w szczegółach zlecenia."
+                          >
+                            {m != null ? fmtPrice(m, { decimals: true }) : "—"}
+                          </td>
+                        );
+                      })()}
                       <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{fmtDateTime(r.created_at)}</td>
                       <td className="px-3 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -485,12 +534,18 @@ export default function AdminPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
+                          <button onClick={() => deleteSim(r.case_id)} title="Usuń zlecenie" aria-label={`Usuń zlecenie ${r.case_id}`}
+                            className="rounded-md p-1 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </div>
                       </td>
                     </tr>
                   ))}
                   {sims.length === 0 && (
-                    <tr><td colSpan={9} className="px-3 py-10 text-center text-slate-500 dark:text-slate-400">Brak wyników</td></tr>
+                    <tr><td colSpan={11} className="px-3 py-10 text-center text-slate-500 dark:text-slate-400">Brak wyników</td></tr>
                   )}
                 </tbody>
               </table>
@@ -621,6 +676,10 @@ export default function AdminPage() {
           onSaved={(patch) => {
             setSims(prev => prev.map(x => x.case_id === drawerSim.case_id ? { ...x, ...patch } : x));
             setDrawerSim(prev => prev ? { ...prev, ...patch } : prev);
+          }}
+          onDeleted={(caseId) => {
+            setSims(prev => prev.filter(x => x.case_id !== caseId));
+            setSimsTotal(t => Math.max(0, t - 1));
           }}
         />
       )}

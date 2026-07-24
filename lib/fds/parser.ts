@@ -267,11 +267,11 @@ const MARKUP_MAX    = 25;      // małe zlecenia (zużycie ≤ COST_LO_EUR)
 const MARKUP_MIN    = 10;      // duże zlecenia (zużycie ≥ COST_HI_EUR)
 const COST_LO_EUR   = 0.05;    // € zużycia — poniżej: pełna MARKUP_MAX
 const COST_HI_EUR   = 3.0;     // € zużycia — powyżej: pełna MARKUP_MIN
-const EUR_PLN       = 4.3;
+export const EUR_PLN = 4.3;   // kurs użyty w wycenie (eksport: panel admina liczy marżę tym samym kursem)
 const OVERHEAD_H    = 10 / 60; // ~10 min: boot + upload wyników + auto-delete
 
 // Hetzner Object Storage (eu-central) + egress na pobranie wyników
-const STORAGE_EUR_PER_GB = 0.031; // €0.0119 storage/m-c + €0.019 egress ≈ €0.031/GB
+export const STORAGE_EUR_PER_GB = 0.031; // €0.0119 storage/m-c + €0.019 egress ≈ €0.031/GB
 
 function estimateOutputGb(cells: number, tEnd: number): number {
   // Szacunek: ~0.3 GB na milion komórek na minutę symulacji (slice + csv + smv)

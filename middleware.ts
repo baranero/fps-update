@@ -21,7 +21,21 @@ export async function middleware(request: NextRequest) {
   if (rest === "") rest = "/";
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
-  const isProtected = rest.startsWith("/narzedzia") || rest.startsWith("/symulacje");
+  // Publiczny „zakątek dla projektanta" i witryna produktu (chmura CFD):
+  //  • kalkulatory + strona narzędzi liczą bez logowania (magnes na leady, SEO),
+  //  • landing chmury i kreator pokazują ofertę anonimowi — bramka jest dopiero
+  //    na akcji „Uruchom" (isSimAllowed po stronie serwera), nie na wejściu.
+  const isToolsPublic =
+    rest === "/narzedzia" ||
+    rest === "/narzedzia/kalkulatory" ||
+    rest.startsWith("/narzedzia/kalkulatory/");
+  const isCloudPublic = rest === "/symulacje" || rest === "/symulacje/nowa";
+
+  // Za loginem zostają tylko dane konta i akcje na koncie: raporty, profil, admin
+  // oraz historia/rozliczenia/statystyki i szczegół zlecenia (/symulacje/<caseId>).
+  const isProtected =
+    (rest.startsWith("/narzedzia") && !isToolsPublic) ||
+    (rest.startsWith("/symulacje") && !isCloudPublic);
   const isAuthPage = rest === "/signin" || rest === "/signup";
 
   // 3. Supabase odpytujemy tylko tam, gdzie sesja decyduje o dostępie —

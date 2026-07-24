@@ -1377,6 +1377,21 @@
       "bulkNote": "Files are large — downloading individually (streamed to disk).",
       "preparingZip": "Preparing the ZIP package — the download will start shortly…"
     },
+    "partial": {
+      "title": "Partial results",
+      "lead": "Download the results so far without stopping the simulation — it keeps running.",
+      "downloadAll": "Download results so far",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "loading": "Checking storage…",
+      "empty": "The first snapshot appears after a few minutes of computation.",
+      "coverage": "Results cover the run up to t = {t} s of {tEnd} s ({pct}% of the simulation)",
+      "coverageUnknown": "Could not determine which simulation time this snapshot covers.",
+      "snapAt": "Snapshot from {time}",
+      "filesCount": "{n, plural, one {# file} other {# files}}",
+      "showFiles": "Show file list ({n})",
+      "note": "Snapshot refreshed about every 2 min. Binary files may be truncated at the last record — they are replaced with complete ones when the run finishes."
+    },
     "fileType": {
       "smv": "Smokeview scene",
       "csv": "Device data",
