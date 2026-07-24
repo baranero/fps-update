@@ -277,81 +277,9 @@ export default function SymulacjePage() {
     );
   }
 
-  // Obcy (nie-admin): dostęp do uruchamiania symulacji tymczasowo ograniczony.
-  if (!allowed) {
-    return (
-      <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-        <div className="container max-w-3xl">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-[#1E232E] sm:p-10">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{t("restricted.badge")}</span>
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {t("restricted.title")}
-            </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              {t("restricted.lead")}
-            </p>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              {t("restricted.body")}
-            </p>
-
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <a
-                href="mailto:biuro@fp-solutions.pl"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {t("restricted.emailCta")}
-              </a>
-              <a
-                href="tel:+48790782993"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                +48 790 782 993
-              </a>
-            </div>
-
-            <div className="mt-6">
-              <Link href="/symulacje" className="text-sm font-medium text-slate-500 transition-colors hover:text-primary dark:text-slate-400">
-                {t("restricted.back")}
-              </Link>
-            </div>
-          </div>
-
-          {/* Publiczny landing: wartość oferty także dla osób bez dostępu do uruchamiania */}
-          <div className="mt-10 space-y-8">
-            <div className="flex flex-wrap justify-center gap-2">
-              {[t("trust.vm"), t("trust.epyc"), t("trust.payg"), t("trust.retention")].map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-[#1E232E] dark:text-slate-400"
-                >
-                  <svg className="h-3 w-3 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <CloudMarketing />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
+  // Estymator jest publiczny — parsowanie i wycena dzieją się w przeglądarce
+  // (zero kosztu serwera), więc każdy może wgrać plik i poznać koszt. Bramka
+  // dostępu jest dopiero na przycisku „Uruchom" w kroku wyceny (patrz niżej).
   return (
     <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
       <div className="container max-w-3xl">
@@ -682,7 +610,9 @@ export default function SymulacjePage() {
                 </p>
               </div>
 
-              {/* Form */}
+              {/* Zamówienie — tylko dla użytkowników z dostępem do uruchamiania.
+                  Estymator jest publiczny, więc reszta zna już koszt i widzi CTA „poproś o dostęp". */}
+              {allowed ? (
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-4">
                 <div>
                   <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">{t("form.heading")}</h2>
@@ -744,6 +674,47 @@ export default function SymulacjePage() {
                   </button>
                 </div>
               </div>
+              ) : (
+                <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{t("restricted.title")}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{t("restricted.lead")}</p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <a
+                          href="mailto:biuro@fp-solutions.pl"
+                          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          {t("restricted.emailCta")}
+                        </a>
+                        <a
+                          href="tel:+48790782993"
+                          className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          +48 790 782 993
+                        </a>
+                        <button
+                          onClick={reset}
+                          className="text-sm font-medium text-slate-500 transition-colors hover:text-primary dark:text-slate-400"
+                        >
+                          {t("form.back")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
