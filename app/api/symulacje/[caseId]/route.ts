@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { listResults, signedResultUrl, deleteResults } from "@/lib/hetzner/storage";
+import { listResults, signedResultUrl, deleteResults, isInternalResult } from "@/lib/hetzner/storage";
 import { deleteServer } from "@/lib/hetzner/client";
 
 export async function GET(
@@ -46,7 +46,9 @@ async function handleGet(caseId: string) {
   let results: Array<{ name: string; url: string }> | null = null;
   if (data.status === "done") {
     try {
-      const files = await listResults(caseId);
+      // Pomijamy pliki służbowe (manifest migawki) — to nie są wyniki użytkownika.
+      const files = (await listResults(caseId))
+        .filter((f) => f.Key && !isInternalResult(f.Key.split("/").pop() ?? ""));
       if (files.length > 0) {
         results = await Promise.all(
           files.map(async (f) => ({

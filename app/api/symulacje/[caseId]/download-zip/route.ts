@@ -4,7 +4,7 @@ export const maxDuration = 60; // Limit planu Vercel hobby (max 60 s); podnieś 
 import { NextRequest, NextResponse } from "next/server";
 import { PassThrough, Readable } from "stream";
 import archiverDefault, { type Archiver } from "archiver";
-import { listResults, signedResultUrl } from "@/lib/hetzner/storage";
+import { listResults, signedResultUrl, isInternalResult } from "@/lib/hetzner/storage";
 
 // @types/archiver typuje tylko klasy; runtime eksportuje fabrykę archiver("zip", …).
 const archiver = archiverDefault as unknown as (format: string, options?: Record<string, unknown>) => Archiver;
@@ -26,7 +26,8 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
     entries = objects
       .filter((o) => o.Key)
       .map((o) => ({ key: o.Key as string, name: (o.Key as string).split("/").pop() as string }))
-      .filter((e) => e.name && (!wanted || wanted.has(e.name)));
+      // Pliki służbowe (manifest migawki) nigdy nie trafiają do paczki.
+      .filter((e) => e.name && !isInternalResult(e.name) && (!wanted || wanted.has(e.name)));
   } catch (err) {
     console.error(`download-zip listResults [${caseId}]:`, err);
     return NextResponse.json({ error: "Błąd magazynu." }, { status: 502 });

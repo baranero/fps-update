@@ -231,6 +231,27 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const [stopping, setStopping] = useState(false);
   const [paying, setPaying] = useState(false);
   const [finalCsv, setFinalCsv] = useState<{ devc: string | null; hrr: string | null }>({ devc: null, hrr: null });
+  // Wyniki częściowe — migawka plików z magazynu dostępna W TRAKCIE obliczeń.
+  const [partial, setPartial] = useState<Array<{ name: string; url: string; size: number | null; createdAt: string | null }>>([]);
+  const [partialLoading, setPartialLoading] = useState(false);
+  // Do jakiego czasu symulacji sięga migawka (manifest zapisany przez maszynę liczącą).
+  const [snapshot, setSnapshot] = useState<{ t: number; at: string | null } | null>(null);
+
+  const loadPartial = async () => {
+    setPartialLoading(true);
+    try {
+      const res = await fetch(`/api/symulacje/${caseId}/results`);
+      const d = await res.json();
+      if (Array.isArray(d.results)) {
+        setPartial(d.results);
+        setSnapshot(d.snapshot ?? null);
+      }
+    } catch {
+      /* brak listy — pokażemy pusty stan */
+    } finally {
+      setPartialLoading(false);
+    }
+  };
 
   const handleStop = async () => {
     setStopping(true);
@@ -311,6 +332,16 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Lista wyników częściowych — odpytywana rzadko (co 60 s), niezależnie od
+  // pollingu statusu co 3 s, bo każde wywołanie robi LIST po magazynie.
+  useEffect(() => {
+    if (job?.status !== "running" && job?.status !== "dispatched") return;
+    loadPartial();
+    const id = setInterval(loadPartial, 60_000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.status, caseId]);
 
   useEffect(() => {
     if (logMode === "advanced" && termRef.current && !termScrolledUpRef.current) {
@@ -765,6 +796,130 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (
             <LiveCharts devcCsv={finalCsv.devc ?? job.devcCsv} hrrCsv={finalCsv.hrr ?? job.hrrCsv} setpoints={job.devcSetpoints} running={isRunning && !fatalErr} />
           )}
+
+          {/* Wyniki częściowe — pobieranie W TRAKCIE obliczeń, bez zatrzymywania */}
+          {(job.status === "running" || job.status === "dispatched") && (() => {
+            const snapPct = snapshot && job.tEnd > 0
+              ? Math.max(0, Math.min(100, (snapshot.t / job.tEnd) * 100))
+              : null;
+            return (
+              <div className={cardCls}>
+                <div className="px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("partial.title")}</span>
+                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{t("partial.lead")}</p>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  {/* Akcje */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => downloadPackage()}
+                      disabled={partial.length === 0}
+                      className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      {t("partial.downloadAll")}
+                    </button>
+                    <button
+                      onClick={loadPartial}
+                      disabled={partialLoading}
+                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60"
+                    >
+                      <svg className={`h-3.5 w-3.5 ${partialLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      {partialLoading ? t("partial.refreshing") : t("partial.refresh")}
+                    </button>
+                  </div>
+
+                  {/* Zakres: do jakiego czasu symulacji sięgają te wyniki */}
+                  {partial.length === 0 ? (
+                    <p className="py-2 text-xs text-slate-500 dark:text-slate-400">
+                      {partialLoading ? t("partial.loading") : t("partial.empty")}
+                    </p>
+                  ) : (
+                    <div className="rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] px-4 py-3">
+                      {snapshot ? (
+                        <>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                            {t("partial.coverage", {
+                              t: snapshot.t.toFixed(1),
+                              tEnd: job.tEnd,
+                              pct: snapPct != null ? snapPct.toFixed(0) : "—",
+                            })}
+                          </p>
+                          {snapPct != null && (
+                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                              <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${snapPct}%` }} />
+                            </div>
+                          )}
+                          <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            {snapshot.at
+                              ? `${t("partial.snapAt", { time: new Date(snapshot.at).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" }) })} · `
+                              : ""}
+                            {t("partial.filesCount", { n: partial.length })}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{t("partial.coverageUnknown")}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Lista plików — zwijana, do pobrania pojedynczo */}
+                  {partial.length > 0 && (
+                    <details className="group">
+                      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-primary dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+                        <svg className="h-3.5 w-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                        {t("partial.showFiles", { n: partial.length })}
+                      </summary>
+                      <div className="mt-3 overflow-x-auto">
+                        <table className="w-full border-collapse text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-100 dark:border-slate-700">
+                              <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("results.thFile")}</th>
+                              <th className="hidden pb-2 pl-4 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 sm:table-cell">{t("results.thType")}</th>
+                              <th className="pb-2 pl-4 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("results.thSize")}</th>
+                              <th className="w-24 pb-2 pl-4" />
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            {partial.map((f) => (
+                              <tr key={f.name}>
+                                <td className="min-w-0 max-w-[220px] py-2.5 align-middle">
+                                  <div className="flex items-center gap-2">
+                                    <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
+                                    <span className="truncate font-mono text-slate-700 dark:text-slate-200">{f.name}</span>
+                                  </div>
+                                </td>
+                                <td className="hidden whitespace-nowrap py-2.5 pl-4 align-middle text-xs text-slate-500 dark:text-slate-400 sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
+                                <td className="whitespace-nowrap py-2.5 pl-4 text-right align-middle font-mono text-xs text-slate-500 dark:text-slate-400">{formatSize(f.size)}</td>
+                                <td className="py-2.5 pl-4 text-right align-middle">
+                                  <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+                                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    {t("results.download")}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  )}
+
+                  {dlMsg && <p className="text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
+                  <p className="text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">{t("partial.note")}</p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Gotowe, ale w logu FDS są błędy */}
           {job.status === "done" && (() => {

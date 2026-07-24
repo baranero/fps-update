@@ -3,13 +3,30 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { ADMIN_STATUS_KEYS, statusMeta } from "@/lib/status";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, fmtEur, fmtHours, fmtPrice } from "@/lib/format";
 
 export type Sim = {
   case_id: string; email: string; name: string; file_name: string;
   status: string; created_at: string; completed_at: string | null;
   price: number | null; server_type: string | null; wall_hours: number | null;
   total_cells: number | null;
+  hetzner_cost_eur?: number | null; hetzner_runtime_h?: number | null;
+};
+
+// Rozliczenie zlecenia: cena dla klienta vs. realny koszt przebiegu (serwer + storage).
+type Cost = {
+  price: number | null;
+  eurPln: number;
+  runtimeH: number | null;
+  hourlyNet: number | null;
+  serverEur: number | null;
+  storageGb: number | null;
+  storageEur: number | null;
+  costEur: number | null;
+  costPln: number | null;
+  marginPln: number | null;
+  markup: number | null;
+  marginPct: number | null;
 };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -25,10 +42,12 @@ export default function SimDrawer({
   sim,
   onClose,
   onSaved,
+  onDeleted,
 }: {
   sim: Sim;
   onClose: () => void;
   onSaved: (patch: Partial<Sim>) => void;
+  onDeleted?: (caseId: string) => void;
 }) {
   const [status, setStatus] = useState(sim.status);
   const [price, setPrice] = useState(sim.price == null ? "" : String(sim.price));
@@ -36,12 +55,49 @@ export default function SimDrawer({
   const [hours, setHours] = useState(sim.wall_hours == null ? "" : String(sim.wall_hours));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [cost, setCost] = useState<Cost | null>(null);
+  const [costLoading, setCostLoading] = useState(true);
+
+  // Rozliczenie liczone po otwarciu szuflady (storage wymaga LIST po magazynie,
+  // więc nie ma tego w danych listy).
+  useEffect(() => {
+    let cancelled = false;
+    setCostLoading(true);
+    fetch(`/api/admin/symulacje/${sim.case_id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d && !d.error) setCost(d as Cost); })
+      .catch(() => { /* brak rozliczenia — pokażemy myślnik */ })
+      .finally(() => { if (!cancelled) setCostLoading(false); });
+    return () => { cancelled = true; };
+  }, [sim.case_id]);
+
+  const del = async () => {
+    if (!window.confirm(`Usunąć zlecenie ${sim.case_id}?\n\nOperacja nieodwracalna — skasuje serwer (jeśli aktywny), plik wejściowy i wyniki z magazynu.`)) return;
+    setDeleting(true);
+    const res = await fetch(`/api/admin/symulacje/${sim.case_id}`, { method: "DELETE" });
+    setDeleting(false);
+    if (res.ok) {
+      onDeleted?.(sim.case_id);
+      onClose();
+    } else {
+      window.alert("Nie udało się usunąć zlecenia. Spróbuj ponownie.");
+    }
+  };
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
   }, [onClose]);
+
+  // Marżę liczymy z BIEŻĄCEJ ceny (a nie z odpowiedzi API), żeby po edycji ceny
+  // w szufladzie liczby nadal się zgadzały bez ponownego pobierania rozliczenia.
+  const costPln = cost?.costPln ?? null;
+  const marginPln = sim.price != null && costPln != null ? sim.price - costPln : null;
+  const markup = sim.price != null && costPln ? sim.price / costPln : null;
+  const marginPct =
+    sim.price != null && marginPln != null && sim.price !== 0 ? (marginPln / sim.price) * 100 : null;
 
   const dirty =
     status !== sim.status ||
@@ -103,6 +159,67 @@ export default function SimDrawer({
             <Field label="Komórki">{sim.total_cells != null ? sim.total_cells.toLocaleString("pl-PL") : "—"}</Field>
             <Field label="Utworzono">{fmtDateTime(sim.created_at)}</Field>
             <Field label="Ukończono">{fmtDateTime(sim.completed_at)}</Field>
+          </div>
+
+          {/* Rozliczenie — ile płaci klient vs. ile realnie kosztuje nas przebieg */}
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-700 dark:bg-slate-900/40">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rozliczenie</p>
+            </div>
+            <div className="space-y-3 p-4">
+
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Cena dla klienta</span>
+                <span className="text-lg font-bold tabular-nums text-slate-900 dark:text-white">{fmtPrice(sim.price)}</span>
+              </div>
+
+              <div className="space-y-1.5 rounded-lg bg-slate-50 px-3 py-2.5 dark:bg-[#0B1120]">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Koszt własny</span>
+                  <span className="text-sm font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                    {costPln != null ? fmtPrice(costPln, { decimals: true }) : costLoading ? "…" : "—"}
+                    {cost?.costEur != null && (
+                      <span className="ml-1 text-[11px] font-normal text-slate-400 dark:text-slate-500">({fmtEur(cost.costEur)})</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>Serwer{cost?.runtimeH != null ? ` · ${fmtHours(cost.runtimeH)}` : ""}</span>
+                  <span className="tabular-nums">{fmtEur(cost?.serverEur)}</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>Magazyn{cost?.storageGb != null ? ` · ${cost.storageGb.toFixed(2)} GB` : ""}</span>
+                  <span className="tabular-nums">{fmtEur(cost?.storageEur)}</span>
+                </div>
+              </div>
+
+              <div className="flex items-baseline justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Marża</span>
+                <span className="text-right">
+                  <span className={`text-lg font-bold tabular-nums ${
+                    marginPln == null
+                      ? "text-slate-400 dark:text-slate-500"
+                      : marginPln >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}>
+                    {marginPln != null ? fmtPrice(marginPln, { decimals: true }) : costLoading ? "…" : "—"}
+                  </span>
+                  {(markup != null || marginPct != null) && (
+                    <span className="block text-[11px] font-normal text-slate-400 dark:text-slate-500">
+                      {markup != null ? `${markup.toFixed(1)}× kosztu` : ""}
+                      {markup != null && marginPct != null ? " · " : ""}
+                      {marginPct != null ? `${marginPct.toFixed(0)}% ceny` : ""}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <p className="text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">
+                Koszt = czas życia serwera × stawka Hetzner + rozmiar wyników w magazynie (storage + egress).
+                {cost?.eurPln != null ? ` Przeliczenie po kursie ${cost.eurPln} zł/€.` : ""}
+              </p>
+            </div>
           </div>
 
           {/* Pobranie oryginalnego pliku wsadowego .fds */}
@@ -172,6 +289,20 @@ export default function SimDrawer({
             >
               Otwórz
             </Link>
+          </div>
+
+          {/* Strefa niebezpieczna — trwałe usunięcie */}
+          <div className="border-t border-red-100 dark:border-red-900/30 pt-4">
+            <button
+              onClick={del}
+              disabled={deleting}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 dark:border-red-900/50 px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+            >
+              <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {deleting ? "Usuwanie…" : "Usuń zlecenie"}
+            </button>
           </div>
 
         </div>
