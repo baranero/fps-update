@@ -885,6 +885,12 @@
       "f4Desc": "SMV files, slice files, DEVC CSV and logs — kept for 60 days, downloaded via a secure link."
     }
   },
+  "cloudLanding": {
+    "metadata": {
+      "title": "FDSRun — FDS fire simulations in the cloud",
+      "description": "Upload your FDS input file, get a cost estimate in seconds and run the simulation on cloud servers. Free estimate, no account required, pay for actual usage."
+    }
+  },
   "features": {
     "eyebrow": "Scope of services",
     "new": "New",

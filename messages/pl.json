@@ -885,6 +885,12 @@
       "f4Desc": "Pliki SMV, slice files, CSV z DEVC i logi — przechowywane 60 dni, pobierane przez bezpieczny link."
     }
   },
+  "cloudLanding": {
+    "metadata": {
+      "title": "FDSRun — symulacje pożarowe FDS w chmurze",
+      "description": "Wgraj plik wejściowy FDS, poznaj koszt w kilka sekund i uruchom obliczenia na serwerach w chmurze. Wycena bez zakładania konta, płatność za rzeczywiste zużycie."
+    }
+  },
   "features": {
     "eyebrow": "Zakres usług",
     "new": "Nowa",
