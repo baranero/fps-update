@@ -22,19 +22,11 @@ export async function GET(
   const key = `results/${caseId}/${base}`;
   try {
     const url = await signedResultUrl(key, 300);
+    // Przekaż nagłówek Range dalej — pozwala kliientowi tanio sprawdzić rozmiar
+    // (Range: bytes=0-0 → Content-Range z całkowitym rozmiarem) przed pobraniem
+    // całości do animacji.
     const range = req.headers.get("range");
-
-    // Pełne pobranie (bez Range) → 302 na podpisany URL: bajty lecą wprost
-    // klient↔Hetzner, przez nasz origin nie przechodzi ani bajt (to eliminuje
-    // Fast Origin Transfer na Vercelu — główny sprawca przekroczenia limitu).
-    // Podpis już niesie ResponseContentDisposition=attachment z nazwą pliku.
-    // Zapytania z Range (tania sonda rozmiaru bytes=0-0 lub animacja czytana
-    // przez JS) MUSZĄ zostać proxowane — bezpośredni fetch z JS blokuje CORS bucketu.
-    if (!range) {
-      return NextResponse.redirect(url, 302);
-    }
-
-    const upstream = await fetch(url, { headers: { Range: range } });
+    const upstream = await fetch(url, range ? { headers: { Range: range } } : undefined);
     if ((!upstream.ok && upstream.status !== 206) || !upstream.body) {
       return NextResponse.json({ error: "Nie znaleziono pliku." }, { status: 404 });
     }
