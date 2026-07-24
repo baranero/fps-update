@@ -68,7 +68,7 @@ function SigninForm() {
   const tc = useTranslations("auth.common");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/narzedzia";
+  const next = searchParams.get("next") ?? "/symulacje";
   const urlError = searchParams.get("error");
   const hasContext = !!searchParams.get("next");
 

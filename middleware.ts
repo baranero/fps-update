@@ -5,6 +5,24 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+// Dwie domeny na jednym projekcie:
+//   • MARKETING_HOST (fp-solutions.pl) — witryna usług konsultingowych,
+//   • CLOUD_HOST     (fdsrun.com)      — serwis chmurowy FDSRun (konto, symulacje).
+// Routing po hoście kieruje treść tam, gdzie jej miejsce, i przekierowuje 301
+// treści „obce" domenie, żeby te same strony nie indeksowały się dwa razy.
+// Uwaga: reguły działają WYŁĄCZNIE na tych dwóch hostach — podglądy *.vercel.app
+// i localhost przechodzą bez zmian, więc dev i preview są nietknięte.
+const MARKETING_HOST = "fp-solutions.pl";
+const CLOUD_HOST = "fdsrun.com";
+
+// Ścieżki należące do serwisu chmurowego (fdsrun.com). „rest" jest bez prefiksu
+// języka. Root ("/") NIE jest tu — na chmurze obsługiwany osobno (rewrite na landing).
+function isCloudPath(rest: string): boolean {
+  const cloud = ["/chmura", "/symulacje", "/signin", "/signup", "/auth"];
+  const account = ["/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty"];
+  return [...cloud, ...account].some((p) => rest === p || rest.startsWith(p + "/"));
+}
+
 export async function middleware(request: NextRequest) {
   // 1. next-intl: ustalenie języka + ewentualny rewrite/redirect segmentu [locale]
   const response = intlMiddleware(request);
@@ -20,6 +38,45 @@ export async function middleware(request: NextRequest) {
   }
   if (rest === "") rest = "/";
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+
+  // 3. Routing po hoście (tylko na realnych domenach produkcyjnych)
+  const hostname = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  const isCloudHost = hostname === CLOUD_HOST || hostname === `www.${CLOUD_HOST}`;
+  const isMarketingHost = hostname === MARKETING_HOST || hostname === `www.${MARKETING_HOST}`;
+
+  const redirectToHost = (host: string, pathnameOverride?: string) => {
+    const url = request.nextUrl.clone();
+    url.protocol = "https";
+    url.host = host;
+    url.port = "";
+    if (pathnameOverride !== undefined) url.pathname = pathnameOverride;
+    return NextResponse.redirect(url, 301);
+  };
+
+  if (isCloudHost) {
+    // Root chmury → serwuj landing FDSRun (rewrite: adres w pasku zostaje „/").
+    if (rest === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${locale}/chmura`;
+      return NextResponse.rewrite(url);
+    }
+    // Bezpośrednie /chmura → kanonizuj do roota.
+    if (rest === "/chmura") {
+      return redirectToHost(CLOUD_HOST, prefix || "/");
+    }
+    // Treść usługowa na domenie chmury → 301 na fp-solutions.pl (bez duplikatów).
+    if (!isCloudPath(rest)) {
+      return redirectToHost(MARKETING_HOST);
+    }
+    // else: ścieżka chmury na domenie chmury → serwuj (auth niżej).
+  } else if (isMarketingHost) {
+    // Treść chmury na domenie usług → 301 na fdsrun.com.
+    if (isCloudPath(rest)) {
+      // /chmura kieruj na root chmury, resztę ścieżka w ścieżkę.
+      return redirectToHost(CLOUD_HOST, rest === "/chmura" ? prefix || "/" : undefined);
+    }
+    // else: ścieżka usługowa na domenie usług → serwuj.
+  }
 
   // Publiczny „zakątek dla projektanta" i witryna produktu (chmura CFD):
   //  • kalkulatory + strona narzędzi liczą bez logowania (magnes na leady, SEO),
@@ -38,7 +95,7 @@ export async function middleware(request: NextRequest) {
     (rest.startsWith("/symulacje") && !isCloudPublic);
   const isAuthPage = rest === "/signin" || rest === "/signup";
 
-  // 3. Supabase odpytujemy tylko tam, gdzie sesja decyduje o dostępie —
+  // 4. Supabase odpytujemy tylko tam, gdzie sesja decyduje o dostępie —
   //    nie na każdej publicznej podstronie (oszczędza round-trip do Supabase).
   if (!isProtected && !isAuthPage) {
     return response;
@@ -71,10 +128,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Zalogowany na stronie logowania/rejestracji → panel
+  // Zalogowany na stronie logowania/rejestracji → pulpit chmury
   if (isAuthPage && user) {
     const url = request.nextUrl.clone();
-    url.pathname = `${prefix}/narzedzia`;
+    url.pathname = `${prefix}/symulacje`;
     url.searchParams.delete("next");
     return NextResponse.redirect(url);
   }

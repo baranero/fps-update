@@ -7,6 +7,7 @@ import { createServer, selectServerType } from "@/lib/hetzner/client";
 import { generateCloudInit } from "@/lib/hetzner/cloud-init";
 import { parseFds, estimateCost, type FdsParseResult } from "@/lib/fds/parser";
 import { isSimAllowed } from "@/lib/utils/adminCheck";
+import { MAIL_FROM } from "@/lib/mail";
 
 const BUCKET = "fds-files";
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB — twardy limit rozmiaru pliku .fds
@@ -32,7 +33,7 @@ function emailUser(to: string, name: string, caseId: string, fileName: string, p
   const statusUrl = `${appUrl}/symulacje/${caseId}`;
   const wallStr = wallHours < 1 ? `${Math.round(wallHours * 60)} min` : `${wallHours.toFixed(1)} h`;
   return {
-    from: "FP Solutions <noreply@fp-solutions.pl>",
+    from: MAIL_FROM,
     to,
     subject: `Potwierdzenie zlecenia symulacji FDS — ${caseId}`,
     html: `
@@ -85,7 +86,7 @@ function emailAdmin(
 ) {
   const statusUrl = `${appUrl}/symulacje/${caseId}`;
   return {
-    from: "FP Solutions <noreply@fp-solutions.pl>",
+    from: MAIL_FROM,
     to: adminEmail,
     subject: `Nowe zlecenie FDS — ${caseId}`,
     html: `
@@ -282,8 +283,8 @@ export async function POST(req: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL ?? "biuro@fp-solutions.pl";
 
     await Promise.allSettled([
-      resend.emails.send(emailUser(email, name, caseId, file.name, estimate.price, estimate.wallHours, estimate.serverType ?? "ccx33", process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
-      resend.emails.send(emailAdmin(adminEmail, caseId, name, email, notes, file.name, filePath, parsed, estimate.price, estimate.serverType ?? "ccx33", estimate.wallHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl")),
+      resend.emails.send(emailUser(email, name, caseId, file.name, estimate.price, estimate.wallHours, estimate.serverType ?? "ccx33", process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com")),
+      resend.emails.send(emailAdmin(adminEmail, caseId, name, email, notes, file.name, filePath, parsed, estimate.price, estimate.serverType ?? "ccx33", estimate.wallHours, process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com")),
     ]);
 
     // Dispatch Hetzner server

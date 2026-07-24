@@ -5,9 +5,10 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { deleteServer } from "@/lib/hetzner/client";
 import { listResults } from "@/lib/hetzner/storage";
 import { computeFinalPrice } from "@/lib/fds/parser";
+import { MAIL_FROM } from "@/lib/mail";
 import { Resend } from "resend";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
 
 function emailDone(
   to: string,
@@ -24,7 +25,7 @@ function emailDone(
     : `${wallHours.toFixed(1)} h`;
 
   return {
-    from: "FP Solutions <noreply@fp-solutions.pl>",
+    from: MAIL_FROM,
     to,
     subject: `Obliczenia FDS zakończone — ${caseId}`,
     html: `
@@ -74,7 +75,7 @@ function emailFailed(
   const url = `${APP_URL}/symulacje/${caseId}`;
 
   return {
-    from: "FP Solutions <noreply@fp-solutions.pl>",
+    from: MAIL_FROM,
     to,
     subject: `Problem z obliczeniami FDS — ${caseId}`,
     html: `
