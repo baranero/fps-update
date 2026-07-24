@@ -8,8 +8,9 @@ const BUCKET = "fds-files";
 
 // Pobranie oryginalnego pliku wsadowego .fds (input) dla admina.
 // Wsad leży w prywatnym buckecie Supabase Storage `fds-files` pod `file_path`
-// (patrz submit route). Service-role omija RLS. Strumieniujemy z naszego origin
-// z nagłówkiem attachment, żeby przeglądarka od razu zapisała plik.
+// (patrz submit route). Service-role omija RLS. Zamiast proxować bajty przez nasz
+// origin, wystawiamy podpisany URL i przekierowujemy — plik leci wprost z Supabase
+// do przeglądarki (bez buforowania w RAM i bez Fast Origin Transfer na Vercelu).
 export async function GET(
   req: NextRequest,
   { params }: { params: { caseId: string } }
@@ -31,27 +32,18 @@ export async function GET(
     return NextResponse.json({ error: "Nie znaleziono pliku." }, { status: 404 });
   }
 
-  const { data: blob, error: dlErr } = await admin.storage
-    .from(BUCKET)
-    .download(sub.file_path);
+  const fileName = sub.file_name || `${params.caseId}.fds`;
 
-  if (dlErr || !blob) {
-    console.error(`admin download-fds [${params.caseId}]:`, dlErr);
+  // Podpisany URL Supabase + 302: przeglądarka pobiera plik wprost z magazynu.
+  // Opcja `download` ustawia Content-Disposition: attachment z właściwą nazwą.
+  const { data: signed, error: signErr } = await admin.storage
+    .from(BUCKET)
+    .createSignedUrl(sub.file_path, 300, { download: fileName });
+
+  if (signErr || !signed?.signedUrl) {
+    console.error(`admin download-fds [${params.caseId}]:`, signErr);
     return NextResponse.json({ error: "Błąd pobierania pliku." }, { status: 404 });
   }
 
-  const fileName = sub.file_name || `${params.caseId}.fds`;
-  const buffer = await blob.arrayBuffer();
-
-  const headers = new Headers();
-  headers.set("Content-Type", "text/plain; charset=utf-8");
-  headers.set("Content-Length", String(buffer.byteLength));
-  // filename oraz filename* (RFC 5987) — poprawne polskie znaki w nazwie
-  headers.set(
-    "Content-Disposition",
-    `attachment; filename="${fileName.replace(/[^\x20-\x7E]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
-  );
-  headers.set("Cache-Control", "private, max-age=0, no-store");
-
-  return new Response(buffer, { status: 200, headers });
+  return NextResponse.redirect(signed.signedUrl, 302);
 }
