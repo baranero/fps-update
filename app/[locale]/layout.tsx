@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { MARKETING_SITE } from "@/lib/seo";
 import { Providers } from "../providers";
 
 // Style CSS
@@ -22,7 +23,10 @@ const archivo = Archivo({ subsets: ["latin", "latin-ext"], variable: "--font-dis
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://fp-solutions.pl"),
+  // Baza dla względnych URL-i w metadanych (OG image itp.). Root layout obsługuje
+  // witrynę usługową — sekcja chmury (fdsrun.com) nadpisze to własnym layoutem.
+  // Celowo NIE bierzemy tu NEXT_PUBLIC_APP_URL, bo ta wskazuje już chmurę.
+  metadataBase: new URL(MARKETING_SITE),
   icons: { icon: "/favicon.webp" },
 };
 

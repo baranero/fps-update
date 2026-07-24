@@ -4,21 +4,27 @@ import PageHeader from "@/components/Common/PageHeader";
 import { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
+import { seoUrls } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog o inżynierii bezpieczeństwa pożarowego | FP Solutions",
-  description:
-    "Baza wiedzy z zakresu inżynierii bezpieczeństwa pożarowego. Porady, aktualne przepisy, symulacje CFD, audyty ppoż. i operaty. Czytaj bloga FP Solutions.",
-  alternates: {
-    canonical: "https://fp-solutions.pl/blog",
-  },
-  openGraph: {
-    title: "Blog FP Solutions – Ekspercka wiedza o ochronie ppoż.",
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const { canonical, languages } = seoUrls(locale, "/blog");
+  return {
+    title: "Blog o inżynierii bezpieczeństwa pożarowego | FP Solutions",
     description:
-      "Sprawdź praktyczne artykuły inżynierskie o bezpieczeństwie pożarowym, scenariuszach rozwoju pożaru, IBP i nowoczesnych systemach ppoż.",
-    url: "https://fp-solutions.pl/blog",
-  },
-};
+      "Baza wiedzy z zakresu inżynierii bezpieczeństwa pożarowego. Porady, aktualne przepisy, symulacje CFD, audyty ppoż. i operaty. Czytaj bloga FP Solutions.",
+    alternates: { canonical, languages },
+    openGraph: {
+      title: "Blog FP Solutions – Ekspercka wiedza o ochronie ppoż.",
+      description:
+        "Sprawdź praktyczne artykuły inżynierskie o bezpieczeństwie pożarowym, scenariuszach rozwoju pożaru, IBP i nowoczesnych systemach ppoż.",
+      url: canonical,
+    },
+  };
+}
 
 const BlogPage = ({ params: { locale } }: { params: { locale: string } }) => {
   setRequestLocale(locale);
