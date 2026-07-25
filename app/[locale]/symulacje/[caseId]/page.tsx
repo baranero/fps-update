@@ -9,6 +9,9 @@ import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
 import type { FdsSliceJson } from "@/lib/fds/slice";
 import { explainFdsErrors, type FdsErrorInfo } from "@/lib/fds/errors";
+import {
+  GB, PACKAGE_MAX_BYTES, PACKAGE_SIZE_OPTIONS, DEFAULT_PACKAGE_BYTES, splitIntoPackages,
+} from "@/lib/fds/download-limits";
 
 interface JobData {
   caseId: string;
@@ -186,7 +189,38 @@ function formatSize(bytes: number | null): string {
   if (bytes === null) return "—";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+// Łączny rozmiar paczki. Magazyn potrafi nie podać rozmiaru części plików —
+// wtedy suma jest niepełna i oznaczamy ją tyldą („co najmniej tyle”).
+function totalSize(files: Array<{ size: number | null }>): { bytes: number; label: string; partial: boolean } | null {
+  if (files.length === 0) return null;
+  const known = files.filter((f) => f.size !== null);
+  if (known.length === 0) return null;
+  const bytes = known.reduce((sum, f) => sum + (f.size as number), 0);
+  const partial = known.length < files.length;
+  return { bytes, label: `${partial ? "~" : ""}${formatSize(bytes)}`, partial };
+}
+
+// Etykieta rozmiaru paczki w wyborze — okrągła („2 GB”), nie „2,00 GB”.
+function packageLabel(bytes: number): string {
+  return bytes >= GB ? `${bytes / GB} GB` : `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
+// Zapis plików wprost do folderu wskazanego przez użytkownika (File System Access
+// API — Chrome/Edge). Typy nie ma w lib.dom tej wersji TS, więc minimalny kontrakt.
+interface DirHandle {
+  getDirectoryHandle(name: string, opts?: { create?: boolean }): Promise<DirHandle>;
+  getFileHandle(name: string, opts?: { create?: boolean }): Promise<{
+    createWritable(): Promise<WritableStream<Uint8Array>>;
+  }>;
+}
+function directoryPicker(): ((opts?: Record<string, unknown>) => Promise<DirHandle>) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { showDirectoryPicker?: (opts?: Record<string, unknown>) => Promise<DirHandle> };
+  return typeof w.showDirectoryPicker === "function" ? w.showDirectoryPicker.bind(window) : null;
 }
 
 function formatDt(s: number | null): string {
@@ -222,6 +256,15 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dlMsg, setDlMsg] = useState<string | null>(null);
+  // Trwa seria pobrań plik po pliku — blokujemy przyciski, żeby nie zlecić jej dwa razy.
+  const [seqRunning, setSeqRunning] = useState(false);
+  // Ostrzeżenie, które ma przetrwać kolejne komunikaty postępu (np. nieudany zapis do folderu).
+  const [dlWarn, setDlWarn] = useState<string | null>(null);
+  // Podział wyników na paczki — ratunek, gdy jedno duże pobranie się urywa.
+  const [pkgTarget, setPkgTarget] = useState<number>(DEFAULT_PACKAGE_BYTES);
+  const [pkgOpen, setPkgOpen] = useState(false);
+  // Wsparcie dla wyboru folderu ustalamy po hydratacji — serwer nie zna przeglądarki.
+  const [canPickFolder, setCanPickFolder] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
   const termScrolledUpRef = useRef(false);
@@ -236,6 +279,8 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const [partialLoading, setPartialLoading] = useState(false);
   // Do jakiego czasu symulacji sięga migawka (manifest zapisany przez maszynę liczącą).
   const [snapshot, setSnapshot] = useState<{ t: number; at: string | null } | null>(null);
+
+  useEffect(() => { setCanPickFolder(directoryPicker() !== null); }, []);
 
   const loadPartial = async () => {
     setPartialLoading(true);
@@ -375,6 +420,10 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const allFiles = job?.results ?? [];
   const allSelected = allFiles.length > 0 && allFiles.every((f) => selected.has(f.name));
   const someSelected = allFiles.some((f) => selected.has(f.name));
+  // Rozmiary paczek — ile użytkownik faktycznie ściągnie klikając „pobierz”.
+  const allSize = totalSize(allFiles);
+  const selectedSize = totalSize(allFiles.filter((f) => selected.has(f.name)));
+  const partialSize = totalSize(partial);
 
   const toggleFile = (name: string) =>
     setSelected((prev) => {
@@ -400,20 +449,144 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     a.click();
   };
 
-  // Paczka ZIP budowana STRUMIENIOWO po stronie serwera — działa dla dowolnego
-  // rozmiaru (nic nie ląduje w pamięci przeglądarki). Kotwica z download uruchamia
-  // pobranie; strona nie nawiguje (Content-Disposition: attachment).
-  const packageHref = (names?: string[]) => {
-    const q = names && names.length ? `?files=${encodeURIComponent(names.join(","))}` : "";
-    return `/api/symulacje/${caseId}/download-zip${q}`;
+  // Klasyczna seria pobrań — każdy plik osobno, wprost z magazynu. Trafiają luzem
+  // do folderu pobierania: przeglądarka nie pozwala kotwicy wskazać podkatalogu.
+  const clickEach = async (files: Array<{ name: string; url?: string }>) => {
+    for (let i = 0; i < files.length; i++) {
+      setDlMsg(t("results.downloadingSeq", { i: i + 1, n: files.length }));
+      downloadFile(files[i]);
+      // Odstęp między kliknięciami — bez niego przeglądarka blokuje serię pobrań.
+      await new Promise((r) => setTimeout(r, 700));
+    }
+    setDlMsg(t("results.downloadedSeq", { n: files.length }));
+    setTimeout(() => setDlMsg(null), 10000);
   };
-  const downloadPackage = (names?: string[]) => {
+
+  // Zapis plików do podkatalogu o nazwie symulacji we wskazanym folderze.
+  // Bajty lecą wprost z magazynu do dysku (fetch → strumień na plik), z pominięciem
+  // naszego serwera. Wymaga zgody magazynu na CORS — inaczej rzuca i wracamy do klasyki.
+  const saveToFolder = async (files: Array<{ name: string; url?: string }>, dir: DirHandle) => {
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      setDlMsg(t("results.savingToFolder", { i: i + 1, n: files.length, name: caseId }));
+      const resp = await fetch(f.url ?? proxyUrl(f.name));
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status} (${f.name})`);
+      const handle = await dir.getFileHandle(f.name, { create: true });
+      await resp.body.pipeTo(await handle.createWritable());
+    }
+    setDlMsg(t("results.savedToFolder", { n: files.length, name: caseId }));
+    setTimeout(() => setDlMsg(null), 10000);
+  };
+
+  // Pobranie wielu plików bez pakowania. Gdy przeglądarka to potrafi, pytamy
+  // o folder i zapisujemy do podkatalogu <caseId>; inaczej klasyczna seria pobrań.
+  const downloadEach = async (files: Array<{ name: string; url?: string }>) => {
+    setSeqRunning(true);
+    setDlWarn(null);
+    try {
+      const pick = directoryPicker();
+      if (pick) {
+        let dir: DirHandle | null = null;
+        try {
+          const root = await pick({ mode: "readwrite", id: "fdsrun-results" });
+          dir = await root.getDirectoryHandle(caseId, { create: true });
+        } catch {
+          // Anulowany wybór folderu = rezygnacja z pobierania, nie powód do fallbacku.
+          setDlMsg(null);
+          return;
+        }
+        try {
+          await saveToFolder(files, dir);
+          return;
+        } catch (err) {
+          // Najczęściej CORS magazynu albo brak miejsca — kończymy klasycznie.
+          console.error("saveToFolder:", err);
+          setDlWarn(t("results.folderFailed"));
+        }
+      }
+      await clickEach(files);
+    } finally {
+      setSeqRunning(false);
+    }
+  };
+
+  // Paczka ZIP pakowana strumieniowo po stronie serwera: magazyn → funkcja →
+  // przeglądarka. Musi zmieścić się w maxDuration funkcji, stąd limit na paczkę
+  // i możliwość podzielenia wyników na mniejsze (route pilnuje tego samego progu).
+  const packageHref = (names: string[], opts?: { probe?: boolean; part?: number; parts?: number }) => {
+    const q = new URLSearchParams();
+    if (names.length) q.set("files", names.join(","));
+    if (opts?.probe) q.set("probe", "1");
+    if (opts?.part && opts?.parts && opts.parts > 1) {
+      q.set("part", String(opts.part));
+      q.set("parts", String(opts.parts));
+    }
+    const s = q.toString();
+    return `/api/symulacje/${caseId}/download-zip${s ? `?${s}` : ""}`;
+  };
+
+  // Najpierw pytamy route, czy paczkę da się spakować (?probe=1). Kotwica nie widzi
+  // kodu odpowiedzi — bez tego JSON z błędem wylądowałby na dysku jako „.zip”.
+  // Gdy się nie da (za duża / zmieniła się zawartość magazynu), pobieramy plik po pliku.
+  const downloadPackage = async (
+    files: Array<{ name: string; url?: string }>,
+    part?: number,
+    parts?: number
+  ) => {
     setDlMsg(t("results.preparingZip"));
+    setDlWarn(null);
+    const names = files.map((f) => f.name);
+    let ok = false;
+    try {
+      ok = (await fetch(packageHref(names, { probe: true }))).ok;
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      setDlWarn(t("results.zipUnavailable"));
+      await downloadEach(files);
+      return;
+    }
     const a = document.createElement("a");
-    a.href = packageHref(names);
-    a.download = `${caseId}.zip`;
+    a.href = packageHref(names, { part, parts });
+    // Nazwę pliku i tak narzuca Content-Disposition; atrybut jest zabezpieczeniem
+    // przed nawigacją do treści błędu, gdyby route wywrócił się po przejściu probe.
+    a.download = part && parts && parts > 1 ? `${caseId}_cz${part}z${parts}.zip` : `${caseId}.zip`;
     a.click();
     setTimeout(() => setDlMsg(null), 5000);
+  };
+
+  // Podział na paczki mieszczące się w wybranym rozmiarze — lista pod przyciskami.
+  const packages = splitIntoPackages(allFiles, pkgTarget);
+
+  const downloadPart = (files: typeof allFiles, part: number, parts: number) => {
+    // Pojedynczy plik (także większy od limitu paczki) leci wprost z magazynu —
+    // pakowanie nic by nie dało, a przeszłoby przez funkcję.
+    if (files.length === 1) { downloadFile(files[0]); return; }
+    void downloadPackage(files, part, parts);
+  };
+
+  // Jeden ZIP, jeśli zestaw mieści się w limicie paczki. Jeśli nie — pokazujemy
+  // podział zamiast startować pobranie, które i tak by się urwało.
+  const downloadMany = (
+    files: Array<{ name: string; url?: string; size: number | null }>,
+    canSplit = false
+  ) => {
+    if (files.length === 0) return;
+    if (files.length === 1) { downloadFile(files[0]); return; }
+    const sized = totalSize(files);
+    const fitsOnePackage = sized !== null && !sized.partial && sized.bytes <= PACKAGE_MAX_BYTES;
+    if (fitsOnePackage) {
+      void downloadPackage(files);
+      return;
+    }
+    if (canSplit && sized !== null) {
+      const parts = splitIntoPackages(files, pkgTarget);
+      setPkgOpen(true);
+      setDlMsg(t("results.splitNeeded", { n: parts.length }));
+      return;
+    }
+    void downloadEach(files);
   };
 
   // ── Stany brzegowe ──────────────────────────────────────────────────────────
@@ -813,14 +986,15 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   {/* Akcje */}
                   <div className="flex flex-wrap items-center gap-3">
                     <button
-                      onClick={() => downloadPackage()}
-                      disabled={partial.length === 0}
+                      onClick={() => downloadMany(partial)}
+                      disabled={partial.length === 0 || seqRunning}
                       className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                       {t("partial.downloadAll")}
+                      {partialSize ? <span className="font-semibold text-white/75">({partialSize.label})</span> : null}
                     </button>
                     <button
                       onClick={loadPartial}
@@ -915,6 +1089,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   )}
 
                   {dlMsg && <p className="text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
+                  {dlWarn && <p className="text-[11px] text-amber-600 dark:text-amber-400">{dlWarn}</p>}
                   <p className="text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">{t("partial.note")}</p>
                 </div>
               </div>
@@ -945,22 +1120,98 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer" />
                   <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {t("results.title")}
-                    <span className="ml-1.5 text-slate-500 dark:text-slate-400 font-normal">({job.results.length})</span>
+                    <span className="ml-1.5 text-slate-500 dark:text-slate-400 font-normal" title={allSize ? t("results.totalSizeHint") : undefined}>
+                      ({job.results.length}{allSize ? ` · ${allSize.label}` : ""})
+                    </span>
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { const sel = allFiles.filter((f) => selected.has(f.name)); if (sel.length === 1) downloadFile(sel[0]); else downloadPackage(sel.map((f) => f.name)); }} disabled={!someSelected} className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || seqRunning} className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.downloadSelected")}
+                    {someSelected && selectedSize ? <span className="font-normal text-slate-500 dark:text-slate-400">({selectedSize.label})</span> : null}
                   </button>
-                  <button onClick={() => downloadPackage()} className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors">
+                  <button onClick={() => downloadMany(allFiles, true)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.zipAll")}
+                    {allSize ? <span className="font-normal text-white/75">({allSize.label})</span> : null}
                   </button>
                 </div>
               </div>
 
-              {dlMsg && <p className="mb-3 text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
+              {dlMsg && <p className="mb-1.5 text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
+              {dlWarn && <p className="mb-1.5 text-[11px] text-amber-600 dark:text-amber-400">{dlWarn}</p>}
+
+              {/* Ratunek na urwane pobrania: podział wyników na mniejsze paczki */}
+              <details
+                open={pkgOpen}
+                onToggle={(e) => setPkgOpen((e.target as HTMLDetailsElement).open)}
+                className="group mb-4 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] px-4 py-3"
+              >
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-primary dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+                  <svg className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  {t("results.splitTitle")}
+                </summary>
+
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  {t("results.splitLead", { name: caseId })}
+                </p>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t("results.splitSize")}</span>
+                  {PACKAGE_SIZE_OPTIONS.map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => setPkgTarget(b)}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                        b === pkgTarget
+                          ? "border-primary bg-primary text-white"
+                          : "border-slate-200 text-slate-600 hover:bg-white dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {packageLabel(b)}
+                    </button>
+                  ))}
+                </div>
+
+                <ul className="mt-3 space-y-1.5">
+                  {packages.map((part, i) => {
+                    const partSize = totalSize(part);
+                    return (
+                      <li key={i} className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 dark:bg-[#1E232E]">
+                        <span className="min-w-0 text-xs text-slate-600 dark:text-slate-300">
+                          <span className="font-semibold">{t("results.partLabel", { i: i + 1, n: packages.length })}</span>
+                          <span className="ml-1.5 text-slate-500 dark:text-slate-400">
+                            {t("results.partMeta", { files: part.length, size: partSize?.label ?? "—" })}
+                          </span>
+                        </span>
+                        <button
+                          onClick={() => downloadPart(part, i + 1, packages.length)}
+                          disabled={seqRunning}
+                          className="shrink-0 rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                        >
+                          {t("results.download")}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
+                  <button
+                    onClick={() => void downloadEach(allFiles)}
+                    disabled={seqRunning}
+                    className="text-xs font-semibold text-primary transition-colors hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("results.perFile")}
+                  </button>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                    {canPickFolder ? t("results.perFileFolder", { name: caseId }) : t("results.perFileLoose")}
+                  </p>
+                </div>
+              </details>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
