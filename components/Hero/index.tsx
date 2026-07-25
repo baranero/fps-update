@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { CLOUD_URL } from "@/lib/cloud";
 
 const DEMO = {
   fileName: "klatka_schodowa_A.fds",
@@ -141,12 +142,12 @@ const Hero = () => {
               >
                 {t("ctaContact")}
               </Link>
-              <Link
-                href="/symulacje/nowa"
+              <a
+                href={CLOUD_URL}
                 className="rounded-xl border border-primary/30 bg-primary/10 px-7 py-3.5 text-[14px] font-bold text-primary transition-colors hover:bg-primary/20"
               >
                 {t("ctaRun")}
-              </Link>
+              </a>
             </div>
 
             {/* Trust badges */}

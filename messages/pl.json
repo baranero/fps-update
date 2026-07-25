@@ -822,7 +822,7 @@
     "titleEnd": "dla inżynierów FDS",
     "lead": "Projekty SSP, oddymiania i symulacje CFD — oraz własna platforma do uruchamiania obliczeń FDS w chmurze, dostępna dla inżynierów na całym świecie.",
     "ctaContact": "Skontaktuj się",
-    "ctaRun": "Uruchom symulację FDS ↗",
+    "ctaRun": "Wypróbuj chmurę FDSRun ↗",
     "trust": {
       "ssp": "Projekty SSP",
       "smoke": "Systemy oddymiania",
@@ -839,7 +839,7 @@
       "progress": "Obliczenia: {pct}%",
       "remaining": "{time} pozostało",
       "cost": "Koszt netto",
-      "caption": "Przykładowe zlecenie · płatność po zakończeniu obliczeń"
+      "caption": "Przykładowe zlecenie · osobny serwis obliczeniowy fdsrun.com"
     }
   },
   "pillars": {
@@ -865,7 +865,8 @@
     "titleStart": "Obliczenia FDS",
     "titleAccent": "bez własnej infrastruktury",
     "lead": "Wgraj plik .fds — system dobiera serwer, uruchamia obliczenia i zwraca wyniki. Płacisz tylko za faktyczne zużycie CPU i storage.",
-    "cta": "Uruchom pierwszą symulację →",
+    "cta": "Przejdź do FDSRun ↗",
+    "separateNote": "To osobny serwis obliczeniowy — chmura CFD działa pod fdsrun.com.",
     "steps": {
       "s1Title": "Wgraj plik .fds",
       "s1Desc": "Parser analizuje model lokalnie w przeglądarce i pokazuje wycenę przed wysłaniem — bez przesyłania danych.",
