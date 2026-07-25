@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CLOUD_URL } from "@/lib/cloud";
+import { CLOUD_URL, isCloudPath } from "@/lib/cloud";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("tools");
   const pathname = usePathname();
   const router = useRouter();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  // Logowanie żyje tylko na chmurze (fdsrun.com). Na trasach usług (kalkulatory)
+  // nie pokazujemy żadnego panelu logowania.
+  const isCloud = isCloudPath(pathname);
 
   useEffect(() => {
     const supabase = createClient();
@@ -66,14 +69,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 {t("signOut")}
               </button>
-            ) : (
+            ) : isCloud ? (
               <Link
                 href="/signin"
                 className="shrink-0 rounded px-3 py-1.5 text-xs font-medium bg-primary text-white whitespace-nowrap"
               >
                 {t("signIn")}
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -109,7 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : isCloud ? (
               <div className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2.5">
                 <Link href="/signin" className="text-xs font-semibold text-primary hover:underline">
                   {t("signIn")}
@@ -119,7 +122,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   {t("signUp")}
                 </Link>
               </div>
-            )}
+            ) : null}
 
             {/* Top link */}
             <Link

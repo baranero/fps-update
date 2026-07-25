@@ -15,7 +15,8 @@ const PRIVATE_PATHS = [
   '/narzedzia/raporty',
 ];
 
-const withLocales = (paths) => paths.flatMap((p) => [p, `/en${p}`]);
+// Serwis wyłącznie polski — bez wariantów /en.
+const withLocales = (paths) => paths;
 
 module.exports = {
   siteUrl: 'https://fp-solutions.pl',

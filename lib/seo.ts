@@ -24,17 +24,14 @@ export interface SeoUrls {
   languages: Record<string, string>;
 }
 
-function build(site: string, locale: string, path: string): SeoUrls {
+// Serwis jest wyłącznie polski (patrz i18n/routing) — canonical bez wariantu /en
+// i bez hreflang. `locale` zostaje w sygnaturze dla zgodności z wywołaniami.
+function build(site: string, _locale: string, path: string): SeoUrls {
   const clean = path === "/" ? "" : `/${path.replace(/^\/|\/$/g, "")}`;
-  const pl = `${site}${clean}`;
-  const en = `${site}/en${clean}`;
+  const url = `${site}${clean}`;
   return {
-    canonical: locale === "en" ? en : pl,
-    languages: {
-      pl,
-      en,
-      "x-default": pl,
-    },
+    canonical: url,
+    languages: { pl: url, "x-default": url },
   };
 }
 

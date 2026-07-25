@@ -1,9 +1,10 @@
 import { defineRouting } from "next-intl/routing";
 
 export const routing = defineRouting({
-  locales: ["pl", "en"],
+  // Wyłącznie polski — profesjonalne oprogramowanie ppoż. na rynek PL nie ma
+  // wersji angielskiej. next-intl zostaje jako warstwa tłumaczeń (messages/pl.json).
+  locales: ["pl"],
   defaultLocale: "pl",
-  // pl bez prefiksu (/), en z prefiksem (/en/...)
   localePrefix: "as-needed",
 });
 

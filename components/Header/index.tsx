@@ -4,14 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
-import LanguageSwitcher from "./LanguageSwitcher";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
 import { CLOUD_URL, isCloudPath } from "@/lib/cloud";
 
 const Header = () => {
   const t = useTranslations("nav");
-  const tl = useTranslations("language");
   const tc = useTranslations("cfdNav");
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -212,15 +210,8 @@ const Header = () => {
                     </li>
                   )}
 
-                  {/* Język — mobile */}
-                  <li className="mt-3 flex items-center justify-between lg:hidden">
-                    <span className="px-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {tl("label")}
-                    </span>
-                    <LanguageSwitcher />
-                  </li>
-
-                  {/* Konto — mobile */}
+                  {/* Konto — mobile — tylko w chmurze; witryna usług nie ma logowania */}
+                  {isCloud && (
                   <li className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700 lg:hidden">
                     {userEmail ? (
                       <div className="space-y-1">
@@ -267,6 +258,7 @@ const Header = () => {
                       </div>
                     )}
                   </li>
+                  )}
                 </ul>
               </nav>
             </div>
@@ -284,11 +276,10 @@ const Header = () => {
                 </a>
               )}
 
-              <LanguageSwitcher className="hidden lg:flex" />
-
               <ThemeToggler />
 
-              {/* Konto — desktop */}
+              {/* Konto — desktop — tylko w chmurze; witryna usług nie ma logowania */}
+              {isCloud && (
               <div className="relative hidden lg:block" ref={accountRef}>
                 {userEmail ? (
                   <>
@@ -363,6 +354,7 @@ const Header = () => {
                   </>
                 )}
               </div>
+              )}
             </div>
           </div>
         </div>
