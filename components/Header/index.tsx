@@ -8,6 +8,10 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
 
+// Serwis chmurowy żyje na osobnej domenie (fdsrun.com). CTA „CFD Cloud" prowadzi
+// wprost tam — link krzyżowy (<a>), nie wewnętrzny Link, żeby nie odbijać się o 301.
+const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
+
 const Header = () => {
   const t = useTranslations("nav");
   const tl = useTranslations("language");
@@ -182,16 +186,16 @@ const Header = () => {
                   ))}
 
                   {/* CFD Cloud — CTA (widoczne w menu tylko na mobile) */}
-                  {highlightItem?.path && (
+                  {highlightItem && (
                     <li className="group relative lg:hidden">
-                      <Link
-                        href={highlightItem.path}
+                      <a
+                        href={CLOUD_URL}
                         onClick={() => setNavbarOpen(false)}
                         className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
                         {t(highlightItem.key ?? "")}
                         <span>↗</span>
-                      </Link>
+                      </a>
                     </li>
                   )}
 
@@ -257,14 +261,14 @@ const Header = () => {
             {/* Right side: CTA + language + theme + account */}
             <div className="flex items-center justify-end gap-3 pr-16 lg:pr-0">
               {/* CFD Cloud — CTA (desktop) */}
-              {highlightItem?.path && (
-                <Link
-                  href={highlightItem.path}
+              {highlightItem && (
+                <a
+                  href={CLOUD_URL}
                   className="hidden items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 lg:inline-flex"
                 >
                   {t(highlightItem.key ?? "")}
                   <span>↗</span>
-                </Link>
+                </a>
               )}
 
               <LanguageSwitcher className="hidden lg:flex" />

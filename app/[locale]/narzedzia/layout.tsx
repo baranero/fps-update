@@ -5,6 +5,10 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// Narzędzia (kalkulatory) żyją na fp-solutions.pl, a chmura na fdsrun.com —
+// wejście „CFD Cloud" prowadzi krzyżowo wprost tam, bez odbicia o 301.
+const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("tools");
   const pathname = usePathname();
@@ -132,16 +136,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {t("title")}
             </Link>
 
-            {/* Przejście do obszaru symulacji (CFD Cloud) */}
-            <Link
-              href="/symulacje"
+            {/* Przejście do serwisu chmurowego (fdsrun.com) — link krzyżowy */}
+            <a
+              href={CLOUD_URL}
               className="flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
             >
               <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
               </svg>
               <span className="truncate">{t("cfdCloud")}</span>
-            </Link>
+            </a>
 
             {/* Nav */}
             <nav className="flex flex-col gap-5">

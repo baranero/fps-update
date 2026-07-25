@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Step1Data, Step2Data, Step4Data, CalculationResults, CFDWarnings, ExtraCFD,
   toNum, toStr,
 } from "@/lib/calculations/cnbop";
 import { AlertTriangleIcon, InfoCircleIcon } from "@/components/Calculators/ui/Icons";
+import { createClient } from "@/lib/supabase/client";
+
+// Baza serwisu chmurowego (konto żyje na fdsrun.com; kalkulatory są na
+// fp-solutions.pl bez logowania). Link krzyżowy prosto na produkt.
+const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
 
 interface Step5Props {
   results: CalculationResults;
@@ -96,6 +101,43 @@ function SaveSection({ onSave }: { onSave: (name: string) => Promise<boolean> })
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(false);
+  // Konto jest na fdsrun.com — zapis do historii wymaga sesji. Bez niej (np. na
+  // fp-solutions.pl) zamiast martwego przycisku pokazujemy CTA założenia konta.
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setLoggedIn(!!data.user));
+  }, []);
+
+  // Zanim ustalimy sesję — nic (unikamy migotania złej treści).
+  if (loggedIn === null) return null;
+
+  if (!loggedIn) {
+    return (
+      <div className="rounded-xl border border-primary/25 bg-primary/[0.05] p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Zapisuj projekty i wracaj do nich</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Historia raportów, ponowne otwarcie z danymi i symulacje CFD — w darmowym koncie FDSRun.
+            </p>
+            <a
+              href={`${CLOUD_URL}/signup`}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+            >
+              Załóż konto na FDSRun
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     setSaving(true);
