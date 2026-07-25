@@ -54,26 +54,21 @@ export async function middleware(request: NextRequest) {
   };
 
   if (isCloudHost) {
-    // Root chmury → serwuj landing FDSRun (rewrite: adres w pasku zostaje „/").
+    // Root chmury → landing FDSRun pod /chmura (301, nie rewrite): dzięki temu
+    // ścieżka w pasku to /chmura, więc nagłówek rozpoznaje markę po ścieżce
+    // (bez migotania) — patrz components/Header.
     if (rest === "/") {
-      const url = request.nextUrl.clone();
-      url.pathname = `/${locale}/chmura`;
-      return NextResponse.rewrite(url);
-    }
-    // Bezpośrednie /chmura → kanonizuj do roota.
-    if (rest === "/chmura") {
-      return redirectToHost(CLOUD_HOST, prefix || "/");
+      return redirectToHost(CLOUD_HOST, `${prefix}/chmura`);
     }
     // Treść usługowa na domenie chmury → 301 na fp-solutions.pl (bez duplikatów).
     if (!isCloudPath(rest)) {
       return redirectToHost(MARKETING_HOST);
     }
-    // else: ścieżka chmury na domenie chmury → serwuj (auth niżej).
+    // else: ścieżka chmury (w tym /chmura) na domenie chmury → serwuj (auth niżej).
   } else if (isMarketingHost) {
-    // Treść chmury na domenie usług → 301 na fdsrun.com.
+    // Treść chmury na domenie usług → 301 na fdsrun.com (ścieżka w ścieżkę).
     if (isCloudPath(rest)) {
-      // /chmura kieruj na root chmury, resztę ścieżka w ścieżkę.
-      return redirectToHost(CLOUD_HOST, rest === "/chmura" ? prefix || "/" : undefined);
+      return redirectToHost(CLOUD_HOST);
     }
     // else: ścieżka usługowa na domenie usług → serwuj.
   }

@@ -1,9 +1,10 @@
 "use client";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { FaPhone } from "react-icons/fa6";
 import { IoIosMail } from "react-icons/io";
+import { isCloudPath } from "@/lib/cloud";
 
 const contactItems = [
   { Icon: FaPhone, label: "+48 790 782 993", href: "tel:+48790782993" },
@@ -13,6 +14,7 @@ const contactItems = [
 const Footer = () => {
   const t = useTranslations("footer");
   const tn = useTranslations("nav");
+  const pathname = usePathname();
   const year = new Date().getFullYear();
 
   const navigationLinks = [
@@ -34,6 +36,50 @@ const Footer = () => {
     { href: "/polityka-cookies", label: t("cookies") },
     { href: "/regulamin", label: t("terms") },
   ];
+
+  // Stopka chmury (FDSRun) — slim, bez sekcji konsultingu. Marka rozpoznawana po
+  // ścieżce (landing żyje pod /chmura). Linki prawne prowadzą do fp-solutions.pl (301).
+  if (isCloudPath(pathname)) {
+    return (
+      <footer className="relative z-10 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+        <div className="container">
+          <div className="flex flex-col items-center justify-between gap-5 py-8 md:flex-row">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
+                </svg>
+              </span>
+              <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                FDS<span className="text-primary">Run</span>
+              </span>
+            </div>
+            <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+              {legalLinks.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <a
+                  href="mailto:biuro@fp-solutions.pl"
+                  className="text-sm text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+                >
+                  biuro@fp-solutions.pl
+                </a>
+              </li>
+            </ul>
+            <p className="text-sm text-slate-500 dark:text-slate-500">&copy;{year} FDSRun</p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="relative z-10 bg-slate-100 pt-16 dark:bg-slate-950 md:pt-20 lg:pt-24">

@@ -7,10 +7,7 @@ import {
 } from "@/lib/calculations/cnbop";
 import { AlertTriangleIcon, InfoCircleIcon } from "@/components/Calculators/ui/Icons";
 import { createClient } from "@/lib/supabase/client";
-
-// Baza serwisu chmurowego (konto żyje na fdsrun.com; kalkulatory są na
-// fp-solutions.pl bez logowania). Link krzyżowy prosto na produkt.
-const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
+import { CLOUD_URL } from "@/lib/cloud";
 
 interface Step5Props {
   results: CalculationResults;

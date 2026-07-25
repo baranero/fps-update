@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-// Narzędzia (kalkulatory) żyją na fp-solutions.pl, a chmura na fdsrun.com —
-// wejście „CFD Cloud" prowadzi krzyżowo wprost tam, bez odbicia o 301.
-const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
+import { CLOUD_URL } from "@/lib/cloud";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("tools");

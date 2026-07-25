@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: { locale: string };
 }): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "cloudLanding.metadata" });
-  const { canonical, languages } = cloudSeoUrls(locale, "/");
+  const { canonical, languages } = cloudSeoUrls(locale, "/chmura");
   return {
     title: t("title"),
     description: t("description"),

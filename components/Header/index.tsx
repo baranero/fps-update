@@ -7,10 +7,7 @@ import ThemeToggler from "./ThemeToggler";
 import LanguageSwitcher from "./LanguageSwitcher";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
-
-// Serwis chmurowy żyje na osobnej domenie (fdsrun.com). CTA „CFD Cloud" prowadzi
-// wprost tam — link krzyżowy (<a>), nie wewnętrzny Link, żeby nie odbijać się o 301.
-const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
+import { CLOUD_URL, isCloudPath } from "@/lib/cloud";
 
 const Header = () => {
   const t = useTranslations("nav");
@@ -23,6 +20,7 @@ const Header = () => {
   const accountRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const isCloud = isCloudPath(pathname);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY >= 20);
@@ -83,21 +81,34 @@ const Header = () => {
     >
       <div className="container">
         <div className="relative -mx-4 flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo — marka zależna od sekcji (chmura = FDSRun, usługi = FP Solutions) */}
           <div className="w-max px-4 xl:mr-16 xl:whitespace-nowrap">
-            <Link href="/" className="header-logo block w-full py-4 lg:py-3">
-              <div className="flex flex-col items-center">
-                <Image
-                  src="/images/logo/logo.webp"
-                  alt="Fire Protection Solutions Logo"
-                  width={50}
-                  height={30}
-                />
-                <p className="hidden pt-1.5 text-center text-sm font-bold text-slate-900 dark:text-white sm:block">
-                  Fire Protection <span className="text-primary">Solutions</span>
-                </p>
-              </div>
-            </Link>
+            {isCloud ? (
+              <Link href="/chmura" className="header-logo flex items-center gap-2 py-4 lg:py-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
+                  </svg>
+                </span>
+                <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  FDS<span className="text-primary">Run</span>
+                </span>
+              </Link>
+            ) : (
+              <Link href="/" className="header-logo block w-full py-4 lg:py-3">
+                <div className="flex flex-col items-center">
+                  <Image
+                    src="/images/logo/logo.webp"
+                    alt="Fire Protection Solutions Logo"
+                    width={50}
+                    height={30}
+                  />
+                  <p className="hidden pt-1.5 text-center text-sm font-bold text-slate-900 dark:text-white sm:block">
+                    Fire Protection <span className="text-primary">Solutions</span>
+                  </p>
+                </div>
+              </Link>
+            )}
           </div>
 
           {/* Nav + actions */}
@@ -133,7 +144,8 @@ const Header = () => {
                 }`}
               >
                 <ul className="block lg:flex lg:items-center lg:space-x-6 xl:space-x-10">
-                  {regularItems.map((menuItem, index) => (
+                  {/* Menu konsultingu tylko na usługach — na chmurze nagłówek jest slim (FDSRun) */}
+                  {!isCloud && regularItems.map((menuItem, index) => (
                     <li key={index} className="group relative">
                       {menuItem.path ? (
                         <Link
@@ -186,7 +198,7 @@ const Header = () => {
                   ))}
 
                   {/* CFD Cloud — CTA (widoczne w menu tylko na mobile) */}
-                  {highlightItem && (
+                  {!isCloud && highlightItem && (
                     <li className="group relative lg:hidden">
                       <a
                         href={CLOUD_URL}
@@ -261,7 +273,7 @@ const Header = () => {
             {/* Right side: CTA + language + theme + account */}
             <div className="flex items-center justify-end gap-3 pr-16 lg:pr-0">
               {/* CFD Cloud — CTA (desktop) */}
-              {highlightItem && (
+              {!isCloud && highlightItem && (
                 <a
                   href={CLOUD_URL}
                   className="hidden items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 lg:inline-flex"
