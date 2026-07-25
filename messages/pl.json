@@ -890,6 +890,11 @@
     "metadata": {
       "title": "FDSRun — symulacje pożarowe FDS w chmurze",
       "description": "Wgraj plik wejściowy FDS, poznaj koszt w kilka sekund i uruchom obliczenia na serwerach w chmurze. Wycena bez zakładania konta, płatność za rzeczywiste zużycie."
+    },
+    "panelCaption": "Poglądowe zlecenie · płatność po zakończeniu obliczeń",
+    "finalCta": {
+      "title": "Policz i uruchom pierwszą symulację",
+      "lead": "Wgraj plik .fds — koszt poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywiste zużycie serwera."
     }
   },
   "features": {
