@@ -6,7 +6,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
-import { CLOUD_URL, isCloudPath } from "@/lib/cloud";
+import { cloudUrl, isCloudPath } from "@/lib/cloud";
 
 const Header = () => {
   const t = useTranslations("nav");
@@ -200,7 +200,7 @@ const Header = () => {
                   {!isCloud && highlightItem && (
                     <li className="group relative lg:hidden">
                       <a
-                        href={CLOUD_URL}
+                        href={cloudUrl()}
                         onClick={() => setNavbarOpen(false)}
                         className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
@@ -268,7 +268,7 @@ const Header = () => {
               {/* CFD Cloud — CTA (desktop) */}
               {!isCloud && highlightItem && (
                 <a
-                  href={CLOUD_URL}
+                  href={cloudUrl()}
                   className="hidden items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 lg:inline-flex"
                 >
                   {t(highlightItem.key ?? "")}

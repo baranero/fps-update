@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { CLOUD_URL } from "@/lib/cloud";
+import { cloudUrl } from "@/lib/cloud";
 
 const CloudSpotlight = () => {
   const t = useTranslations("cloudSpotlight");
@@ -68,7 +68,7 @@ const CloudSpotlight = () => {
             </div>
 
             <a
-              href={CLOUD_URL}
+              href={cloudUrl()}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-[14px] font-extrabold text-white transition-colors hover:bg-primary/90"
             >
               {t("cta")}

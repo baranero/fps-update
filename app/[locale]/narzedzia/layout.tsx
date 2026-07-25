@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CLOUD_URL, isCloudPath } from "@/lib/cloud";
+import { cloudUrl, isCloudPath } from "@/lib/cloud";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("tools");
@@ -138,7 +138,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Przejście do serwisu chmurowego (fdsrun.com) — link krzyżowy */}
             <a
-              href={CLOUD_URL}
+              href={cloudUrl()}
               className="flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
             >
               <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

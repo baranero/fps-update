@@ -7,7 +7,7 @@ import {
 } from "@/lib/calculations/cnbop";
 import { AlertTriangleIcon, InfoCircleIcon } from "@/components/Calculators/ui/Icons";
 import { createClient } from "@/lib/supabase/client";
-import { CLOUD_URL } from "@/lib/cloud";
+import { cloudUrl } from "@/lib/cloud";
 
 interface Step5Props {
   results: CalculationResults;
@@ -124,7 +124,7 @@ function SaveSection({ onSave }: { onSave: (name: string) => Promise<boolean> })
               Historia raportów, ponowne otwarcie z danymi i symulacje CFD — w darmowym koncie FDSRun.
             </p>
             <a
-              href={`${CLOUD_URL}/signup`}
+              href={cloudUrl("/signup")}
               className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
             >
               Załóż konto na FDSRun
