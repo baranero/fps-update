@@ -9,6 +9,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { MARKETING_SITE } from "@/lib/seo";
 import { Providers } from "../providers";
+// Vercel Web Analytics — wbudowane w plan Pro, bez cookies (RODO-friendly, bez
+// bannera zgody). Zbiera dane po włączeniu w panelu Vercela (zakładka Analytics).
+import { Analytics } from "@vercel/analytics/react";
 
 // Style CSS
 import "node_modules/react-modal-video/css/modal-video.css";
@@ -57,6 +60,7 @@ export default async function LocaleLayout({
             {children}
             <Footer />
             <ScrollToTop />
+            <Analytics />
           </Providers>
         </NextIntlClientProvider>
       </body>
