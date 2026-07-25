@@ -2,16 +2,15 @@ import createIntlMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
+import { SITE_MODE } from "./lib/cloud";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-// Dwie domeny na jednym projekcie:
-//   • MARKETING_HOST (fp-solutions.pl) — witryna usług konsultingowych,
-//   • CLOUD_HOST     (fdsrun.com)      — serwis chmurowy FDSRun (konto, symulacje).
-// Routing po hoście kieruje treść tam, gdzie jej miejsce, i przekierowuje 301
-// treści „obce" domenie, żeby te same strony nie indeksowały się dwa razy.
-// Uwaga: reguły działają WYŁĄCZNIE na tych dwóch hostach — podglądy *.vercel.app
-// i localhost przechodzą bez zmian, więc dev i preview są nietknięte.
+// Jedno repo, DWA projekty Vercel rozróżniane przez build-time SITE_MODE:
+//   • marketing (fp-solutions.pl) — witryna usług ppoż. + kalkulatory,
+//   • cloud     (fdsrun.com)      — serwis chmurowy FDSRun (konto, symulacje).
+// Middleware przekierowuje 301 treść „obcą" danemu projektowi, żeby te same
+// strony nie indeksowały się dwa razy. Dev/preview (SITE_MODE=null) → bez reguł.
 const MARKETING_HOST = "fp-solutions.pl";
 const CLOUD_HOST = "fdsrun.com";
 
@@ -39,11 +38,7 @@ export async function middleware(request: NextRequest) {
   if (rest === "") rest = "/";
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
-  // 3. Routing po hoście (tylko na realnych domenach produkcyjnych)
-  const hostname = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
-  const isCloudHost = hostname === CLOUD_HOST || hostname === `www.${CLOUD_HOST}`;
-  const isMarketingHost = hostname === MARKETING_HOST || hostname === `www.${MARKETING_HOST}`;
-
+  // 3. Rozdział projektów wg SITE_MODE (build-time). Dev/preview → bez reguł.
   const redirectToHost = (host: string, pathnameOverride?: string) => {
     const url = request.nextUrl.clone();
     url.protocol = "https";
@@ -53,24 +48,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   };
 
-  if (isCloudHost) {
-    // Root chmury → landing FDSRun pod /chmura (301, nie rewrite): dzięki temu
-    // ścieżka w pasku to /chmura, więc nagłówek rozpoznaje markę po ścieżce
-    // (bez migotania) — patrz components/Header.
-    if (rest === "/") {
-      return redirectToHost(CLOUD_HOST, `${prefix}/chmura`);
+  if (SITE_MODE === "cloud") {
+    // Ten projekt = chmura (fdsrun.com). Root „/" JEST landingiem.
+    if (rest === "/chmura") {
+      return redirectToHost(CLOUD_HOST, prefix || "/"); // /chmura → czysty root
     }
-    // Treść usługowa na domenie chmury → 301 na fp-solutions.pl (bez duplikatów).
-    if (!isCloudPath(rest)) {
-      return redirectToHost(MARKETING_HOST);
+    if (rest !== "/" && !isCloudPath(rest)) {
+      return redirectToHost(MARKETING_HOST); // treść usług → fp-solutions.pl
     }
-    // else: ścieżka chmury (w tym /chmura) na domenie chmury → serwuj (auth niżej).
-  } else if (isMarketingHost) {
-    // Treść chmury na domenie usług → 301 na fdsrun.com (ścieżka w ścieżkę).
+    // else: „/" (landing) lub ścieżka chmury → serwuj (auth niżej).
+  } else if (SITE_MODE === "marketing") {
+    // Ten projekt = usługi (fp-solutions.pl). Treść chmury → fdsrun.com.
     if (isCloudPath(rest)) {
-      return redirectToHost(CLOUD_HOST);
+      return redirectToHost(CLOUD_HOST, rest === "/chmura" ? prefix || "/" : undefined);
     }
-    // else: ścieżka usługowa na domenie usług → serwuj.
+    // else: ścieżka usługowa → serwuj.
   }
 
   // Publiczny „zakątek dla projektanta" i witryna produktu (chmura CFD):

@@ -6,7 +6,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
-import { cloudUrl, isCloudPath } from "@/lib/cloud";
+import { cloudUrl, resolveIsCloud } from "@/lib/cloud";
 
 const Header = () => {
   const t = useTranslations("nav");
@@ -19,7 +19,8 @@ const Header = () => {
   const accountRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const isCloud = isCloudPath(pathname);
+  // Marka wg projektu (SITE_MODE) w produkcji; po ścieżce w dev.
+  const isCloud = resolveIsCloud(pathname);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY >= 20);

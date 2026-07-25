@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { FaPhone } from "react-icons/fa6";
 import { IoIosMail } from "react-icons/io";
-import { isCloudPath } from "@/lib/cloud";
+import { resolveIsCloud } from "@/lib/cloud";
 
 const contactItems = [
   { Icon: FaPhone, label: "+48 790 782 993", href: "tel:+48790782993" },
@@ -37,9 +37,9 @@ const Footer = () => {
     { href: "/regulamin", label: t("terms") },
   ];
 
-  // Stopka chmury (FDSRun) — slim, bez sekcji konsultingu. Marka rozpoznawana po
-  // ścieżce (landing żyje pod /chmura). Linki prawne prowadzą do fp-solutions.pl (301).
-  if (isCloudPath(pathname)) {
+  // Stopka chmury (FDSRun) — slim, bez sekcji konsultingu. Marka wg projektu
+  // (SITE_MODE) w produkcji, po ścieżce w dev. Linki prawne → fp-solutions.pl.
+  if (resolveIsCloud(pathname)) {
     return (
       <footer className="relative z-10 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
         <div className="container">
