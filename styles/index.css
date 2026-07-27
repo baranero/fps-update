@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 @layer base {
-  /* Font self-hostowany przez next/font (zmienna --font-sans w layout.tsx).
-     Blokujący @import z Google Fonts usunięty — Inter nie jest już ładowany podwójnie. */
+  /* Fonty self-hostowane przez @fontsource (importy w layout.tsx). Zmienne
+     --font-* spinają je z Tailwindem (font-sans/display/mono). Bez Google Fonts. */
+  :root {
+    --font-sans: "Inter Variable";
+    --font-display: "Archivo Variable";
+    --font-mono: "JetBrains Mono Variable";
+  }
   body { font-family: var(--font-sans), system-ui, sans-serif; }
 }
 

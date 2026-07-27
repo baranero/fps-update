@@ -1,7 +1,6 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ScrollToTop from "@/components/ScrollToTop";
-import { Inter, Archivo, JetBrains_Mono } from "next/font/google";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
@@ -13,17 +12,18 @@ import { Providers } from "../providers";
 // bannera zgody). Zbiera dane po włączeniu w panelu Vercela (zakładka Analytics).
 import { Analytics } from "@vercel/analytics/react";
 
+// Fonty self-hostowane przez @fontsource (variable, z podzbiorem latin-ext dla
+// polskich znaków). Pliki z rejestru npm → build NIE pobiera z Google Fonts,
+// więc żaden ETIMEDOUT nie zablokuje deployu. Zmienne --font-* w styles/index.css.
+//  - Inter → tekst/UI (--font-sans), Archivo → nagłówki (--font-display),
+//    JetBrains Mono → dane/kody (--font-mono).
+import "@fontsource-variable/inter";
+import "@fontsource-variable/archivo";
+import "@fontsource-variable/jetbrains-mono";
+
 // Style CSS
 import "node_modules/react-modal-video/css/modal-video.css";
 import "../../styles/index.css";
-
-// Fonty self-hostowane przez next/font (bez żądań do Google w runtime):
-//  - Inter    → tekst / UI (--font-sans)
-//  - Archivo  → nagłówki display (--font-display)
-//  - JetBrains Mono → dane, kody norm, wymiary (--font-mono)
-const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-sans", display: "swap" });
-const archivo = Archivo({ subsets: ["latin", "latin-ext"], variable: "--font-display", display: "swap" });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   // Baza dla względnych URL-i w metadanych (OG image itp.). Root layout obsługuje
@@ -53,7 +53,7 @@ export default async function LocaleLayout({
 
   return (
     <html suppressHydrationWarning lang={locale}>
-      <body className={`bg-slate-50 dark:bg-[#0B1120] font-sans ${inter.variable} ${archivo.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-slate-50 dark:bg-[#0B1120] font-sans">
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <Header />
