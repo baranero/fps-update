@@ -11,6 +11,7 @@ import { cloudUrl, resolveIsCloud } from "@/lib/cloud";
 const Header = () => {
   const t = useTranslations("nav");
   const tc = useTranslations("cfdNav");
+  const tcn = useTranslations("cloudNav");
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openIndex, setOpenIndex] = useState(-1);
@@ -84,13 +85,13 @@ const Header = () => {
           {/* Logo — marka zależna od sekcji (chmura = FDSRun, usługi = FP Solutions) */}
           <div className="w-max px-4 xl:mr-16 xl:whitespace-nowrap">
             {isCloud ? (
-              <Link href="/chmura" className="header-logo flex items-center gap-2 py-4 lg:py-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
+              <Link href="/chmura" className="header-logo flex items-center gap-2.5 py-4 lg:py-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-sm shadow-primary/30">
+                  <svg className="h-[18px] w-[18px]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.547 3.75 3.75 0 013.255 3.719z" />
                   </svg>
                 </span>
-                <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+                <span className="font-display text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   FDS<span className="text-primary">Run</span>
                 </span>
               </Link>
@@ -197,6 +198,23 @@ const Header = () => {
                     </li>
                   ))}
 
+                  {/* Nawigacja chmury (FDSRun) — Funkcje / Cennik */}
+                  {isCloud && (["/funkcje", "/cennik"] as const).map((href) => (
+                    <li key={href} className="group relative">
+                      <Link
+                        href={href}
+                        onClick={() => setNavbarOpen(false)}
+                        className={`flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
+                          pathname === href
+                            ? "text-primary"
+                            : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                        }`}
+                      >
+                        {href === "/funkcje" ? tcn("features") : tcn("pricing")}
+                      </Link>
+                    </li>
+                  ))}
+
                   {/* CFD Cloud — CTA (widoczne w menu tylko na mobile) */}
                   {!isCloud && highlightItem && (
                     <li className="group relative lg:hidden">
@@ -266,7 +284,7 @@ const Header = () => {
 
             {/* Right side: CTA + language + theme + account */}
             <div className="flex items-center justify-end gap-3 pr-16 lg:pr-0">
-              {/* CFD Cloud — CTA (desktop) */}
+              {/* CFD Cloud — CTA (desktop, usługi) */}
               {!isCloud && highlightItem && (
                 <a
                   href={cloudUrl()}
@@ -275,6 +293,16 @@ const Header = () => {
                   {t(highlightItem.key ?? "")}
                   <span>↗</span>
                 </a>
+              )}
+
+              {/* Uruchom symulację — CTA (desktop, chmura) */}
+              {isCloud && (
+                <Link
+                  href="/symulacje/nowa"
+                  className="hidden rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 lg:inline-flex"
+                >
+                  {tcn("run")}
+                </Link>
               )}
 
               <ThemeToggler />

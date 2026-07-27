@@ -17,7 +17,7 @@ const CLOUD_HOST = "fdsrun.com";
 // Ścieżki należące do serwisu chmurowego (fdsrun.com). „rest" jest bez prefiksu
 // języka. Root ("/") NIE jest tu — na chmurze obsługiwany osobno (rewrite na landing).
 function isCloudPath(rest: string): boolean {
-  const cloud = ["/chmura", "/symulacje", "/signin", "/signup", "/auth"];
+  const cloud = ["/chmura", "/funkcje", "/cennik", "/symulacje", "/signin", "/signup", "/auth"];
   const account = ["/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty"];
   return [...cloud, ...account].some((p) => rest === p || rest.startsWith(p + "/"));
 }

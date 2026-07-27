@@ -29,7 +29,8 @@ export function cloudUrl(path = ""): string {
 }
 
 const CLOUD_PATHS = [
-  "/chmura", "/symulacje", "/signin", "/signup", "/auth",
+  "/chmura", "/funkcje", "/cennik",
+  "/symulacje", "/signin", "/signup", "/auth",
   "/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty",
 ];
 

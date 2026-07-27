@@ -14,6 +14,7 @@ const contactItems = [
 const Footer = () => {
   const t = useTranslations("footer");
   const tn = useTranslations("nav");
+  const tcn = useTranslations("cloudNav");
   const pathname = usePathname();
   const year = new Date().getFullYear();
 
@@ -45,16 +46,26 @@ const Footer = () => {
         <div className="container">
           <div className="flex flex-col items-center justify-between gap-5 py-8 md:flex-row">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.547 3.75 3.75 0 013.255 3.719z" />
                 </svg>
               </span>
-              <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <span className="font-display text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
                 FDS<span className="text-primary">Run</span>
               </span>
             </div>
             <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+              {(["/funkcje", "/cennik"] as const).map((href) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+                  >
+                    {href === "/funkcje" ? tcn("features") : tcn("pricing")}
+                  </Link>
+                </li>
+              ))}
               {legalLinks.map(({ href, label }) => (
                 <li key={href}>
                   <Link

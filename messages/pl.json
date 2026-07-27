@@ -897,6 +897,76 @@
       "lead": "Wgraj plik .fds — koszt poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywiste zużycie serwera."
     }
   },
+  "cloudNav": {
+    "features": "Funkcje",
+    "pricing": "Cennik",
+    "run": "Uruchom symulację"
+  },
+  "cloudFeatures": {
+    "metadata": {
+      "title": "Funkcje — obliczenia CFD/FDS w chmurze | FDSRun",
+      "description": "FDS na dedykowanych serwerach, automatyczny dobór mocy, estymator kosztu, podgląd wyników na żywo i pobieranie kompletu plików. Wszystko bez własnej infrastruktury."
+    },
+    "badge": "Funkcje",
+    "title": "Wszystko, czego trzeba, by policzyć CFD",
+    "lead": "Wgrywasz plik FDS, my dobieramy serwer, liczymy i oddajemy wyniki. Bez własnej infrastruktury, bez kolejek na uczelnianym klastrze, bez wiązania mocy Twojego laptopa na wiele godzin.",
+    "items": {
+      "f1Title": "FDS w chmurze",
+      "f1Desc": "Uruchamiasz solver Fire Dynamics Simulator na dedykowanych serwerach — bez instalacji, konfiguracji MPI i limitu mocy własnego sprzętu.",
+      "f2Title": "Automatyczny dobór serwera",
+      "f2Desc": "System czyta liczbę siatek i rdzeni z pliku .fds i dobiera maszynę o odpowiedniej mocy. Nie przepłacasz za niewykorzystane rdzenie.",
+      "f3Title": "Estymator kosztu",
+      "f3Desc": "Zanim cokolwiek ruszy, wgraj plik i w kilka sekund poznaj szacowany czas i koszt. Wycena liczy się w przeglądarce, bez zakładania konta.",
+      "f4Title": "Podgląd wyników na żywo",
+      "f4Desc": "Wykresy DEVC/HRR i przekroje aktualizują się w trakcie obliczeń — widzisz, czy scenariusz idzie w dobrą stronę, zanim policzy się do końca.",
+      "f5Title": "Komplet wyników do pobrania",
+      "f5Desc": "Pliki Smokeview, CSV i przekroje pobierasz wprost z magazynu — pojedynczo lub spakowane, z podziałem na paczki dla dużych zestawów.",
+      "f6Title": "Historia i rozliczenia",
+      "f6Desc": "Każde zlecenie z ceną, czasem i statusem w jednym miejscu. Dane do faktury uzupełniasz raz — trafiają na wszystkie rozliczenia."
+    }
+  },
+  "cloudPricing": {
+    "metadata": {
+      "title": "Cennik — płatność za zużycie | FDSRun",
+      "description": "Bez abonamentu. Koszt symulacji CFD liczymy z czasu obliczeń i mocy dobranego serwera. Dokładną cenę dla Twojego pliku .fds poznasz w estymatorze, bez konta."
+    },
+    "badge": "Cennik",
+    "title": "Płacisz za rzeczywiste zużycie",
+    "lead": "Bez abonamentu i opłat stałych. Koszt liczymy z czasu obliczeń i mocy dobranego serwera — dokładnie tyle, ile zajęła Twoja symulacja.",
+    "modelHeading": "Jak liczymy koszt",
+    "model": {
+      "m1Title": "Moc serwera",
+      "m1Desc": "Im więcej siatek i rdzeni w pliku, tym mocniejsza maszyna i wyższa stawka godzinowa. Dobór jest automatyczny.",
+      "m2Title": "Czas obliczeń",
+      "m2Desc": "Płacisz za faktyczny czas liczenia — od startu do zakończenia — a nie za dobę wynajmu serwera.",
+      "m3Title": "Bez abonamentu",
+      "m3Desc": "Zero opłat stałych i zobowiązań. Nie liczysz — nie płacisz. Idealne przy nieregularnych projektach."
+    },
+    "examplesHeading": "Przykładowe wyceny",
+    "examplesNote": "Orientacyjnie — dokładną cenę dla Twojego pliku poznasz w estymatorze.",
+    "examples": {
+      "e1Name": "Klatka schodowa",
+      "e1Spec": "~3 mln komórek · T_END 900 s",
+      "e1Price": "~80–120 zł",
+      "e2Name": "Garaż podziemny",
+      "e2Spec": "~8 mln komórek · T_END 1200 s",
+      "e2Price": "~250–400 zł",
+      "e3Name": "Duży obiekt",
+      "e3Spec": "~20 mln komórek · T_END 1800 s",
+      "e3Price": "~600–900 zł"
+    },
+    "includedHeading": "W cenie",
+    "included": {
+      "i1": "Dedykowany serwer AMD EPYC",
+      "i2": "Automatyczny dobór mocy",
+      "i3": "Podgląd wyników na żywo",
+      "i4": "Przechowywanie wyników 60 dni",
+      "i5": "Powiadomienia e-mail o statusie",
+      "i6": "Historia i dane do faktury"
+    },
+    "ctaTitle": "Poznaj dokładny koszt swojego pliku",
+    "ctaLead": "Wgraj .fds — estymator policzy czas i cenę w kilka sekund, bez konta i bez zobowiązań."
+  },
   "features": {
     "eyebrow": "Zakres usług",
     "new": "Nowa",

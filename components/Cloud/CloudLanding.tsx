@@ -31,7 +31,7 @@ export default async function CloudLanding() {
                 </span>
               </div>
 
-              <h1 className="mb-5 text-[clamp(28px,4.4vw,44px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
+              <h1 className="mb-5 font-display text-[clamp(28px,4.4vw,44px)] font-extrabold leading-[1.08] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
                 {t("title")}
               </h1>
 
@@ -116,7 +116,7 @@ export default async function CloudLanding() {
               style={{ background: "radial-gradient(circle, rgba(220,53,69,0.10) 0%, transparent 70%)" }}
             />
             <div className="relative">
-              <h2 className="text-[clamp(22px,3.4vw,32px)] font-extrabold leading-tight tracking-tight text-white text-wrap-balance">
+              <h2 className="font-display text-[clamp(22px,3.4vw,32px)] font-extrabold leading-tight tracking-tight text-white text-wrap-balance">
                 {tl("finalCta.title")}
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-slate-400">
