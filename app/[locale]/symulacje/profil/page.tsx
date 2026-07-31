@@ -5,7 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { cloudHomePath, marketingUrl } from "@/lib/cloud";
 import InvoiceDataForm from "@/components/InvoiceDataForm";
+import { ACTIVE_STATUSES } from "@/lib/status";
+import { fmtPrice } from "@/lib/format";
+import { TONE_SURFACE, TONE_TEXT } from "@/lib/tone";
+import {
+  Btn, BtnLink, Chip, SectionLabel, Shell, Skeleton, cardCls, cardHoverCls, inputCls, labelCls,
+} from "@/components/Cloud/ui";
 
 type Profile = {
   full_name: string;
@@ -27,15 +34,12 @@ type Stats = {
 
 type Msg = { ok: boolean; text: string };
 
-const ACTIVE = new Set(["pending", "dispatched", "running"]);
+const ACTIVE = ACTIVE_STATUSES;
 
 function Toast({ msg, onDismiss }: { msg: Msg; onDismiss: () => void }) {
+  const tone = msg.ok ? "ok" : "primary";
   return (
-    <div className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium ${
-      msg.ok
-        ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
-        : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-    }`}>
+    <div className={`flex items-center gap-3 rounded-panel border px-4 py-3 text-fr-sm ${TONE_SURFACE[tone]} ${TONE_TEXT[tone]}`}>
       {msg.ok ? (
         <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -58,8 +62,8 @@ function Toast({ msg, onDismiss }: { msg: Msg; onDismiss: () => void }) {
 const quickLinks = [
   { key: "newSim", href: "/symulacje/nowa", accent: true, icon: "M3 15a4 4 0 004 4h9a5 5 0 001-9.9A5.002 5.002 0 007.1 7.1 4 4 0 003 11m9 0v6m0-6l-2.5 2.5M12 11l2.5 2.5" },
   { key: "history", href: "/symulacje/historia", accent: false, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { key: "calc", href: "/narzedzia/kalkulatory", accent: false, icon: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" },
-  { key: "reports", href: "/narzedzia/raporty", accent: false, icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+  { key: "calc", href: "/narzedzia/kalkulatory", external: true, accent: false, icon: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" },
+  { key: "reports", href: "/symulacje/raporty", accent: false, icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
   { key: "billing", href: "/symulacje/rozliczenia", accent: false, icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" },
   { key: "stats", href: "/symulacje/statystyki", accent: false, icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
 ];
@@ -97,7 +101,7 @@ function ProfilForm() {
   useEffect(() => {
     if (searchParams.get("haslo") === "zmienione") {
       showMsg(setPwMsg, pwTimerRef, { ok: true, text: t("security.changedOk") });
-      router.replace("/narzedzia/profil");
+      router.replace("/symulacje/profil");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -150,7 +154,7 @@ function ProfilForm() {
     setLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push(cloudHomePath());
     router.refresh();
   }
 
@@ -202,23 +206,25 @@ function ProfilForm() {
 
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push(cloudHomePath());
   }
 
   if (loading) return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-20 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
-        ))}
+    <Shell width="md">
+      <div className="space-y-6">
+        <Skeleton />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20" />)}
+        </div>
+        <Skeleton className="h-40" />
       </div>
-      <div className="h-40 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-    </div>
+    </Shell>
   );
 
   if (loadError) return (
-    <p className="text-sm text-red-500">{t("loadError")}</p>
+    <Shell width="md">
+      <p className="text-fr-sm text-primary">{t("loadError")}</p>
+    </Shell>
   );
 
   const displayName = profile.full_name || email.split("@")[0];
@@ -230,53 +236,47 @@ function ProfilForm() {
   const statCards = [
     { label: t("stats.simulations"), value: String(stats?.simsTotal ?? 0), href: "/symulacje/historia" },
     { label: t("stats.active"), value: String(stats?.simsActive ?? 0), href: "/symulacje/historia" },
-    { label: t("stats.reports"), value: String(stats?.reports ?? 0), href: "/narzedzia/raporty" },
-    { label: t("stats.spent"), value: `${(stats?.spentPaid ?? 0).toLocaleString(locale === "en" ? "en-GB" : "pl-PL")} zł`, href: "/symulacje/rozliczenia" },
+    { label: t("stats.reports"), value: String(stats?.reports ?? 0), href: "/symulacje/raporty" },
+    { label: t("stats.spent"), value: fmtPrice(stats?.spentPaid ?? 0), href: "/symulacje/rozliczenia" },
   ];
 
   return (
-    <div className="space-y-10 max-w-3xl">
+    <Shell width="md">
+      <div className="space-y-10">
 
       {/* Nagłówek konta */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-bold text-white shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-panel bg-primary font-heading text-fr-h3 text-white">
             {initial}
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
+            <span className="mb-1.5 block font-mono text-fr-micro uppercase text-faint">FDSRUN // KONTO</span>
+            <h1 className="truncate font-heading text-fr-h2 text-ink">
               {displayName}
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{email}</p>
+            <p className="truncate font-mono text-fr-sm text-muted">{email}</p>
             {memberSince && (
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-fr-sm text-muted">
                 {t("memberSince", { date: memberSince, provider: provider === "email" ? t("providerEmail") : provider })}
               </p>
             )}
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          disabled={loggingOut}
-          className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-60"
-        >
+        <Btn variant="secondary" size="sm" onClick={handleLogout} disabled={loggingOut}>
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           {loggingOut ? t("signingOut") : t("signOut")}
-        </button>
+        </Btn>
       </div>
 
       {/* Statystyki */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {statCards.map((s) => (
-          <Link
-            key={s.label}
-            href={s.href}
-            className="group rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-4 hover:border-primary/40 transition-colors"
-          >
-            <p className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{s.value}</p>
-            <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">
+          <Link key={s.label} href={s.href} className={`group ${cardHoverCls} p-4`}>
+            <p className="fr-num font-heading text-fr-h2 text-ink">{s.value}</p>
+            <p className="mt-1 font-mono text-fr-micro uppercase text-faint transition-colors group-hover:text-primary">
               {s.label}
             </p>
           </Link>
@@ -285,68 +285,63 @@ function ProfilForm() {
 
       {/* Szybki dostęp */}
       <section>
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">{t("quickAccess")}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {quickLinks.map((q) => (
-            <Link
+        <SectionLabel className="mb-3 block">{t("quickAccess")}</SectionLabel>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {quickLinks.map((q) => {
+            const Tag = q.external ? "a" : Link;
+            const href = q.external ? marketingUrl(q.href) : q.href;
+            return (
+            <Tag
               key={q.href}
-              href={q.href}
-              className={`group flex items-start gap-4 rounded-lg border p-4 transition-all duration-200 hover:-translate-y-0.5 ${
+              href={href}
+              className={`group flex items-start gap-4 rounded-card border p-4 transition-colors ${
                 q.accent
                   ? "border-primary/30 bg-primary/[0.04] hover:border-primary/50"
-                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] hover:border-slate-300 dark:hover:border-slate-600"
+                  : "border-hairline bg-panel hover:border-primary/40"
               }`}
             >
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-tile border transition-colors ${
                 q.accent
-                  ? "bg-primary/10 text-primary"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-primary"
-              } transition-colors`}>
+                  ? "border-primary/20 bg-primary/10 text-primary"
+                  : "border-hairline-soft bg-panel-deep text-muted group-hover:border-primary/30 group-hover:text-primary"
+              }`}>
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={q.icon} />
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className={`text-sm font-semibold ${q.accent ? "text-primary" : "text-slate-900 dark:text-white"}`}>
+                <p className={`font-heading text-fr-h4 ${q.accent ? "text-primary" : "text-ink"}`}>
                   {t(`links.${q.key}Title`)}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t(`links.${q.key}Desc`)}</p>
+                <p className="mt-0.5 text-fr-sm text-muted">
+                  {t(`links.${q.key}Desc`)}{q.external ? " ↗" : ""}
+                </p>
               </div>
-            </Link>
-          ))}
+            </Tag>
+            );
+          })}
         </div>
       </section>
 
       {/* Plan i rozliczenia */}
-      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
+      <section className={`${cardCls} p-5`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{t("billing.title")}</h2>
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                {t("billing.badge")}
-              </span>
+            <div className="mb-1.5 flex items-center gap-2">
+              <h2 className="font-heading text-fr-h4 text-ink">{t("billing.title")}</h2>
+              <Chip tone="primary">{t("billing.badge")}</Chip>
             </div>
-            <p className="max-w-md text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="max-w-md text-fr-sm text-muted">
               {t("billing.desc")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-                {t("billing.chipEn")}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-                {t("billing.chipVat")}
-              </span>
+              <Chip dot>{t("billing.chipEn")}</Chip>
+              <Chip dot>{t("billing.chipVat")}</Chip>
             </div>
           </div>
-          <Link
-            href="/symulacje/rozliczenia"
-            className="shrink-0 rounded-lg bg-primary hover:bg-primary/90 px-4 py-2 text-sm font-semibold text-white transition-colors"
-          >
+          <BtnLink href="/symulacje/rozliczenia" size="sm">
             {t("billing.cta")}
-          </Link>
+          </BtnLink>
         </div>
       </section>
 
@@ -354,52 +349,44 @@ function ProfilForm() {
       <InvoiceDataForm variant="section" />
 
       {/* Bezpieczeństwo / hasło */}
-      <section className="border-t border-slate-200 dark:border-slate-700 pt-8">
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">{t("security.title")}</h2>
+      <section className="border-t border-hairline pt-8">
+        <SectionLabel className="mb-4 block">{t("security.title")}</SectionLabel>
         {provider === "email" ? (
-          <form onSubmit={handlePassword} className="space-y-4 max-w-lg">
+          <form onSubmit={handlePassword} className="max-w-lg space-y-4">
             <div>
-              <label className="block mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
-                {t("security.current")}
-              </label>
+              <label className={labelCls}>{t("security.current")}</label>
               <input
                 type="password"
                 required
                 value={pwCurrent}
                 onChange={(e) => setPwCurrent(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-primary dark:focus:border-primary transition-colors"
+                className={inputCls}
                 placeholder="••••••••"
               />
             </div>
             <div>
-              <label className="block mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
-                {t("security.new")}
-              </label>
+              <label className={labelCls}>{t("security.new")}</label>
               <input
                 type="password"
                 required
                 minLength={8}
                 value={pwNew}
                 onChange={(e) => setPwNew(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-primary dark:focus:border-primary transition-colors"
+                className={inputCls}
                 placeholder={t("security.newPlaceholder")}
               />
             </div>
             {pwMsg && <Toast msg={pwMsg} onDismiss={() => setPwMsg(null)} />}
-            <button
-              type="submit"
-              disabled={pwLoading}
-              className="rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-60 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
-            >
+            <Btn type="submit" disabled={pwLoading}>
               {pwLoading ? t("security.changing") : t("security.change")}
-            </button>
+            </Btn>
           </form>
         ) : (
-          <div className="flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] p-4 max-w-lg">
-            <svg className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex max-w-lg items-start gap-3 rounded-card border border-hairline bg-panel-deep p-4">
+            <svg className="mt-0.5 h-5 w-5 shrink-0 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-fr-sm text-muted">
               {t.rich("security.oauthNote", { b: (c) => <strong className="capitalize">{c}</strong>, provider })}
             </p>
           </div>
@@ -407,38 +394,33 @@ function ProfilForm() {
       </section>
 
       {/* Usunięcie konta */}
-      <section className="border-t border-red-100 dark:border-red-900/30 pt-8">
-        <h2 className="text-sm font-semibold text-red-600 dark:text-red-500 mb-1">{t("danger.title")}</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed max-w-lg">
+      <section className="border-t border-primary/30 pt-8">
+        <SectionLabel className="mb-1 block !text-primary">{t("danger.title")}</SectionLabel>
+        <p className="mb-4 max-w-lg text-fr-sm text-muted">
           {t("danger.warning")}
         </p>
-        <div className="space-y-3 max-w-lg">
+        <div className="max-w-lg space-y-3">
           <div>
-            <label className="block mb-1.5 text-xs text-slate-600 dark:text-slate-400">
+            <label className={labelCls}>
               {t.rich("danger.confirmLabel", { b: (c) => <strong>{c}</strong>, email })}
             </label>
             <input
               type="email"
               value={deleteConfirm}
               onChange={(e) => { setDeleteConfirm(e.target.value); setDeleteError(null); }}
-              className="w-full rounded-lg border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#1E232E] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-red-400 transition-colors"
+              className={`${inputCls} border-primary/40`}
               placeholder={email}
             />
           </div>
-          {deleteError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
-          )}
-          <button
-            onClick={handleDelete}
-            disabled={deleteLoading || deleteConfirm !== email}
-            className="rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-medium transition-colors"
-          >
+          {deleteError && <p className="text-fr-sm text-primary">{deleteError}</p>}
+          <Btn variant="danger" onClick={handleDelete} disabled={deleteLoading || deleteConfirm !== email}>
             {deleteLoading ? t("danger.deleting") : t("danger.delete")}
-          </button>
+          </Btn>
         </div>
       </section>
 
-    </div>
+      </div>
+    </Shell>
   );
 }
 

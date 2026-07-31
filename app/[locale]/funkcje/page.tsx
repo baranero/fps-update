@@ -45,39 +45,40 @@ export default async function FunkcjePage({
   }));
 
   return (
-    <>
-      {/* Hero */}
-      <section className="border-b border-slate-200/60 py-16 dark:border-slate-800/60 md:py-20">
-        <div className="container max-w-3xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.08] px-3 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">{t("badge")}</span>
-          </div>
-          <h1 className="font-display text-[clamp(26px,4vw,40px)] font-extrabold leading-[1.1] tracking-tight text-slate-900 text-wrap-balance dark:text-white">
-            {t("title")}
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
-            {t("lead")}
-          </p>
+    <div className="bg-canvas text-ink">
+      {/* Hero — lewy blok jak we wzorze, nie wyśrodkowany „marketing" */}
+      <section className="border-b border-hairline px-4 py-16 md:py-24">
+        <div className="mx-auto w-full max-w-[1400px]">
+          <span className="mb-5 inline-flex items-center gap-2 rounded-chip border border-hairline px-2.5 py-1 font-mono text-fr-micro uppercase text-muted">
+            <span className="h-1 w-1 rounded-full bg-primary" />
+            {t("badge")}
+          </span>
+          <h1 className="max-w-3xl fr-balance font-heading text-fr-h1 text-ink">{t("title")}</h1>
+          <p className="mt-5 max-w-2xl text-fr-lead text-muted">{t("lead")}</p>
         </div>
       </section>
 
-      {/* Siatka funkcji */}
-      <section className="py-14 md:py-16">
-        <div className="container">
+      {/* Siatka funkcji — karty z numeracją „rysunku technicznego" */}
+      <section className="px-4 py-16 md:py-20">
+        <div className="mx-auto w-full max-w-[1400px]">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((it) => (
+            {items.map((it, i) => (
               <div
                 key={it.key}
-                className="rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-primary/30 dark:border-slate-800 dark:bg-[#1E232E]"
+                className="rounded-card border border-hairline bg-panel p-6 transition-colors hover:border-primary/30"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={it.icon} />
-                  </svg>
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-primary">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={it.icon} />
+                    </svg>
+                  </span>
+                  <span className="font-mono text-fr-micro uppercase text-faint">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </div>
-                <h3 className="font-display text-[17px] font-bold text-slate-900 dark:text-white">{it.title}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-slate-600 dark:text-slate-400">{it.desc}</p>
+                <h3 className="font-heading text-fr-h4 text-ink">{it.title}</h3>
+                <p className="mt-2 text-fr-sm text-muted">{it.desc}</p>
               </div>
             ))}
           </div>
@@ -85,24 +86,22 @@ export default async function FunkcjePage({
       </section>
 
       {/* CTA */}
-      <section className="border-t border-slate-200/60 py-14 dark:border-slate-800/60">
-        <div className="container flex flex-col items-center gap-4 text-center">
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              href="/symulacje/nowa"
-              className="rounded-xl bg-primary px-7 py-3.5 text-[14px] font-extrabold text-white transition-colors hover:bg-primary/90"
-            >
-              {tn("run")}
-            </Link>
-            <Link
-              href="/cennik"
-              className="rounded-xl border border-slate-200 px-7 py-3.5 text-[14px] font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {tn("pricing")}
-            </Link>
-          </div>
+      <section className="border-t border-hairline px-4 py-16">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-wrap justify-center gap-3">
+          <Link
+            href="/symulacje/nowa"
+            className="rounded-panel bg-primary px-7 py-3.5 text-fr-body font-bold text-white transition-opacity hover:opacity-90"
+          >
+            {tn("run")}
+          </Link>
+          <Link
+            href="/cennik"
+            className="rounded-panel border border-hairline px-7 py-3.5 text-fr-body font-semibold text-ink transition-colors hover:bg-panel"
+          >
+            {tn("pricing")}
+          </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

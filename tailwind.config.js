@@ -43,11 +43,34 @@ module.exports = {
         "4xl": ["2rem", "2.3rem"], //      36px → 32px
         "5xl": ["2.625rem", "1.08"], //    48px → 42px
         "6xl": ["3.25rem", "1.05"], //     60px → 52px
+
+        // Skala FDSRun (wzór Stitch): ciasny tracking, responsywne nagłówki
+        // przez clamp — bez osobnych breakpointów w komponentach. Prefiks `fr-`
+        // trzyma ją z dala od skali witryny usługowej powyżej.
+        "fr-hero": ["clamp(36px,6.2vw,76px)", { lineHeight: "1.05", letterSpacing: "-0.055em", fontWeight: "600" }],
+        "fr-h1": ["clamp(28px,4.2vw,48px)", { lineHeight: "1.1", letterSpacing: "-0.05em", fontWeight: "600" }],
+        "fr-h2": ["clamp(24px,3.2vw,32px)", { lineHeight: "1.2", letterSpacing: "-0.045em", fontWeight: "600" }],
+        "fr-h3": ["clamp(20px,2.4vw,24px)", { lineHeight: "1.25", letterSpacing: "-0.035em", fontWeight: "600" }],
+        "fr-h4": ["18px", { lineHeight: "1.4", letterSpacing: "-0.02em", fontWeight: "600" }],
+        "fr-lead": ["clamp(16px,1.6vw,19px)", { lineHeight: "1.55", letterSpacing: "-0.01em" }],
+        "fr-body": ["15px", { lineHeight: "1.6" }],
+        "fr-sm": ["13px", { lineHeight: "1.55" }],
+        "fr-data": ["13px", { lineHeight: "1", letterSpacing: "-0.01em" }],
+        // Etykiety. UWAGA na rozmiar: te tokeny niosą TREŚĆ (kickery, nagłówki
+        // kolumn, opisy w stopce), a nie dekorację. Wersaliki + mono + szeroki
+        // tracking i tak spowalniają czytanie, więc 9 px było nie do odczytania.
+        // Gęste podpisy wewnątrz makiety konsoli mają własne `text-[8px]`/`[9px]`
+        // — celowo, bo tam chodzi o wrażenie przyrządu, nie o lekturę.
+        "fr-label": ["12px", { lineHeight: "1.3", letterSpacing: "0.08em", fontWeight: "500" }],
+        "fr-micro": ["11px", { lineHeight: "1.3", letterSpacing: "0.1em", fontWeight: "500" }],
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
         display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+        // Nagłówki FDSRun (Manrope). Osobno od `display` (Archivo), żeby zmiana
+        // kroju w chmurze nie ruszała witryny usługowej fp-solutions.pl.
+        heading: ["var(--font-heading)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
         current: "currentColor",
@@ -75,6 +98,35 @@ module.exports = {
           raised: "#111827",  // nagłówek, menu, popovery
           drawer: "#141922",  // panele wysuwane
         },
+
+        // ── System FDSRun (fdsrun.com) ──────────────────────────────────────
+        // Powierzchnie i tekst sterowane zmiennymi CSS (styles/index.css), więc
+        // JEDNA klasa działa w obu motywach — `bg-panel` zamiast
+        // `bg-white dark:bg-[#101112]`. Akcenty (primary/signal/warn) zostają
+        // markowe: czerwień FDSRun na ciemnej, technicznej bazie.
+        canvas: "rgb(var(--fr-canvas) / <alpha-value>)",          // tło strony
+        panel: "rgb(var(--fr-panel) / <alpha-value>)",            // karta, panel
+        "panel-deep": "rgb(var(--fr-panel-deep) / <alpha-value>)", // panel zagłębiony
+        well: "rgb(var(--fr-well) / <alpha-value>)",              // pole wykresu/konsoli
+        hairline: "rgb(var(--fr-hairline) / <alpha-value>)",      // linia 1 px
+        "hairline-soft": "rgb(var(--fr-hairline-soft) / <alpha-value>)",
+        ink: "rgb(var(--fr-ink) / <alpha-value>)",                // tekst główny
+        muted: "rgb(var(--fr-muted) / <alpha-value>)",            // tekst drugoplanowy
+        faint: "rgb(var(--fr-faint) / <alpha-value>)",            // etykiety, metadane
+        signal: "rgb(var(--fr-signal) / <alpha-value>)",          // serie danych, telemetria
+        warn: "rgb(var(--fr-warn) / <alpha-value>)",              // ostrzeżenia, anomalie
+        ok: "rgb(var(--fr-ok) / <alpha-value>)",                  // powodzenie, opłacone
+        lime: "rgb(var(--fr-lime) / <alpha-value>)",              // panel akcentowy
+        mint: "#D1EBEB",                                          // panel akcentowy (chłodny)
+      },
+
+      // Promienie FDSRun — celowo małe (wzór jest „przyrządowy", nie miękki).
+      // Dodane obok domyślnej skali Tailwinda, żeby nie ruszyć fp-solutions.pl.
+      borderRadius: {
+        chip: "2px",
+        tile: "4px",
+        panel: "8px",
+        card: "12px",
       },
 
       boxShadow: {
@@ -87,6 +139,10 @@ module.exports = {
         "feature-2": "0px 10px 40px rgba(48, 86, 211, 0.12)",
         submit: "0px 5px 20px rgba(4, 10, 34, 0.1)",
         "submit-dark": "0px 5px 20px rgba(4, 10, 34, 0.1)",
+        // Cienie FDSRun — przez zmienne CSS, bo ciężki cień z ciemnego motywu
+        // na białym tle wygląda jak brud. Wartości w styles/index.css.
+        "fr-panel": "var(--fr-shadow-panel)",
+        "fr-float": "var(--fr-shadow-float)",
         btn: "0px 1px 2px rgba(4, 10, 34, 0.15)",
         "btn-hover": "0px 1px 2px rgba(0, 0, 0, 0.15)",
         "btn-light": "0px 1px 2px rgba(0, 0, 0, 0.1)",

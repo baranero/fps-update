@@ -45,7 +45,8 @@
     "stats": "Statystyki",
     "toTools": "Narzędzia",
     "profile": "Profil",
-    "signOut": "Wyloguj"
+    "signOut": "Wyloguj",
+    "admin": "Admin"
   },
   "symDashboard": {
     "title": "Pulpit",
@@ -894,7 +895,114 @@
     "panelCaption": "Poglądowe zlecenie · płatność po zakończeniu obliczeń",
     "finalCta": {
       "title": "Policz i uruchom pierwszą symulację",
-      "lead": "Wgraj plik .fds — koszt poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywiste zużycie serwera."
+      "lead": "Wgraj plik .fds — koszt poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywiste zużycie serwera.",
+      "line1": "Policz koszt.",
+      "line2": "Uruchom symulację.",
+      "contact": "Napisz do nas"
+    },
+    "hero": {
+      "line1": "Symulacje pożarowe FDS",
+      "line2": "liczone w chmurze",
+      "lead": "Wgraj plik .fds — parser policzy koszt w kilka sekund, jeszcze zanim cokolwiek wyślesz. Obliczenia ruszają na dedykowanym serwerze AMD EPYC, a płacisz za faktyczny czas CPU.",
+      "ctaSecondary": "Zobacz cennik",
+      "sideLink": "Pełna lista funkcji"
+    },
+    "console": {
+      "caseId": "ZLECENIE",
+      "cells": "KOMÓRKI OBLICZENIOWE",
+      "timestep": "KROK CZASOWY",
+      "wallclock": "CZAS PRACY",
+      "chartTitle": "HRR // KLATKA_SCHODOWA_A",
+      "chartMeta": "PODGLĄD POGLĄDOWY",
+      "meshStatus": "STATUS SIATEK",
+      "logTitle": "LOG OBLICZEŃ",
+      "live": "NA ŻYWO"
+    },
+    "figures": {
+      "title": "Obliczenia bez własnej serwerowni. Anatomia jednego zlecenia.",
+      "f1Caption": "RYS 0.1 / PODZIAŁ MODELU",
+      "f1Title": "Siatki z pliku .fds",
+      "f1Desc": "Parser czyta sekcje &MESH i liczy komórki w każdej siatce — to podstawa wyceny i doboru maszyny.",
+      "f2Caption": "RYS 0.2 / PRZYDZIAŁ RDZENI",
+      "f2Title": "Jedna siatka na rdzeń",
+      "f2Desc": "Siatki trafiają na osobne procesy MPI dedykowanego serwera AMD EPYC. Bez kolejki i bez dzielenia zasobów.",
+      "f3Caption": "RYS 0.3 / PRZEBIEG POŻARU",
+      "f3Title": "Krzywa HRR i czas symulacji",
+      "f3Desc": "Z sekcji &TIME i &REAC wychodzi czas symulacji, a z warunku CFL — realny czas obliczeń."
+    },
+    "parser": {
+      "badge": "Wycena",
+      "title": "Z pliku .fds w konkretną kwotę",
+      "lead": "Analiza dzieje się lokalnie w przeglądarce. Plik trafia na serwer dopiero wtedy, gdy zaakceptujesz wycenę.",
+      "points": {
+        "p1": "Sekcje &MESH, &TIME, &REAC oraz elementy modelu (&OBST, &VENT, &DEVC) czytane bez wysyłania pliku.",
+        "p2": "Szacunek czasu z warunku CFL i wydajności ~240 000 cell-timesteps/s na rdzeń.",
+        "p3": "Koszt widzisz przed startem — bez abonamentu i bez zakładania konta."
+      },
+      "panel": {
+        "file": "PLIK",
+        "cells": "KOMÓRKI",
+        "note1": "ANALIZA LOKALNA // PLIK NIE OPUSZCZA PRZEGLĄDARKI",
+        "note2": "SZACUNEK Z WARUNKU CFL",
+        "cost": "KOSZT SZACOWANY"
+      }
+    },
+    "progress": {
+      "badge": "Przebieg",
+      "title": "Śledź obliczenia na żywo",
+      "lead": "Log odświeża się co kilka sekund, a wykresy DEVC i HRR rosną w trakcie liczenia. Nie musisz czekać do końca, żeby zobaczyć, czy model idzie w dobrą stronę.",
+      "cta": "Uruchom pierwszą symulację",
+      "panel": {
+        "timeline": "OŚ ZLECENIA // 0xAF",
+        "timelineMeta": "15 SIATEK // T_END 900 s",
+        "done": "WYKONANE",
+        "eta": "PROGNOZA",
+        "evt1": "START // MESH_01…08",
+        "evt2": "DEVC // TC_KLATKA_3M",
+        "evt3": "KOLEJKA WYNIKÓW",
+        "telemetry": "TELEMETRIA",
+        "refresh": "CO 5 s",
+        "mCpu": "RDZENIE",
+        "mStep": "KROK ms",
+        "mLeft": "POZOSTAŁO",
+        "hrrLive": "HRR // NA ŻYWO",
+        "alloc": "PRZYDZIAŁ SIATEK",
+        "pending": "OCZEKUJE"
+      },
+      "queue": {
+        "title": "TWOJE ZLECENIA",
+        "m1": "LICZY SIĘ // 67%",
+        "m2": "ZAKOŃCZONE // 60 DNI",
+        "m3": "ZAKOŃCZONE // 60 DNI",
+        "open": "OTWÓRZ",
+        "details": "WYNIKI"
+      }
+    },
+    "stages": {
+      "s1Meta": "STATUS: AKTYWNY",
+      "s1Title": "Wycena",
+      "s1Desc": "Parser liczy komórki i koszt lokalnie w przeglądarce.",
+      "s1Stat": "BEZ KONTA // BEZ WYSYŁKI",
+      "s2Meta": "KROK 02",
+      "s2Title": "Potwierdzenie",
+      "s2Desc": "Akceptujesz kwotę, dopiero wtedy plik idzie na serwer.",
+      "s2Stat": "STRIPE // BLIK // P24",
+      "s3Meta": "KROK 03",
+      "s3Title": "Obliczenia",
+      "s3Desc": "Dedykowana maszyna liczy, Ty widzisz postęp na żywo.",
+      "s3Stat": "AMD EPYC // HETZNER UE",
+      "s4Meta": "KROK 04",
+      "s4Title": "Wyniki",
+      "s4Desc": "Pliki SMV, przekroje, CSV z DEVC i pełny log obliczeń.",
+      "s4Stat": "DOSTĘPNE 60 DNI"
+    },
+    "facts": {
+      "f1Body": "Każde zlecenie dostaje własną maszynę wirtualną AMD EPYC — bez kolejki i bez dzielenia rdzeni z kimkolwiek innym.",
+      "f1Label": "Dedykowany VM per zlecenie",
+      "f1Meta": "Serwery Hetzner, Unia Europejska",
+      "f2Body": "Płacisz za faktyczny czas CPU i storage. Bez abonamentu i opłat stałych.",
+      "f2Label": "Rozliczenie od zużycia",
+      "f2Meta": "Faktura VAT w panelu"
     }
   },
   "cloudNav": {
@@ -1011,6 +1119,7 @@
       "email": "Adres e-mail",
       "emailPlaceholder": "jan@firma.pl",
       "password": "Hasło",
+      "passwordPlaceholder": "••••••••",
       "redirecting": "Przekierowanie…",
       "backToSignin": "Wróć do logowania",
       "generic": "Wystąpił błąd. Spróbuj ponownie."
@@ -1107,9 +1216,11 @@
       "retention": "Wyniki przez 60 dni"
     },
     "steps": {
-      "file": "1. Plik FDS",
-      "estimate": "2. Wycena",
-      "confirm": "3. Potwierdzenie"
+      "file": "Plik FDS",
+      "estimate": "Wycena",
+      "confirm": "Potwierdzenie",
+      "stateActive": "W TOKU",
+      "stateDone": "GOTOWE"
     },
     "upload": {
       "heading": "Wgraj plik FDS",
@@ -1418,7 +1529,8 @@
       "simTime": "Czas symulacji",
       "vcpuHours": "vCPU-godz.",
       "netPrice": "Cena netto",
-      "thousands": "tys."
+      "thousands": "tys.",
+      "file": "Plik"
     },
     "progress": {
       "title": "Postęp obliczeń",
@@ -1471,7 +1583,11 @@
       "perFileFolder": "Przeglądarka poprosi o wskazanie folderu — pliki trafią do podkatalogu „{name}”, prosto z magazynu. Nie zamykaj karty do końca zapisu.",
       "perFileLoose": "Ta przeglądarka nie pozwala wskazać folderu (potrzebny Chrome lub Edge) — pliki trafią luzem do folderu pobierania. Folder dostaniesz, pobierając paczkę ZIP.",
       "folderFailed": "Nie udało się zapisać do wskazanego folderu — pobieram pliki klasycznie, do folderu pobierania.",
-      "zipUnavailable": "Nie udało się przygotować paczki ZIP — pobieram pliki pojedynczo."
+      "zipUnavailable": "Nie udało się przygotować paczki ZIP — pobieram pliki pojedynczo.",
+      "range": "Pozycje {from}–{to} z {total}",
+      "prev": "Poprzednia",
+      "next": "Następna",
+      "selectAll": "Zaznacz wszystkie"
     },
     "partial": {
       "title": "Wyniki częściowe",
@@ -1586,6 +1702,54 @@
         "PRESSURE": "Ciśnienie",
         "LAYER": "Wysokość warstwy dymu"
       }
+    },
+    "console": {
+      "caseId": "ZLECENIE",
+      "cells": "KOMÓRKI OBLICZENIOWE",
+      "timestep": "KROK CZASOWY",
+      "wallclock": "CZAS PRACY",
+      "chart": "ODCZYTY",
+      "log": "LOG OBLICZEŃ",
+      "live": "NA ŻYWO",
+      "noLog": "Log pojawi się po starcie FDS.",
+      "noChart": "Wykresy pojawią się, gdy FDS zapisze pierwsze dane DEVC/HRR."
+    },
+    "sec": {
+      "inputKicker": "PLIK WEJŚCIOWY",
+      "inputTitle": "Model i wycena",
+      "inputHint": "Dane odczytane z pliku .fds przed uruchomieniem. Cena jest szacunkiem z liczby komórek i czasu symulacji — rozliczenie następuje po faktycznym czasie pracy serwera.",
+      "meshes": "{n} siatek obliczeniowych",
+      "simTimeHint": "Czas modelowanego pożaru (T_END), nie czas obliczeń.",
+      "priceHint": "Kwota netto, szacowana przed startem.",
+      "machineKicker": "INFRASTRUKTURA",
+      "machineTitle": "Dobrana maszyna",
+      "machineHint": "Serwer dobierany automatycznie do rozmiaru modelu — jedna siatka na proces MPI. Maszyna jest dedykowana temu zleceniu i znika po zakończeniu obliczeń.",
+      "provider": "Hetzner Cloud · AMD EPYC · Unia Europejska",
+      "cores": "Rdzenie",
+      "coresHint": "Model ma {n} siatek — tyle procesów MPI.",
+      "vcpuHint": "Podstawa rozliczenia: rdzeniogodziny.",
+      "estWall": "Szacowany czas obliczeń",
+      "estWallHint": "Z warunku CFL i wydajności ~240 tys. cell-timesteps/s na rdzeń.",
+      "progressKicker": "PRZEBIEG",
+      "progressHint": "Podsumowanie pokazuje stan solvera w skrócie; pełny log to surowe wyjście FDS, przydatne przy diagnozie błędów.",
+      "chartsKicker": "ODCZYTY",
+      "chartsTitle": "Wykresy i podgląd przekroju",
+      "chartsHint": "Wszystkie serie zapisane przez FDS: HRR oraz urządzenia DEVC pogrupowane po jednostce. Każda jednostka ma własną skalę — dlatego osobne zakładki, a nie wspólna oś.",
+      "resultsKicker": "PLIKI",
+      "resultsHint": "Pliki dostępne przez 60 dni od zakończenia obliczeń. Zaznaczenie i pobieranie działają na całym zbiorze, niezależnie od wyświetlanej strony."
     }
+  },
+  "cloudFooter": {
+    "product": "Produkt",
+    "account": "Konto",
+    "orders": "Zlecenia",
+    "services": "Usługi ppoż.",
+    "contact": "Kontakt",
+    "legal": "Prawne",
+    "dashboard": "Pulpit",
+    "history": "Historia",
+    "billing": "Rozliczenia",
+    "stats": "Statystyki",
+    "infra": "Serwery: Hetzner · Unia Europejska"
   }
 }

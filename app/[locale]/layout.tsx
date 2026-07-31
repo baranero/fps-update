@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { MARKETING_SITE } from "@/lib/seo";
+import { SITE_MODE } from "@/lib/cloud";
 import { Providers } from "../providers";
 // Vercel Web Analytics — wbudowane w plan Pro, bez cookies (RODO-friendly, bez
 // bannera zgody). Zbiera dane po włączeniu w panelu Vercela (zakładka Analytics).
@@ -17,9 +18,11 @@ import { Analytics } from "@vercel/analytics/react";
 // więc żaden ETIMEDOUT nie zablokuje deployu. Zmienne --font-* w styles/index.css.
 //  - Inter → tekst/UI (--font-sans), Archivo → nagłówki (--font-display),
 //    JetBrains Mono → dane/kody (--font-mono).
+//  - Manrope → nagłówki FDSRun (--font-heading), krój ze wzoru graficznego.
 import "@fontsource-variable/inter";
 import "@fontsource-variable/archivo";
 import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/manrope";
 
 // Style CSS
 import "node_modules/react-modal-video/css/modal-video.css";
@@ -53,7 +56,14 @@ export default async function LocaleLayout({
 
   return (
     <html suppressHydrationWarning lang={locale}>
-      <body className="bg-slate-50 dark:bg-[#0B1120] font-sans">
+      {/* Tło body wg projektu (SITE_MODE, build-time): chmura ma własną paletę
+          powierzchni (canvas), usługi zostają na dotychczasowej. W dev
+          SITE_MODE=null → tło usług, a strony chmury malują `bg-canvas` same. */}
+      <body
+        className={`font-sans ${
+          SITE_MODE === "cloud" ? "bg-canvas text-ink" : "bg-slate-50 dark:bg-[#0B1120]"
+        }`}
+      >
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <Header />

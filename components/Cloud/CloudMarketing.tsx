@@ -23,24 +23,24 @@ export default function CloudMarketing() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Co otrzymasz */}
       <div>
-        <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">{t("deliverables.heading")}</p>
+        <p className="mb-4 font-mono text-fr-micro uppercase text-muted">{t("deliverables.heading")}</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {deliverables.map((d) => (
             <div
               key={d.title}
-              className="flex items-start gap-3.5 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1E232E]"
+              className="flex items-start gap-3.5 rounded-panel border border-hairline bg-panel p-4 transition-colors hover:border-primary/30"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-primary">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={d.icon} />
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">{d.title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{d.desc}</p>
+                <p className="font-heading text-fr-body font-semibold text-ink">{d.title}</p>
+                <p className="mt-1 text-fr-sm text-muted">{d.desc}</p>
               </div>
             </div>
           ))}
@@ -49,17 +49,17 @@ export default function CloudMarketing() {
 
       {/* FAQ */}
       <div>
-        <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">{t("faq.heading")}</p>
-        <div className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-700 dark:bg-[#1E232E]">
+        <p className="mb-4 font-mono text-fr-micro uppercase text-muted">{t("faq.heading")}</p>
+        <div className="divide-y divide-hairline-soft overflow-hidden rounded-panel border border-hairline bg-panel">
           {faqs.map((f) => (
             <details key={f.q} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-medium text-slate-700 transition-colors hover:text-primary dark:text-slate-200 dark:hover:text-white [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-fr-body font-medium text-ink transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                 {f.q}
-                <svg className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
-              <p className="px-4 pb-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{f.a}</p>
+              <p className="px-4 pb-4 text-fr-sm text-muted">{f.a}</p>
             </details>
           ))}
         </div>

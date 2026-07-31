@@ -18,8 +18,11 @@ const CLOUD_HOST = "fdsrun.com";
 // języka. Root ("/") NIE jest tu — na chmurze obsługiwany osobno (rewrite na landing).
 function isCloudPath(rest: string): boolean {
   const cloud = ["/chmura", "/funkcje", "/cennik", "/symulacje", "/signin", "/signup", "/auth"];
-  const account = ["/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty"];
-  return [...cloud, ...account].some((p) => rest === p || rest.startsWith(p + "/"));
+  // Stare adresy konta pod /narzedzia — dziś tylko stuby przekierowań na
+  // /symulacje/*. Zostają po stronie chmury, żeby wykonały redirect zamiast
+  // polecieć 301 na fp-solutions.pl, gdzie te strony nie istnieją.
+  const legacyAccount = ["/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty"];
+  return [...cloud, ...legacyAccount].some((p) => rest === p || rest.startsWith(p + "/"));
 }
 
 export async function middleware(request: NextRequest) {
@@ -69,17 +72,17 @@ export async function middleware(request: NextRequest) {
   //  • kalkulatory + strona narzędzi liczą bez logowania (magnes na leady, SEO),
   //  • landing chmury i kreator pokazują ofertę anonimowi — bramka jest dopiero
   //    na akcji „Uruchom" (isSimAllowed po stronie serwera), nie na wejściu.
-  const isToolsPublic =
-    rest === "/narzedzia" ||
-    rest === "/narzedzia/kalkulatory" ||
-    rest.startsWith("/narzedzia/kalkulatory/");
+  //
+  // Cała przestrzeń /narzedzia jest już publiczna: zostały tam wyłącznie
+  // kalkulatory i stuby przekierowań po starych adresach konta. Same stuby nie
+  // dotykają danych, a chronienie ich wysyłałoby gościa do /signin z nieaktualnym
+  // `next` — po zalogowaniu wracałby na stub zamiast na docelową stronę.
+  // Właściwe strony konta (/symulacje/profil, /raporty, /admin) chroni reguła niżej.
   const isCloudPublic = rest === "/symulacje" || rest === "/symulacje/nowa";
 
-  // Za loginem zostają tylko dane konta i akcje na koncie: raporty, profil, admin
-  // oraz historia/rozliczenia/statystyki i szczegół zlecenia (/symulacje/<caseId>).
-  const isProtected =
-    (rest.startsWith("/narzedzia") && !isToolsPublic) ||
-    (rest.startsWith("/symulacje") && !isCloudPublic);
+  // Za loginem zostaje konto i akcje na nim: profil, raporty, admin, historia,
+  // rozliczenia, statystyki oraz szczegół zlecenia (/symulacje/<caseId>).
+  const isProtected = rest.startsWith("/symulacje") && !isCloudPublic;
   const isAuthPage = rest === "/signin" || rest === "/signup";
 
   // 4. Supabase odpytujemy tylko tam, gdzie sesja decyduje o dostępie —

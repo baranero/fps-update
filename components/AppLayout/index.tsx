@@ -18,7 +18,7 @@ const EquipmentIcon = () => (
 const appLinks = [
   { name: "Kalkulatory PPOŻ", href: "/narzedzia/kalkulatory", icon: CalculatorIcon },
   { name: "Baza Osprzętu", href: "/narzedzia/osprzet", icon: EquipmentIcon },
-  { name: "Moje Raporty", href: "/narzedzia/raporty", icon: ReportIcon },
+  { name: "Moje Raporty", href: "/symulacje/raporty", icon: ReportIcon },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-[#111827] border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-center h-20 border-b border-gray-200 dark:border-gray-800">
-          <Link href="/" className="text-xl font-bold text-slate-900 dark:text-white">
+          <Link href="/" className="text-xl font-bold text-ink">
             FP<span className="text-primary">Solutions</span> App
           </Link>
         </div>

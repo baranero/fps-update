@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
-import { fmtCells, fmtHours } from "@/lib/format";
+import { fmtCells, fmtHours, fmtPrice } from "@/lib/format";
 import InvoiceDataForm from "@/components/InvoiceDataForm";
+import {
+  Btn, Chip, EmptyState, FilterTabs, Kpi, PageHead, Shell, Skeleton, cardCls,
+} from "@/components/Cloud/ui";
 
 type Item = {
   case_id: string;
@@ -112,50 +115,47 @@ export default function RozliczeniaPage() {
   ].filter((t) => t.id === "all" || t.id === "done" || t.count > 0) as Array<{ id: FilterTab; label: string; count: number }>;
 
   return (
-    <section className="relative z-10 min-h-screen bg-slate-50 py-10 dark:bg-[#0B1120]">
-    <div className="container max-w-4xl space-y-8">
+    <Shell>
+    <div className="space-y-8">
 
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-700 pb-5 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Rozliczenia</h1>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Historia kosztów obliczeń FDS powiązanych z Twoim kontem.
-          </p>
-        </div>
-        {filtered.length > 0 && (
-          <button
-            onClick={() => exportCsv(filtered)}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Eksport CSV
-          </button>
-        )}
-      </div>
+      <PageHead
+        kicker="FDSRUN // KOSZTY I FAKTURY"
+        title="Rozliczenia"
+        lead="Historia kosztów obliczeń FDS powiązanych z Twoim kontem."
+        back={{ href: "/symulacje", label: "Pulpit" }}
+        actions={
+          filtered.length > 0 && (
+            <Btn variant="secondary" size="sm" onClick={() => exportCsv(filtered)}>
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Eksport CSV
+            </Btn>
+          )
+        }
+      />
 
       {/* Dane do faktury — zunifikowane dane rozliczeniowe (wspólne z Profilem) */}
       {loggedIn && (
-        <details id="dane-do-faktury" className="group scroll-mt-24 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
+        <details id="dane-do-faktury" className="group scroll-mt-24 overflow-hidden rounded-card border border-hairline bg-panel">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-primary">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">Dane do faktury</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Zunifikowane dane wykorzystywane na wszystkich fakturach za symulacje.</p>
+                <p className="font-heading text-fr-h4 text-ink">Dane do faktury</p>
+                <p className="text-fr-sm text-muted">Zunifikowane dane wykorzystywane na wszystkich fakturach za symulacje.</p>
               </div>
             </div>
-            <svg className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4 shrink-0 text-faint transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div className="border-t border-slate-100 dark:border-slate-800 px-5 py-5">
+          <div className="border-t border-hairline-soft px-5 py-5">
             <InvoiceDataForm variant="panel" />
           </div>
         </details>
@@ -163,143 +163,87 @@ export default function RozliczeniaPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
-          ))}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}
         </div>
       ) : loggedIn === false ? (
-        <div className="rounded-xl border border-slate-100 dark:border-slate-800 px-6 py-12 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-            Zaloguj się, aby zobaczyć historię rozliczeń.
-          </p>
-          <Link href="/signin" className="text-sm font-medium text-primary hover:underline">
-            Zaloguj się →
-          </Link>
-        </div>
+        <EmptyState
+          text="Zaloguj się, aby zobaczyć historię rozliczeń."
+          cta={{ href: "/signin", label: "Zaloguj się" }}
+        />
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-slate-100 dark:border-slate-800 px-6 py-12 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Brak zleconych symulacji.</p>
-          <Link href="/symulacje/nowa" className="text-sm font-medium text-primary hover:underline">
-            Wyślij pierwsze zlecenie →
-          </Link>
-        </div>
+        <EmptyState
+          text="Brak zleconych symulacji."
+          cta={{ href: "/symulacje/nowa", label: "Wyślij pierwsze zlecenie" }}
+        />
       ) : (
         <>
           {/* Stat cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Łączna kwota (zakończone)</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                {totalDone.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">netto</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Zakończone symulacje</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">{countDone}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {countDone === 1 ? "zlecenie" : countDone < 5 ? "zlecenia" : "zleceń"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Symulacje w toku</p>
-              <p className={`text-3xl font-bold ${countActive > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
-                {countActive}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {countActive > 0 ? "aktywne" : "brak aktywnych"}
-              </p>
-            </div>
+            <Kpi label="Łączna kwota (zakończone)" value={fmtPrice(totalDone, { decimals: true })} sub="netto" />
+            <Kpi
+              label="Zakończone symulacje"
+              value={countDone}
+              sub={countDone === 1 ? "zlecenie" : countDone < 5 ? "zlecenia" : "zleceń"}
+            />
+            <Kpi
+              label="Symulacje w toku"
+              value={countActive}
+              tone={countActive > 0 ? "warn" : "ink"}
+              sub={countActive > 0 ? "aktywne" : "brak aktywnych"}
+            />
           </div>
 
           {/* Filter tabs */}
-          <div role="tablist" aria-label="Filtr rozliczeń" className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={filter === tab.id}
-                onClick={() => setFilter(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                  filter === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                    filter === tab.id
-                      ? "bg-primary/10 text-primary"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <FilterTabs tabs={TABS} active={filter} onPick={(id) => setFilter(id)} label="Filtr rozliczeń" />
 
           {/* Grouped table */}
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Brak wyników dla tego filtru.</p>
+            <p className="py-8 text-center text-fr-sm text-muted">Brak wyników dla tego filtru.</p>
           ) : (
             <div className="space-y-6">
               {groups.map((group) => (
                 <div key={group.label}>
                   {/* Month header */}
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      {group.label}
-                    </p>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      {group.items.reduce((s, i) => s + i.price, 0).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł
+                  <div className="mb-2 flex items-center justify-between font-mono text-fr-micro uppercase text-faint">
+                    <p>{group.label}</p>
+                    <p className="fr-num">
+                      {fmtPrice(group.items.reduce((s, i) => s + i.price, 0), { decimals: true })}
                     </p>
                   </div>
 
                   {/* Rows */}
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <div className={`${cardCls} overflow-hidden`}>
+                    <div className="divide-y divide-hairline-soft">
                       {group.items.map((s) => {
                         const st = statusMeta(s.status);
                         return (
-                          <div key={s.case_id} className="flex items-center gap-4 px-4 py-3.5 bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                          <div key={s.case_id} className="group flex items-center gap-4 bg-panel px-4 py-3.5 transition-colors hover:bg-panel-deep">
 
                             {/* Status badge */}
-                            <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${st.cls}`}>
-                              {st.label}
-                            </span>
+                            <span className={st.cls}>{st.label}</span>
 
                             {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-fr-body font-medium text-ink">
                                 {s.file_name}
                               </p>
-                              <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">{s.case_id}</span>
-                                {s.server_type && (
-                                  <span className="text-[11px] uppercase font-semibold text-slate-500 dark:text-slate-400">{s.server_type}</span>
-                                )}
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                  {fmtCells(s.total_cells)} komórek
-                                </span>
-                                {s.wall_hours > 0 && (
-                                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                    {fmtHours(s.wall_hours)}
-                                  </span>
-                                )}
+                              <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
+                                <span>{s.case_id}</span>
+                                {s.server_type && <span className="uppercase">{s.server_type}</span>}
+                                <span>{fmtCells(s.total_cells)} komórek</span>
+                                {s.wall_hours > 0 && <span>{fmtHours(s.wall_hours)}</span>}
                               </div>
                             </div>
 
                             {/* Date */}
-                            <div className="shrink-0 text-right hidden sm:block">
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <div className="hidden shrink-0 text-right font-mono text-fr-sm sm:block">
+                              <p className="text-muted">
                                 {new Date(s.created_at).toLocaleDateString("pl-PL", {
                                   day: "numeric", month: "short",
                                 })}
                               </p>
                               {s.completed_at && (
-                                <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">
+                                <p className="mt-0.5 text-faint">
                                   ukończono {new Date(s.completed_at).toLocaleDateString("pl-PL", {
                                     day: "numeric", month: "short",
                                   })}
@@ -309,26 +253,20 @@ export default function RozliczeniaPage() {
 
                             {/* Price + payment badge */}
                             <div className="shrink-0 text-right">
-                              <p className={`text-sm font-bold ${s.price > 0 ? "text-slate-800 dark:text-slate-200" : "text-slate-500 dark:text-slate-400"}`}>
-                                {s.price > 0
-                                  ? `${s.price.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`
-                                  : "—"}
+                              <p className={`fr-num font-mono text-fr-sm ${s.price > 0 ? "text-ink" : "text-muted"}`}>
+                                {s.price > 0 ? fmtPrice(s.price, { decimals: true }) : "—"}
                               </p>
                               {s.status === "done" && (
-                                <span className={`inline-block mt-1 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
-                                  s.payment_status === "paid"
-                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                                }`}>
+                                <Chip tone={s.payment_status === "paid" ? "ok" : "warn"} className="mt-1">
                                   {s.payment_status === "paid" ? "Opłacone" : "Do zapłaty"}
-                                </span>
+                                </Chip>
                               )}
                             </div>
 
                             {/* Link */}
                             <Link
                               href={`/symulacje/${s.case_id}`}
-                              className="shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-primary transition-colors"
+                              className="shrink-0 text-faint transition-colors group-hover:text-primary"
                               title="Otwórz zlecenie"
                             >
                               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,13 +282,13 @@ export default function RozliczeniaPage() {
               ))}
 
               {/* Total row */}
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1E232E] px-4 py-3.5">
-                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              <div className="flex items-center justify-between rounded-card border border-hairline bg-panel-deep px-4 py-3.5">
+                <p className="font-mono text-fr-micro uppercase text-muted">
                   Suma ({filter === "all" ? "wszystkie" : TABS.find((t) => t.id === filter)?.label.toLowerCase()})
                 </p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">
-                  {filteredTotal.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł
-                  <span className="ml-1.5 text-xs font-normal text-slate-500 dark:text-slate-400">netto</span>
+                <p className="fr-num font-heading text-fr-h4 text-ink">
+                  {fmtPrice(filteredTotal, { decimals: true })}
+                  <span className="ml-1.5 font-mono text-fr-sm font-normal text-muted">netto</span>
                 </p>
               </div>
             </div>
@@ -358,6 +296,6 @@ export default function RozliczeniaPage() {
         </>
       )}
     </div>
-    </section>
+    </Shell>
   );
 }

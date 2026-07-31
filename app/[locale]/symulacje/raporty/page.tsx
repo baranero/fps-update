@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { marketingUrl } from "@/lib/cloud";
+import { chipCls, type Tone } from "@/lib/tone";
+import { PageHead, Shell, cardCls } from "@/components/Cloud/ui";
 
 type Report = {
   id: string;
@@ -12,16 +14,21 @@ type Report = {
   created_at: string;
 };
 
-const FORMAT_STYLE: Record<string, string> = {
-  PDF:  "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  DOCX: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  XLSX: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  CNBOP: "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400",
+// Format pliku to metadana, nie stan alarmowy — dlatego chip idzie tonem
+// systemu (czerwień marki / stal / zieleń), a nie surową paletą Tailwinda.
+const FORMAT_TONE: Record<string, Tone> = {
+  PDF: "primary",
+  DOCX: "signal",
+  XLSX: "ok",
+  CNBOP: "muted",
 };
 
 function calculatorHref(calculator: string): string {
-  if (calculator.includes("CNBOP")) return "/narzedzia/kalkulatory/cnbop";
-  return "/narzedzia/kalkulatory";
+  return marketingUrl(
+    calculator.includes("CNBOP")
+      ? "/narzedzia/kalkulatory/cnbop"
+      : "/narzedzia/kalkulatory"
+  );
 }
 
 function InlineEdit({
@@ -68,7 +75,7 @@ function InlineEdit({
       }}
       onBlur={save}
       disabled={saving}
-      className="w-full rounded border border-primary/40 bg-white dark:bg-[#0B1120] px-2 py-0.5 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
+      className="w-full rounded-tile border border-primary/40 bg-canvas px-2 py-0.5 text-fr-body font-medium text-ink outline-none focus:ring-1 focus:ring-primary"
     />
   );
 }
@@ -98,34 +105,40 @@ export default function RaportyPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <Shell>
+      <div className="space-y-8">
 
-      <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Historia raportów</h1>
-        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          Kliknij projekt, aby wrócić do kalkulatora z danymi.
-        </p>
-      </div>
+      <PageHead
+        kicker="FDSRUN // RAPORTY PDF"
+        title="Historia raportów"
+        lead="Kliknij projekt, aby wrócić do kalkulatora z danymi."
+        back={{ href: "/symulacje", label: "Pulpit" }}
+      />
 
       {loading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Ładowanie…</p>
+        <p className="text-fr-sm text-muted">Ładowanie…</p>
       ) : reports.length === 0 ? (
-        <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Brak zapisanych raportów.</p>
-          <Link href="/narzedzia/kalkulatory" className="text-sm font-medium text-primary hover:underline">
-            Przejdź do kalkulatorów →
-          </Link>
+        // Kalkulatory żyją na fp-solutions.pl, więc to zwykły <a> — `EmptyState`
+        // przyjmuje wyłącznie ścieżki wewnętrzne routera chmury.
+        <div className="rounded-card border border-dashed border-hairline px-6 py-10 text-center">
+          <p className="text-fr-sm text-muted">Brak zapisanych raportów.</p>
+          <a
+            href={marketingUrl("/narzedzia/kalkulatory")}
+            className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-primary transition-opacity hover:opacity-80"
+          >
+            Przejdź do kalkulatorów <span aria-hidden>↗</span>
+          </a>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className={`${cardCls} overflow-hidden`}>
+          <div className="divide-y divide-hairline-soft">
             {reports.map((r) => (
               <div
                 key={r.id}
-                className="group relative flex items-center gap-3 px-4 py-3.5 bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                className="group relative flex items-center gap-3 bg-panel px-4 py-3.5 transition-colors hover:bg-panel-deep"
               >
                 {/* badge */}
-                <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${FORMAT_STYLE[r.format ?? "CNBOP"] ?? FORMAT_STYLE.CNBOP}`}>
+                <span className={chipCls(FORMAT_TONE[r.format ?? "CNBOP"] ?? "muted")}>
                   {r.format ?? "CNBOP"}
                 </span>
 
@@ -141,18 +154,18 @@ export default function RaportyPage() {
                   ) : (
                     <a
                       href={r.share_url ?? calculatorHref(r.calculator)}
-                      className="block truncate text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-primary dark:hover:text-primary transition-colors"
+                      className="block truncate text-fr-body font-medium text-ink transition-colors hover:text-primary"
                     >
-                      {r.project_name ?? <span className="text-slate-400 italic font-normal">Brak nazwy</span>}
+                      {r.project_name ?? <span className="font-normal italic text-faint">Brak nazwy</span>}
                     </a>
                   )}
-                  <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                  <p className="mt-0.5 truncate font-mono text-fr-sm text-muted">
                     {r.calculator}
                   </p>
                 </div>
 
                 {/* date */}
-                <p className="shrink-0 text-xs text-slate-500 dark:text-slate-400">
+                <p className="shrink-0 font-mono text-fr-sm text-muted">
                   {new Date(r.created_at).toLocaleDateString("pl-PL", {
                     day: "numeric", month: "short", year: "numeric",
                     hour: "2-digit", minute: "2-digit",
@@ -162,7 +175,7 @@ export default function RaportyPage() {
                 {/* edit name */}
                 <button
                   onClick={() => setEditingId(r.id)}
-                  className="shrink-0 p-1 rounded text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-all"
+                  className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-ink group-hover:opacity-100"
                   title="Zmień nazwę"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +187,7 @@ export default function RaportyPage() {
                 {/* delete */}
                 <button
                   onClick={() => handleDelete(r.id)}
-                  className="shrink-0 p-1 rounded text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                  className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-primary group-hover:opacity-100"
                   title="Usuń"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,6 +201,7 @@ export default function RaportyPage() {
         </div>
       )}
 
-    </div>
+      </div>
+    </Shell>
   );
 }

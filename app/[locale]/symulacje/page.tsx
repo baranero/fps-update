@@ -6,6 +6,10 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
 import { fmtCells, fmtPrice, fmtDate } from "@/lib/format";
+import {
+  BtnLink, Chip, EmptyState, Meter, Notice, PageHead, SectionLabel, Shell, Skeleton,
+  btnCls, cardCls, cardHoverCls,
+} from "@/components/Cloud/ui";
 
 type Item = {
   case_id: string;
@@ -27,14 +31,6 @@ function softProgress(item: Item, now: number): number | null {
   if (!item.wall_hours) return null;
   const elapsedSec = Math.max(0, (now - new Date(item.created_at).getTime()) / 1000);
   return Math.min(92, (elapsedSec / (item.wall_hours * 3600)) * 100);
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="relative z-10 min-h-screen bg-slate-50 py-10 dark:bg-[#0B1120]">
-      <div className="container max-w-4xl">{children}</div>
-    </section>
-  );
 }
 
 export default function PulpitPage() {
@@ -103,9 +99,9 @@ export default function PulpitPage() {
     return (
       <Shell>
         <div className="space-y-4">
-          <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          <Skeleton />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} />)}
           </div>
         </div>
       </Shell>
@@ -125,6 +121,8 @@ export default function PulpitPage() {
     { label: t("kpiToPay"), value: fmtPrice(toPay), href: "/symulacje/rozliczenia", accent: toPay > 0 },
   ];
 
+  const ADD_ICON = "M12 4v16m8-8H4";
+
   const shortcuts = [
     { title: t("scHistoryTitle"), desc: t("scHistoryDesc"), href: "/symulacje/historia", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
     { title: t("scBillingTitle"), desc: t("scBillingDesc"), href: "/symulacje/rozliczenia", icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" },
@@ -138,60 +136,43 @@ export default function PulpitPage() {
 
         {/* Baner „już wkrótce" — dla użytkowników bez dostępu do uruchamiania symulacji */}
         {!canRun && (
-          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-primary/25 bg-primary/[0.06] p-4 sm:p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{tr("restricted.badge")}</span>
-              </div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{tr("restricted.title")}</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{tr("restricted.lead")}</p>
-            </div>
-            <a
-              href="mailto:biuro@fp-solutions.pl"
-              className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
-            >
-              {tr("restricted.emailCta")}
-            </a>
-          </div>
+          <Notice
+            tone="primary"
+            title={tr("restricted.title")}
+            actions={
+              <a href="mailto:biuro@fp-solutions.pl" className={btnCls("primary", "sm")}>
+                {tr("restricted.emailCta")}
+              </a>
+            }
+          >
+            <Chip tone="primary" dot className="mb-2">{tr("restricted.badge")}</Chip>
+            <p>{tr("restricted.lead")}</p>
+          </Notice>
         )}
 
         {/* Header + CTA */}
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {userName ? t("greeting", { name: userName }) : t("title")}
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">{t("subtitle")}</p>
-          </div>
-          {canRun && (
-            <Link
-              href="/symulacje/nowa"
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t("newSim")}
-            </Link>
-          )}
-        </div>
+        <PageHead
+          kicker="FDSRUN // PULPIT"
+          title={userName ? t("greeting", { name: userName }) : t("title")}
+          lead={t("subtitle")}
+          actions={
+            canRun && (
+              <BtnLink href="/symulacje/nowa">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={ADD_ICON} />
+                </svg>
+                {t("newSim")}
+              </BtnLink>
+            )
+          }
+        />
 
         {/* KPI */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {kpis.map((k) => (
-            <Link
-              key={k.label}
-              href={k.href}
-              className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5 transition-colors hover:border-primary/40"
-            >
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{k.label}</p>
-              <p className={`text-2xl font-bold tabular-nums ${k.accent ? "text-primary" : "text-slate-900 dark:text-white"}`}>
+            <Link key={k.label} href={k.href} className={`${cardHoverCls} p-5`}>
+              <p className="mb-1.5 font-mono text-fr-micro uppercase text-faint">{k.label}</p>
+              <p className={`fr-num font-heading text-fr-h2 ${k.accent ? "text-primary" : "text-ink"}`}>
                 {k.value}
               </p>
             </Link>
@@ -201,55 +182,42 @@ export default function PulpitPage() {
         {/* Symulacje w toku */}
         <div>
           <div className="mb-3 flex items-center gap-2.5">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{t("activeTitle")}</h2>
+            <SectionLabel>{t("activeTitle")}</SectionLabel>
             {active.length > 0 && (
-              <span className="flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <Chip tone="warn" dot pulse>
                 {active.length} · {t("activeLive")}
-              </span>
+              </Chip>
             )}
           </div>
 
           {loading ? (
-            <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <Skeleton />
           ) : active.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 px-6 py-8 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t("activeEmpty")}</p>
-              {canRun && (
-                <Link href="/symulacje/nowa" className="text-sm font-medium text-primary hover:underline">
-                  {t("activeEmptyCta")}
-                </Link>
-              )}
-            </div>
+            <EmptyState
+              text={t("activeEmpty")}
+              cta={canRun ? { href: "/symulacje/nowa", label: t("activeEmptyCta") } : undefined}
+            />
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {active.map((s) => {
                 const st = statusMeta(s.status);
                 const pct = softProgress(s, now);
                 return (
-                  <Link
-                    key={s.case_id}
-                    href={`/symulacje/${s.case_id}`}
-                    className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-4 transition-colors hover:border-primary/40"
-                  >
+                  <Link key={s.case_id} href={`/symulacje/${s.case_id}`} className={`${cardHoverCls} p-4`}>
                     <div className="flex items-center justify-between gap-3">
-                      <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${st.cls}`}>
-                        {st.label}
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">{s.case_id}</span>
+                      <span className={st.cls}>{st.label}</span>
+                      <span className="font-mono text-fr-sm text-muted">{s.case_id}</span>
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{s.file_name}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-                      {s.server_type && <span className="uppercase font-semibold">{s.server_type}</span>}
+                    <p className="mt-2 truncate text-fr-body font-semibold text-ink">{s.file_name}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
+                      {s.server_type && <span className="uppercase">{s.server_type}</span>}
                       <span>{fmtCells(s.total_cells)} {t("cellsWord")}</span>
                       <span>{t("activeOrdered")} {fmtDate(s.created_at, { day: "numeric", month: "short" })}</span>
                     </div>
                     {pct != null && (
                       <div className="mt-3">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                          <div className="h-full rounded-full bg-amber-500 transition-all duration-700" style={{ width: `${pct}%` }} />
-                        </div>
-                        <p className="mt-1 text-[10px] italic text-slate-400 dark:text-slate-500">{t("activeEstProgress")}</p>
+                        <Meter pct={pct} tone="warn" />
+                        <p className="mt-1.5 font-mono text-fr-micro uppercase text-faint">{t("activeEstProgress")}</p>
                       </div>
                     )}
                   </Link>
@@ -262,50 +230,45 @@ export default function PulpitPage() {
         {/* Ostatnio zakończone */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{t("recentTitle")}</h2>
+            <SectionLabel>{t("recentTitle")}</SectionLabel>
             {done.length > 0 && (
-              <Link href="/symulacje/historia" className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
+              <Link
+                href="/symulacje/historia"
+                className="font-mono text-fr-micro uppercase text-muted transition-colors hover:text-primary"
+              >
                 {t("recentViewAll")}
               </Link>
             )}
           </div>
 
           {loading ? (
-            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <Skeleton className="h-16" />
           ) : recent.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 px-6 py-8 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400">{t("recentEmpty")}</p>
-            </div>
+            <EmptyState text={t("recentEmpty")} />
           ) : (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className={`${cardCls} overflow-hidden`}>
+              <div className="divide-y divide-hairline-soft">
                 {recent.map((s) => (
                   <Link
                     key={s.case_id}
                     href={`/symulacje/${s.case_id}`}
-                    className="flex items-center gap-4 px-4 py-3.5 bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                    className="group flex items-center gap-4 bg-panel px-4 py-3.5 transition-colors hover:bg-panel-deep"
                   >
-                    <span className="shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                      {statusMeta(s.status).label}
-                    </span>
+                    <span className={statusMeta(s.status).cls}>{statusMeta(s.status).label}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{s.file_name}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="truncate text-fr-body font-medium text-ink">{s.file_name}</p>
+                      <p className="font-mono text-fr-sm text-muted">
                         {fmtDate(s.completed_at ?? s.created_at, { day: "numeric", month: "short", year: "numeric" })}
-                        {s.server_type && <span className="ml-2 uppercase font-semibold">{s.server_type}</span>}
+                        {s.server_type && <span className="ml-2 uppercase">{s.server_type}</span>}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{fmtPrice(s.price)}</p>
-                      <span className={`inline-block mt-0.5 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
-                        s.payment_status === "paid"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                      }`}>
+                      <p className="fr-num font-mono text-fr-sm text-ink">{fmtPrice(s.price)}</p>
+                      <Chip tone={s.payment_status === "paid" ? "ok" : "warn"} className="mt-1">
                         {s.payment_status === "paid" ? t("paid") : t("toPay")}
-                      </span>
+                      </Chip>
                     </div>
-                    <svg className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -317,22 +280,18 @@ export default function PulpitPage() {
 
         {/* Szybki dostęp */}
         <div>
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">{t("shortcutsTitle")}</h2>
+          <SectionLabel className="mb-3 block">{t("shortcutsTitle")}</SectionLabel>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {shortcuts.map((q) => (
-              <Link
-                key={q.href}
-                href={q.href}
-                className="group flex items-start gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">
+              <Link key={q.href} href={q.href} className={`group flex items-start gap-4 ${cardHoverCls} p-4`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tile border border-hairline-soft bg-panel-deep text-muted transition-colors group-hover:border-primary/30 group-hover:text-primary">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={q.icon} />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{q.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{q.desc}</p>
+                  <p className="font-heading text-fr-h4 text-ink">{q.title}</p>
+                  <p className="mt-0.5 text-fr-sm text-muted">{q.desc}</p>
                 </div>
               </Link>
             ))}

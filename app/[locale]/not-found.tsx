@@ -1,33 +1,43 @@
 import Link from "next/link";
+import { SITE_MODE } from "@/lib/cloud";
 
+// Strona wspólna dla obu projektów. Drugi przycisk musi prowadzić tam, gdzie
+// użytkownik faktycznie jest: na fdsrun.com do pulpitu chmury, na
+// fp-solutions.pl do narzędzi projektanta. Wcześniej zawsze szedł na
+// /narzedzia, więc na chmurze middleware odbijał go 301 na drugą domenę.
 export default function NotFound() {
+  const secondary =
+    SITE_MODE === "cloud"
+      ? { href: "/symulacje", label: "Pulpit symulacji" }
+      : { href: "/narzedzia", label: "Panel narzędzi" };
+
   return (
-    <section className="min-h-screen bg-slate-50 dark:bg-[#0B1120] flex items-center justify-center px-4">
+    <section className="min-h-screen bg-canvas flex items-center justify-center px-4">
       <div className="text-center max-w-md">
 
-        <p className="text-8xl font-black text-slate-100 dark:text-slate-800 select-none leading-none mb-6">
+        <p className="mb-6 select-none font-heading text-fr-hero leading-none text-hairline">
           404
         </p>
 
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+        <h1 className="mb-3 font-heading text-fr-h2 text-ink">
           Strona nie istnieje
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+        <p className="mb-8 text-fr-body text-muted">
           Adres, który wpisałeś, nie istnieje lub został przeniesiony.
         </p>
 
         <div className="flex items-center justify-center gap-4">
           <Link
             href="/"
-            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+            className="rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white transition-opacity hover:opacity-90"
           >
             Strona główna
           </Link>
           <Link
-            href="/narzedzia"
-            className="rounded-lg border border-slate-200 dark:border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            href={secondary.href}
+            className="rounded-panel border border-hairline bg-panel px-5 py-2.5 text-fr-body font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary"
           >
-            Panel narzędzi
+            {secondary.label}
           </Link>
         </div>
 

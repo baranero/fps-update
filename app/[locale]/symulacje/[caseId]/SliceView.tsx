@@ -272,9 +272,9 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
   if (!sel || !cur) {
     if (!running) return null;
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{t("slice.title")}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg">{t("slice.empty")}</p>
+      <div className="rounded-card border border-hairline bg-panel p-5">
+        <p className="text-fr-body font-semibold text-ink mb-1">{t("slice.title")}</p>
+        <p className="text-fr-sm text-muted max-w-lg">{t("slice.empty")}</p>
       </div>
     );
   }
@@ -293,21 +293,21 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
   const showTimeline = timeline.length > 1;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700 gap-3">
+    <div className="rounded-card border border-hairline bg-panel">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline-soft gap-3">
         <div className="min-w-0">
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("slice.titleWith", { label })}</span>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+          <span className="font-mono text-fr-micro uppercase text-faint">{t("slice.titleWith", { label })}</span>
+          <p className="text-fr-sm text-muted mt-0.5">
             {t("slice.planeInfo", { plane: planeLabel(sel), axis: planeU, pos: fmt(sel.pos), unit })}
             {sel.unit ? <span className="ml-2">{t("slice.unit", { unit: sel.unit })}</span> : null}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-1 text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300">
+          <span className="rounded-full bg-panel-deep px-2.5 py-1 text-fr-sm font-mono font-semibold text-muted">
             t = {fmt(cur.t)} s
           </span>
           {running && !inAnim && atLatest && (
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:inline">{t("slice.refresh")}</span>
+            <span className="text-fr-sm text-muted hidden sm:inline">{t("slice.refresh")}</span>
           )}
         </div>
       </div>
@@ -315,15 +315,15 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
       <div className="flex items-center justify-between gap-3 px-5 pt-3 flex-wrap">
         {slices.length > 1 ? (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mr-0.5">{t("slice.slicePick")}</span>
+            <span className="text-fr-sm font-medium text-faint mr-0.5">{t("slice.slicePick")}</span>
             {slices.map((s) => {
               const on = (s.id ?? "") === (sel.id ?? "");
               return (
                 <button
                   key={s.id ?? `${s.q}-${s.plane}-${s.pos}`}
                   onClick={() => setSelId(s.id ?? null)}
-                  className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                    on ? "border-transparent bg-primary text-white" : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className={`rounded-full border px-2.5 py-1 text-fr-sm font-medium transition-colors ${
+                    on ? "border-transparent bg-primary text-white" : "border-hairline text-muted hover:bg-panel-deep"
                   }`}
                 >
                   {qLabel(s.q, s.short)} · {planeShort(s)} {fmt(s.pos)}{s.coords === "m" ? "m" : ""}
@@ -334,78 +334,78 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
         ) : <span />}
 
         <div className="flex items-center gap-2">
-          <button onClick={() => setCrisp((c) => !c)} className="rounded-lg border border-slate-200 dark:border-slate-600 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          <button onClick={() => setCrisp((c) => !c)} className="rounded-panel border border-hairline px-2.5 py-1 text-fr-sm font-medium text-muted hover:bg-panel-deep transition-colors">
             {crisp ? t("slice.smooth") : t("slice.crisp")}
           </button>
           {done && !inAnim && !!sel.id && (
-            <button onClick={() => loadAnim(sel.id as string)} disabled={animLoading} className="rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors disabled:opacity-60">
+            <button onClick={() => loadAnim(sel.id as string)} disabled={animLoading} className="rounded-panel border border-primary/40 bg-primary/5 px-2.5 py-1 text-fr-sm font-semibold text-primary hover:bg-primary/10 transition-colors disabled:opacity-60">
               {animLoading ? t("slice.loading") : t("slice.fullAnim")}
             </button>
           )}
           {inAnim && (
-            <button onClick={() => { setAnim(null); setFollow(true); setPlaying(false); }} className="rounded-lg border border-slate-200 dark:border-slate-600 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <button onClick={() => { setAnim(null); setFollow(true); setPlaying(false); }} className="rounded-panel border border-hairline px-2.5 py-1 text-fr-sm font-medium text-muted hover:bg-panel-deep transition-colors">
               {t("slice.closeAnim")}
             </button>
           )}
         </div>
       </div>
 
-      {animError && <p className="px-5 pt-2 text-[11px] text-amber-600 dark:text-amber-400">{animError}</p>}
+      {animError && <p className="px-5 pt-2 text-fr-sm text-warn">{animError}</p>}
 
       <div className="p-5 pt-3">
         <div className="flex gap-3 items-stretch">
           <div className="min-w-0 flex-1">
-            <div className="relative rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900">
+            <div className="relative rounded-panel overflow-hidden border border-hairline bg-well">
               <canvas ref={canvasRef} className="block w-full h-auto" style={{ imageRendering: crisp ? "pixelated" : "auto" }} />
-              <span className="absolute left-1.5 top-1.5 rounded bg-black/45 px-1.5 py-0.5 text-[10px] font-mono text-white/90">{ayU} ↑ {fmt(sel.y0)}–{fmt(sel.y1)} {unit}</span>
-              <span className="absolute right-1.5 bottom-1.5 rounded bg-black/45 px-1.5 py-0.5 text-[10px] font-mono text-white/90">{axU} → {fmt(sel.x0)}–{fmt(sel.x1)} {unit}</span>
+              <span className="absolute left-1.5 top-1.5 rounded bg-black/45 px-1.5 py-0.5 text-fr-sm font-mono text-white/90">{ayU} ↑ {fmt(sel.y0)}–{fmt(sel.y1)} {unit}</span>
+              <span className="absolute right-1.5 bottom-1.5 rounded bg-black/45 px-1.5 py-0.5 text-fr-sm font-mono text-white/90">{axU} → {fmt(sel.x0)}–{fmt(sel.x1)} {unit}</span>
               {selVals && (
-                <span className="absolute left-1.5 bottom-1.5 rounded bg-white/85 px-1.5 py-0.5 text-[10px] font-mono text-slate-900">{t("slice.blackMark", { lo: fmt(selVals.lo), hi: fmt(selVals.hi), unit: sel.unit })}</span>
+                <span className="absolute left-1.5 bottom-1.5 rounded bg-panel/85 px-1.5 py-0.5 text-fr-sm font-mono text-ink">{t("slice.blackMark", { lo: fmt(selVals.lo), hi: fmt(selVals.hi), unit: sel.unit })}</span>
               )}
               {!atLatest && running && !inAnim && (
-                <span className="absolute right-1.5 top-1.5 rounded bg-amber-500/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">{t("slice.steppedBack")}</span>
+                <span className="absolute right-1.5 top-1.5 rounded bg-warn/90 px-1.5 py-0.5 text-fr-sm font-semibold text-white">{t("slice.steppedBack")}</span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-stretch shrink-0" style={{ width: 82 }}>
             <div className="flex-1 flex gap-1.5">
-              <div ref={trackRef} onPointerDown={onTrackDown} onPointerMove={onTrackMove} onPointerUp={onTrackUp} className="relative w-4 rounded-sm border border-slate-200 dark:border-slate-700 cursor-ns-resize" style={{ background: LEGEND_GRADIENT, touchAction: "none" }} title={t("slice.dragHint")}>
+              <div ref={trackRef} onPointerDown={onTrackDown} onPointerMove={onTrackMove} onPointerUp={onTrackUp} className="relative w-4 rounded-sm border border-hairline cursor-ns-resize" style={{ background: LEGEND_GRADIENT, touchAction: "none" }} title={t("slice.dragHint")}>
                 {active && <div className="absolute left-0 right-0 pointer-events-none" style={{ top: `${(1 - hi) * 100}%`, height: `${(hi - lo) * 100}%`, background: "rgba(0,0,0,0.62)" }} />}
                 {([["hi", hi], ["lo", lo]] as const).map(([k, frac]) => (
-                  <div key={k} className="absolute left-[-3px] right-[-3px] h-[4px] rounded-sm bg-white border border-slate-500 pointer-events-none shadow" style={{ top: `calc(${(1 - frac) * 100}% - 2px)` }} />
+                  <div key={k} className="absolute left-[-3px] right-[-3px] h-[4px] rounded-sm bg-panel border border-hairline pointer-events-none shadow" style={{ top: `calc(${(1 - frac) * 100}% - 2px)` }} />
                 ))}
               </div>
               <div className="flex flex-col justify-between py-0.5">
                 {ticks.map((v, i) => (
-                  <span key={i} className="text-[10px] font-mono leading-none text-slate-500 dark:text-slate-400">{fmt(v)}</span>
+                  <span key={i} className="text-fr-sm font-mono leading-none text-muted">{fmt(v)}</span>
                 ))}
               </div>
             </div>
-            <span className="mt-1.5 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400">{sel.unit ? `[${sel.unit}]` : ""}</span>
-            {active && <button onClick={() => { setLo(0); setHi(1); }} className="mt-1 text-[10px] text-primary hover:underline">{t("slice.clearSel")}</button>}
+            <span className="mt-1.5 text-center text-fr-sm font-mono text-muted">{sel.unit ? `[${sel.unit}]` : ""}</span>
+            {active && <button onClick={() => { setLo(0); setHi(1); }} className="mt-1 text-fr-sm text-primary hover:underline">{t("slice.clearSel")}</button>}
           </div>
         </div>
 
         {showTimeline && (
           <div className="mt-3">
             <div className="flex items-center gap-3">
-              <button onClick={() => { setFollow(false); setPlaying((p) => !p); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors shrink-0">
+              <button onClick={() => { setFollow(false); setPlaying((p) => !p); }} className="rounded-panel bg-primary px-3 py-1.5 text-fr-sm font-semibold text-white hover:bg-primary/90 transition-colors shrink-0">
                 {playing ? t("slice.pause") : t("slice.play")}
               </button>
               <input type="range" min={0} max={timeline.length - 1} value={curIdx} onChange={(e) => { setPlaying(false); setFollow(false); setIdx(Number(e.target.value)); }} className="flex-1 accent-primary" />
-              <span className="shrink-0 text-[11px] font-mono text-slate-500 dark:text-slate-400 w-28 text-right">
+              <span className="shrink-0 text-fr-sm font-mono text-muted w-28 text-right">
                 {fmt(cur.t)} s · {curIdx + 1}/{timeline.length}
                 {inAnim && timeline.total > timeline.length ? ` (/${timeline.total})` : ""}
               </span>
             </div>
             {running && !inAnim && !atLatest && (
-              <button onClick={() => { setPlaying(false); setFollow(true); }} className="mt-1.5 text-[11px] font-semibold text-primary hover:underline">{t("slice.backToLive")}</button>
+              <button onClick={() => { setPlaying(false); setFollow(true); }} className="mt-1.5 text-fr-sm font-semibold text-primary hover:underline">{t("slice.backToLive")}</button>
             )}
           </div>
         )}
 
-        <p className="mt-2.5 text-[10px] text-slate-400 dark:text-slate-500">
+        <p className="mt-2.5 text-fr-sm text-faint">
           {inAnim
             ? t("slice.footAnim", { total: timeline.total, shown: timeline.length })
             : running ? t("slice.footLive") : t("slice.footDone")}

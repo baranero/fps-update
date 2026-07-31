@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
+import { fmtCells, fmtHours } from "@/lib/format";
+import { Btn, Chip, EmptyState, FilterTabs, PageHead, Shell, cardCls, inputSmCls } from "@/components/Cloud/ui";
 
 type Submission = {
   case_id: string;
@@ -19,38 +22,13 @@ type Submission = {
 
 type FilterTab = "all" | "active" | "done" | "failed" | "cancelled";
 
-const STATUS_CLS: Record<string, string> = {
-  pending:    "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
-  dispatched: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  running:    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  done:       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  failed:     "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  cancelled:  "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
-  error:      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
-
+// Etykieta w języku strony, ale forma i kolor z jednego źródła (`lib/status`) —
+// ta sama, co na pulpicie, w rozliczeniach i w panelu admina.
 function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("symHistory.status");
-  const cls = STATUS_CLS[status] ?? "bg-slate-100 text-slate-500";
-  const label = ["pending", "dispatched", "running", "done", "failed", "cancelled", "error"].includes(status)
-    ? t(status)
-    : status;
-  return (
-    <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}>
-      {label}
-    </span>
-  );
-}
-
-function formatHours(h: number) {
-  if (h < 1) return `${Math.round(h * 60)} min`;
-  return `${h.toFixed(1)} h`;
-}
-
-function formatCells(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} k`;
-  return String(n);
+  const meta = statusMeta(status);
+  const known = ["pending", "dispatched", "running", "done", "failed", "cancelled", "error"].includes(status);
+  return <span className={meta.cls}>{known ? t(status) : status}</span>;
 }
 
 export default function HistoriaSymulacjiPage() {
@@ -67,7 +45,7 @@ export default function HistoriaSymulacjiPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const ACTIVE = new Set(["pending", "dispatched", "running"]);
+  const ACTIVE = ACTIVE_STATUSES;
 
   async function fetchSubmissions() {
     const res = await fetch("/api/symulacje/historia");
@@ -142,29 +120,20 @@ export default function HistoriaSymulacjiPage() {
   ).filter((tab) => tab.id === "all" || tab.count > 0);
 
   return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl">
+    <Shell width="md">
         <div className="space-y-8">
 
-          <div className="border-b border-slate-200 dark:border-slate-700 pb-5">
-            <div className="flex items-center gap-2.5">
-              <Link href="/symulacje" className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors mb-1 block">
-                {t("back")}
-              </Link>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{t("title")}</h1>
-              {submissions.some((s) => ACTIVE.has(s.status)) && (
-                <span className="flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  {t("live")}
-                </span>
-              )}
-            </div>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-              {t("subtitle")}
-            </p>
-          </div>
+          <PageHead
+            kicker="FDSRUN // ARCHIWUM ZLECEŃ"
+            title={t("title")}
+            lead={t("subtitle")}
+            back={{ href: "/symulacje", label: t("back") }}
+            badge={
+              submissions.some((s) => ACTIVE.has(s.status)) ? (
+                <Chip tone="warn" dot pulse>{t("live")}</Chip>
+              ) : undefined
+            }
+          />
 
           {/* Szybki dostęp po numerze zlecenia */}
           <form
@@ -180,138 +149,92 @@ export default function HistoriaSymulacjiPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="flex-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-3 py-2 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`${inputSmCls} flex-1 font-mono`}
             />
-            <button
-              type="submit"
-              disabled={!search.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
+            <Btn type="submit" size="sm" disabled={!search.trim()} className="shrink-0 px-4">
               {t("open")}
-            </button>
+            </Btn>
           </form>
 
           {loading ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t("loading")}</p>
+            <p className="text-fr-sm text-muted">{t("loading")}</p>
           ) : loggedIn === false ? (
-            <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                {t("loginPrompt")}
-              </p>
-              <Link href="/signin?next=/symulacje/historia" className="text-sm font-medium text-primary hover:underline">
-                {t("loginCta")}
-              </Link>
-            </div>
+            <EmptyState
+              text={t("loginPrompt")}
+              cta={{ href: "/signin?next=/symulacje/historia", label: t("loginCta") }}
+            />
           ) : submissions.length === 0 ? (
-            <div className="rounded-md border border-slate-100 dark:border-slate-800 px-6 py-10 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{t("empty")}</p>
-              <Link href="/symulacje/nowa" className="text-sm font-medium text-primary hover:underline">
-                {t("emptyCta")}
-              </Link>
-            </div>
+            <EmptyState text={t("empty")} cta={{ href: "/symulacje/nowa", label: t("emptyCta") }} />
           ) : (
             <>
-            {deleteError && (
-              <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
-            )}
+            {deleteError && <p className="text-fr-sm text-primary">{deleteError}</p>}
 
             {/* Filtr: aktywne vs zakończone */}
-            <div role="tablist" aria-label={t("filterLabel")} className="flex flex-wrap gap-1 border-b border-slate-200 dark:border-slate-700">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={filter === tab.id}
-                  onClick={() => setFilter(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                    filter === tab.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                  }`}
-                >
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                      filter === tab.id
-                        ? "bg-primary/10 text-primary"
-                        : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+            <FilterTabs tabs={TABS} active={filter} onPick={(id) => setFilter(id)} label={t("filterLabel")} />
 
             {filtered.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">{t("noFilterResults")}</p>
+              <p className="py-8 text-center text-fr-sm text-muted">{t("noFilterResults")}</p>
             ) : (
-            <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className={`${cardCls} overflow-hidden`}>
+              <div className="divide-y divide-hairline-soft">
                 {filtered.map((s) => (
-                  <div key={s.case_id} className="bg-white dark:bg-[#1E232E]">
+                  <div key={s.case_id} className="bg-panel">
                     {confirmDelete === s.case_id ? (
                       <div className="flex items-center gap-3 px-4 py-4">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 flex-1">
+                        <span className="flex-1 text-fr-sm text-ink">
                           {t.rich("confirmDelete", { code: (c) => <span className="font-mono font-semibold">{c}</span>, id: s.case_id })}
-                          <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            {["pending", "dispatched", "running"].includes(s.status)
-                              ? t("confirmActive")
-                              : t("confirmDone")}
+                          <span className="mt-0.5 block text-fr-sm text-muted">
+                            {ACTIVE.has(s.status) ? t("confirmActive") : t("confirmDone")}
                           </span>
                         </span>
-                        <button
+                        <Btn
+                          variant="primary"
+                          size="sm"
                           onClick={() => handleDelete(s.case_id)}
                           disabled={deleting === s.case_id}
-                          className="rounded px-3 py-1.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
                         >
                           {deleting === s.case_id ? t("deleting") : t("delete")}
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
+                          variant="secondary"
+                          size="sm"
                           onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                           disabled={deleting === s.case_id}
-                          className="rounded px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
                         >
                           {t("cancel")}
-                        </button>
+                        </Btn>
                       </div>
                     ) : (
                       <div className="flex items-center gap-4 px-4 py-4 group">
                         <Link href={`/symulacje/${s.case_id}`} className="flex items-center gap-4 flex-1 min-w-0">
                           <StatusBadge status={s.status} />
 
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate mb-0.5">
+                          <div className="min-w-0 flex-1">
+                            <p className="mb-0.5 truncate text-fr-body font-medium text-ink">
                               {s.file_name}
                             </p>
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400">{s.case_id}</p>
-                              {s.server_type && (
-                                <span className="text-[11px] uppercase font-semibold text-slate-500 dark:text-slate-400">
-                                  {s.server_type}
-                                </span>
-                              )}
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                {t("meshes", { count: s.mesh_count })} · {formatCells(s.total_cells)} {t("cellsWord")}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
+                              <span>{s.case_id}</span>
+                              {s.server_type && <span className="uppercase">{s.server_type}</span>}
+                              <span>
+                                {t("meshes", { count: s.mesh_count })} · {fmtCells(s.total_cells)} {t("cellsWord")}
                               </span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                {t("est", { time: formatHours(s.wall_hours) })}
-                              </span>
+                              <span>{t("est", { time: fmtHours(s.wall_hours) })}</span>
                             </div>
                           </div>
 
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <div className="shrink-0 text-right">
+                            <p className="fr-num font-mono text-fr-sm text-ink">
                               {s.price.toLocaleString(dateLocale)} zł
                             </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <p className="font-mono text-fr-sm text-muted">
                               {new Date(s.created_at).toLocaleDateString(dateLocale, {
                                 day: "numeric", month: "short", year: "numeric",
                               })}
                             </p>
                           </div>
 
-                          <svg className="h-4 w-4 text-slate-300 group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                           </svg>
                         </Link>
@@ -319,7 +242,7 @@ export default function HistoriaSymulacjiPage() {
                         <button
                           onClick={(e) => { e.preventDefault(); setConfirmDelete(s.case_id); setDeleteError(null); }}
                           title={t("deleteTitle")}
-                          className="shrink-0 rounded p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="shrink-0 rounded-tile p-1.5 text-faint transition-colors hover:bg-primary/10 hover:text-primary"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -336,7 +259,6 @@ export default function HistoriaSymulacjiPage() {
           )}
 
         </div>
-      </div>
-    </section>
+    </Shell>
   );
 }

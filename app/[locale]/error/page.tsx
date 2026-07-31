@@ -143,16 +143,16 @@ const ErrorPage = () => {
                 </div>
                 
                 {/* Teksty strony błędu */}
-                <h3 className="mb-4 text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
+                <h3 className="mb-4 text-3xl font-bold text-ink sm:text-4xl">
                   Przepraszamy, nie znaleziono strony (404)
                 </h3>
-                <p className="mb-10 text-base font-medium leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed">
+                <p className="mb-10 text-base font-medium leading-relaxed text-muted sm:text-lg sm:leading-relaxed">
                   Strona, której szukasz, mogła zostać usunięta, zmieniła swój adres lub nigdy nie istniała. 
                   Zapraszamy do zapoznania się z naszą ofertą usług z zakresu inżynierii bezpieczeństwa pożarowego.
                 </p>
                 <Link
                   href="/"
-                  className="rounded-2xl bg-primary px-8 py-3 text-base font-bold text-white shadow-signUp duration-300 hover:bg-white hover:text-primary md:px-9 lg:px-8 xl:px-9"
+                  className="rounded-2xl bg-primary px-8 py-3 text-base font-bold text-white shadow-signUp duration-300 hover:bg-panel hover:text-primary md:px-9 lg:px-8 xl:px-9"
                 >
                   Wróć na stronę główną
                 </Link>

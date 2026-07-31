@@ -9,8 +9,55 @@
     --font-sans: "Inter Variable";
     --font-display: "Archivo Variable";
     --font-mono: "JetBrains Mono Variable";
+    /* Nagłówki FDSRun — Manrope (krój ze wzoru graficznego). */
+    --font-heading: "Manrope Variable";
   }
   body { font-family: var(--font-sans), system-ui, sans-serif; }
+
+  /* ── System powierzchni FDSRun ────────────────────────────────────────────
+     Tokeny w RGB (bez `rgb()`), bo Tailwind składa je z <alpha-value> —
+     dzięki temu działa `bg-panel/60` czy `border-hairline/50`.
+     Motyw JASNY: papier + cienka kreska, ta sama gęstość co wzór, inny walor.
+     Motyw CIEMNY: wartości 1:1 ze wzoru Stitch (#070708 / #101112 / #232426). */
+  :root {
+    --fr-canvas: 250 250 251;
+    --fr-panel: 255 255 255;
+    --fr-panel-deep: 245 246 248;
+    --fr-well: 241 243 246;
+    --fr-hairline: 224 227 233;
+    --fr-hairline-soft: 237 239 243;
+    --fr-ink: 17 20 26;
+    --fr-muted: 92 99 110;
+    --fr-faint: 140 147 159;
+    --fr-signal: 46 110 128;   /* steel — serie danych czytelne na bieli */
+    --fr-warn: 180 83 9;
+    --fr-ok: 21 128 61;        /* zakończone / opłacone */
+    --fr-lime: 209 235 156;
+    --fr-grid: rgba(15, 23, 42, 0.07);
+    --fr-grid-strong: rgba(15, 23, 42, 0.11);
+    --fr-shadow-panel: 0 18px 40px -12px rgba(15, 23, 42, 0.14);
+    --fr-shadow-float: 0 12px 28px -8px rgba(15, 23, 42, 0.12);
+  }
+
+  .dark {
+    --fr-canvas: 7 7 8;
+    --fr-panel: 16 17 18;
+    --fr-panel-deep: 10 10 11;
+    --fr-well: 5 5 5;
+    --fr-hairline: 35 36 38;
+    --fr-hairline-soft: 27 28 30;
+    --fr-ink: 229 226 227;
+    --fr-muted: 154 157 163;
+    --fr-faint: 110 114 122;
+    --fr-signal: 95 167 188;   /* steel-light — świeci na czerni */
+    --fr-warn: 251 176 64;
+    --fr-ok: 74 222 128;
+    --fr-lime: 196 255 68;
+    --fr-grid: rgba(255, 255, 255, 0.045);
+    --fr-grid-strong: rgba(255, 255, 255, 0.08);
+    --fr-shadow-panel: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+    --fr-shadow-float: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+  }
 }
 
 
@@ -29,6 +76,36 @@
 @layer utilities {
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Tekstury tła FDSRun ──────────────────────────────────────────────────
+     Kropki i siatki ze wzoru. Kolor z --fr-grid, więc same przełączają się
+     między motywami — na bieli to szara kreska, na czerni biała mgła. */
+  .fr-dots {
+    background-image: radial-gradient(var(--fr-grid-strong) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  .fr-grid {
+    background-image:
+      linear-gradient(to right, var(--fr-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--fr-grid) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  .fr-grid-sm {
+    background-image:
+      linear-gradient(to right, var(--fr-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--fr-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  /* Górna krawędź światła na panelu — daje wrażenie szkła (wzór: inner-glow) */
+  .fr-inner-glow { box-shadow: inset 0 1px 0 0 rgb(var(--fr-ink) / 0.06); }
+  .dark .fr-inner-glow { box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06); }
+
+  /* Cyfry w telemetrii nie mogą „skakać" przy odświeżaniu */
+  .fr-num { font-variant-numeric: tabular-nums; }
+
+  /* Równe łamanie nagłówków. Tailwind ma `text-balance` dopiero od 3.4,
+     a projekt stoi na 3.3 — stąd własna klasa. */
+  .fr-balance { text-wrap: balance; }
 }
 
 @keyframes fadeIn {

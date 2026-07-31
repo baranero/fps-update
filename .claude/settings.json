@@ -7,7 +7,8 @@
       "Bash(grep -o -E \"Fire protection tailored to your building|Ochrona ppo.{0,2} skrojona na miar.|About me|O mnie|Get to know|Industry education|Bran.owe wykszta.cenie\")",
       "Bash(curl -s http://localhost:3000/o-mnie)",
       "Bash(grep -o -E \"Fire protection tailored to your building|Ochrona ppo.{0,2} skrojona na miar.|Industry education|Bran.owe wykszta.cenie\")",
-      "Bash(curl -s http://localhost:3000/en/kontakt)"
+      "Bash(curl -s http://localhost:3000/en/kontakt)",
+      "Bash(python -)"
     ]
   }
 }

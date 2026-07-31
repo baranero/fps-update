@@ -33,10 +33,10 @@ export default function HeroCloudPanel() {
     <div className="rounded-2xl border border-primary/20 bg-[#111827] shadow-[0_0_60px_rgba(220,53,69,0.10),0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+        <span className="text-fr-sm font-bold uppercase tracking-widest text-primary">
           {t("title")}
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+        <span className="flex items-center gap-1.5 font-mono text-fr-sm text-emerald-400">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
           {t("running")}
         </span>
@@ -51,7 +51,7 @@ export default function HeroCloudPanel() {
           </div>
           <div>
             <p className="font-mono text-[13px] font-semibold text-white">{DEMO.fileName}</p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-fr-sm text-slate-500">
               {DEMO.fileSize} · {DEMO.meshes} {t("meshes")} · T_END {DEMO.tEnd} s
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function HeroCloudPanel() {
               <p className="font-mono text-[17px] font-extrabold tabular-nums text-primary">
                 {val}
               </p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-500">
+              <p className="mt-0.5 text-fr-label uppercase tracking-wider text-slate-500">
                 {label}
               </p>
             </div>
@@ -87,7 +87,7 @@ export default function HeroCloudPanel() {
               style={{ width: "0%" }}
             />
           </div>
-          <div className="flex justify-between font-mono text-[11px] text-slate-500">
+          <div className="flex justify-between font-mono text-fr-sm text-slate-500">
             <span>{t("progress", { pct: DEMO.progress })}</span>
             <span>{t("remaining", { time: DEMO.remaining })}</span>
           </div>
@@ -95,7 +95,7 @@ export default function HeroCloudPanel() {
 
         {/* Price row */}
         <div className="flex items-center justify-between border-t border-slate-700/40 pt-3">
-          <span className="text-[12px] text-slate-500">{t("cost")}</span>
+          <span className="text-fr-sm text-slate-500">{t("cost")}</span>
           <span className="font-mono text-[22px] font-extrabold tabular-nums text-primary">
             {DEMO.price}
           </span>

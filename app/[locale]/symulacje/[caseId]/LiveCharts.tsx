@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { parseDevcCsv, parseHrrCsv, computeActivations, type FdsCsvSeries } from "@/lib/fds/devc";
 import type { FdsDevc } from "@/lib/fds/parser";
+import { chartTheme, fmtT, fmtVal, useIsDark, OVERFLOW_DASH } from "@/components/Cloud/chartTheme";
 
 interface LiveChartsProps {
   devcCsv: string | null;
@@ -15,34 +16,6 @@ interface LiveChartsProps {
   running: boolean;
 }
 
-// Paleta serii — czytelna w trybie jasnym i ciemnym
-const COLORS = [
-  "#2563eb", "#dc2626", "#16a34a", "#d97706", "#7c3aed",
-  "#0891b2", "#db2777", "#65a30d", "#ea580c", "#0d9488",
-  "#4f46e5", "#be123c", "#059669", "#9333ea", "#c026d3",
-];
-
-function useIsDark() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => {
-    const check = () => setDark(document.documentElement.classList.contains("dark"));
-    check();
-    const obs = new MutationObserver(check);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => obs.disconnect();
-  }, []);
-  return dark;
-}
-
-function fmtT(t: number): string {
-  return t >= 100 ? `${Math.round(t)}` : t.toFixed(1);
-}
-
-// Wartość odczytywana z wykresu — zawsze 2 miejsca po przecinku
-function fmtVal(v: number | string | Array<number | string>): string {
-  const n = typeof v === "number" ? v : parseFloat(String(v));
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
 
 // Zbuduj dane dla recharts z serii o wspólnej osi czasu (z opcjonalnym przerzedzeniem)
 function buildRows(time: number[], series: FdsCsvSeries[]): Array<Record<string, number | null>> {
@@ -62,25 +35,30 @@ function buildRows(time: number[], series: FdsCsvSeries[]): Array<Record<string,
 export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: LiveChartsProps) {
   const t = useTranslations("symDetail");
   const dark = useIsDark();
-  const axis = dark ? "#94a3b8" : "#64748b";
-  const grid = dark ? "#334155" : "#e2e8f0";
-  const tooltipStyle = {
-    backgroundColor: dark ? "#0B1120" : "#fff",
-    border: `1px solid ${grid}`,
-    borderRadius: 8,
-    fontSize: 12,
-  };
+  const { ramp, axis, grid, tooltip: tooltipStyle } = chartTheme(dark);
 
   const devc = useMemo(() => parseDevcCsv(devcCsv), [devcCsv]);
   const hrr = useMemo(() => parseHrrCsv(hrrCsv), [hrrCsv]);
   const activations = useMemo(() => computeActivations(devc, setpoints), [devc, setpoints]);
 
   // Kolor przypisany na stałe do nazwy serii (po kolejności w pliku)
+  // Kolor idzie za NAZWĄ serii (kolejność w pliku), nie za jej pozycją na
+  // wykresie — odfiltrowanie serii nie przemalowuje pozostałych.
   const colorOf = useMemo(() => {
     const map = new Map<string, string>();
-    devc?.series.forEach((s, i) => map.set(s.name, COLORS[i % COLORS.length]));
+    devc?.series.forEach((s, i) => map.set(s.name, ramp[i] ?? (dark ? "#9A9DA3" : "#5C636E")));
     return map;
-  }, [devc]);
+  }, [devc, ramp, dark]);
+
+  // Serie ponad piątą: neutralny kolor + własny wzór kreskowania (kodowanie
+  // złożone), zamiast powtarzania hue z początku palety.
+  const dashOf = useMemo(() => {
+    const map = new Map<string, string | undefined>();
+    devc?.series.forEach((s, i) => {
+      map.set(s.name, i < ramp.length ? undefined : OVERFLOW_DASH[(i - ramp.length) % OVERFLOW_DASH.length]);
+    });
+    return map;
+  }, [devc, ramp]);
 
   // Grupowanie serii DEVC po jednostce (osobne skale/wykresy)
   const groups = useMemo(() => {
@@ -126,11 +104,11 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
     const devcLen = devcCsv?.length ?? 0;
     const gotData = hrrLen > 0 || devcLen > 0;
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-5">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{t("live.title")}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-4 max-w-lg mx-auto">{t("live.waiting")}</p>
+      <div className="rounded-card border border-hairline bg-panel p-5">
+        <p className="text-fr-body font-semibold text-ink mb-1">{t("live.title")}</p>
+        <p className="text-fr-sm text-muted text-center py-4 max-w-lg mx-auto">{t("live.waiting")}</p>
         {gotData && (
-          <p className="text-[11px] text-amber-600 dark:text-amber-400 text-center font-mono">
+          <p className="text-fr-sm text-warn text-center font-mono">
             {t("live.diag", { hrr: hrrLen, devc: devcLen })}
           </p>
         )}
@@ -139,11 +117,12 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]">
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
-        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("live.title")}</span>
+    <div className="relative overflow-hidden rounded-card border border-hairline bg-panel">
+      <div className="fr-grid pointer-events-none absolute inset-0 opacity-50" />
+      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline-soft">
+        <span className="font-mono text-fr-label uppercase text-muted">{t("live.title")}</span>
         {running && (
-          <span className="text-[10px] text-slate-500 dark:text-slate-400">{t("live.refresh")}</span>
+          <span className="font-mono text-fr-label uppercase text-muted">{t("live.refresh")}</span>
         )}
       </div>
 
@@ -151,18 +130,18 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
         {/* HRR */}
         {hrrSeries && (
           <div>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+            <p className="mb-3 font-mono text-fr-label uppercase text-muted">
               {t("live.hrrTitle")} {hrrSeries.unit ? `[${hrrSeries.unit}]` : ""}
             </p>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={hrrRows} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                 <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]}
-                  tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
-                  label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
-                <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
+                  tickFormatter={fmtT} tick={{ fontSize: 12, fill: axis }} stroke={axis}
+                  label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 12, fill: axis }} />
+                <YAxis tick={{ fontSize: 12, fill: axis }} stroke={axis} width={56} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
-                <Line type="monotone" dataKey={hrrSeries.name} stroke="#dc2626" dot={false}
+                <Line type="monotone" dataKey={hrrSeries.name} stroke={ramp[0]} dot={false}
                   isAnimationActive={false} connectNulls strokeWidth={1.8} />
               </LineChart>
             </ResponsiveContainer>
@@ -173,27 +152,27 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
         {!!devc?.series.length && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+              <p className="font-mono text-fr-label uppercase text-muted">
                 {t("live.devcTitle", { count: devc.series.length })}
               </p>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">{t("live.toggleHint")}</span>
+              <span className="font-mono text-fr-label text-muted">{t("live.toggleHint")}</span>
             </div>
 
             <div className="space-y-2 mb-3">
               {groups.map(([unit, series]) => (
                 <div key={unit} className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mr-1 shrink-0">
+                  <span className="mr-1 shrink-0 font-mono text-fr-label text-muted">
                     [{unit}]
                   </span>
                   {series.map((s) => {
                     const on = visible.has(s.name);
-                    const c = colorOf.get(s.name) ?? "#64748b";
+                    const c = colorOf.get(s.name)!;
                     return (
                       <button key={s.name} onClick={() => toggle(s.name)}
-                        className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        className={`flex items-center gap-2 rounded-chip border px-2.5 py-1.5 text-fr-sm font-medium transition-colors ${
                           on
                             ? "border-transparent text-white"
-                            : "border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
+                            : "border-hairline text-muted hover:bg-panel-deep"
                         }`}
                         style={on ? { backgroundColor: c } : undefined}>
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: on ? "rgba(255,255,255,0.9)" : c }} />
@@ -213,20 +192,20 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
                 const rows = buildRows(devc.time, shown);
                 return (
                   <div key={unit}>
-                    <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mb-1">{t("live.unit", { unit })}</p>
+                    <p className="mb-2 font-mono text-fr-label uppercase text-muted">{t("live.unit", { unit })}</p>
                     <ResponsiveContainer width="100%" height={240}>
                       <LineChart data={rows} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                         <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]}
-                          tickFormatter={fmtT} tick={{ fontSize: 11, fill: axis }} stroke={axis}
-                          label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 10, fill: axis }} />
-                        <YAxis tick={{ fontSize: 11, fill: axis }} stroke={axis} width={56} />
+                          tickFormatter={fmtT} tick={{ fontSize: 12, fill: axis }} stroke={axis}
+                          label={{ value: t("live.timeAxis"), position: "insideBottomRight", offset: -2, fontSize: 12, fill: axis }} />
+                        <YAxis tick={{ fontSize: 12, fill: axis }} stroke={axis} width={56} />
                         <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => `t = ${fmtT(Number(v))} s`} formatter={(v) => fmtVal(v as number)} />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
                         {shown.map((s) => (
                           <Line key={s.name} type="monotone" dataKey={s.name}
-                            stroke={colorOf.get(s.name) ?? "#64748b"} dot={false}
-                            isAnimationActive={false} connectNulls strokeWidth={1.6} />
+                            stroke={colorOf.get(s.name)} strokeDasharray={dashOf.get(s.name)} dot={false}
+                            isAnimationActive={false} connectNulls strokeWidth={2} />
                         ))}
                       </LineChart>
                     </ResponsiveContainer>
@@ -240,25 +219,25 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
         {/* Aktywacje DEVC (setpointy) */}
         {activations.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+            <p className="mb-3 font-mono text-fr-label uppercase text-muted">
               {t("live.activations")}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {activations.map((a) => (
                 <div key={a.id}
-                  className={`flex items-center justify-between rounded border px-3 py-2 text-xs ${
+                  className={`flex items-center justify-between rounded border px-3 py-2 text-fr-sm ${
                     a.tActivated != null
-                      ? "border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20"
-                      : "border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120]"
+                      ? "border-signal/30 bg-signal/[0.07]"
+                      : "border-hairline-soft bg-canvas"
                   }`}>
                   <div className="min-w-0">
-                    <p className="font-mono font-semibold text-slate-700 dark:text-slate-200 truncate">{a.id}</p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                    <p className="font-mono font-semibold text-ink truncate">{a.id}</p>
+                    <p className="text-fr-sm text-faint">
                       {a.quantity ?? "—"} · {t("live.threshold")} {a.setpoint}
                     </p>
                   </div>
                   <span className={`font-mono font-bold shrink-0 ml-2 ${
-                    a.tActivated != null ? "text-green-600 dark:text-green-400" : "text-slate-400 dark:text-slate-500"
+                    a.tActivated != null ? "text-signal" : "text-faint"
                   }`}>
                     {a.tActivated != null ? `${fmtT(a.tActivated)} s` : "—"}
                   </span>

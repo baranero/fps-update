@@ -45,9 +45,12 @@ const menuData: Menu[] = [
     title: "Dla projektanta",
     key: "forDesigner",
     newTab: false,
+    // „Raporty" świadomie usunięte z menu usług: historia raportów jest
+    // przypisana do konta, a konto istnieje wyłącznie na fdsrun.com. Pozycja
+    // w zwykłym menu po cichu przerzucałaby użytkownika na drugą domenę —
+    // do chmury prowadzi jawny przycisk „CFD Cloud ↗" wyżej.
     submenu: [
       { id: 51, title: "Kalkulatory", key: "calculators", path: "/narzedzia/kalkulatory", newTab: false },
-      { id: 52, title: "Raporty", key: "reports", path: "/narzedzia/raporty", newTab: false },
     ],
   },
   {

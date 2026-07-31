@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import LiveCharts from "./LiveCharts";
+import ConsoleChart from "./ConsoleChart";
+import { Pager, Plate, Section, Spec, SpecGrid, Tabs } from "@/components/Cloud/Section";
+import { Console, ConsoleHead, ConsoleLog, ConsoleMetric, ConsolePane, ConsoleRow } from "@/components/Cloud/Console";
 import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
 import type { FdsSliceJson } from "@/lib/fds/slice";
@@ -47,18 +50,18 @@ function FdsErrorCards({ errors }: { errors: FdsErrorInfo[] }) {
   return (
     <div className="space-y-2">
       {errors.map((e, i) => (
-        <div key={i} className="rounded-md border border-red-200 dark:border-red-800/50 bg-white/70 dark:bg-[#0B1120]/50 p-3">
-          <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+        <div key={i} className="rounded-panel border border-primary/40 bg-panel/70 p-3">
+          <p className="text-fr-body font-semibold text-primary">
             {e.code && (
-              <span className="font-mono text-[10px] mr-1.5 rounded bg-red-100 dark:bg-red-900/40 px-1.5 py-0.5 align-middle">
+              <span className="font-mono text-fr-sm mr-1.5 rounded-chip bg-primary/15 px-1.5 py-0.5 align-middle">
                 {t("errorCode")} {e.code}
               </span>
             )}
             {e.title}
           </p>
-          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5">{e.explanation}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            <span className="font-semibold text-slate-600 dark:text-slate-300">{t("failed.howToFix")}</span> {e.hint}
+          <p className="mt-2 font-mono text-fr-sm text-muted">{e.explanation}</p>
+          <p className="text-fr-sm text-muted mt-1">
+            <span className="font-semibold text-muted">{t("failed.howToFix")}</span> {e.hint}
           </p>
         </div>
       ))}
@@ -86,13 +89,17 @@ function extractErrorLines(log: string | null): string[] {
 }
 
 // Wyłącznie klasy kolorów/tła statusu — etykiety i opisy pochodzą z tłumaczeń.
+// Statusy w palecie serwisu zamiast czterech kolorów Tailwinda: neutralny dla
+// stanów spoczynkowych, „signal" (stal) dla pracy i sukcesu, „warn" dla
+// liczenia w toku, „primary" dla błędu. Dzięki temu strona zlecenia nie
+// wprowadza kolorów, których nie ma nigdzie indziej w serwisie.
 const STATUS_STYLE: Record<string, { color: string; bg: string; border: string; dot: string }> = {
-  pending:    { color: "text-slate-500 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-800/60", border: "border-slate-200 dark:border-slate-700", dot: "bg-slate-400 animate-pulse" },
-  dispatched: { color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/20", border: "border-blue-200 dark:border-blue-800/50", dot: "bg-blue-500 animate-pulse" },
-  running:    { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800/50", dot: "bg-amber-500 animate-pulse" },
-  done:       { color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-900/20", border: "border-green-200 dark:border-green-800/50", dot: "bg-green-500" },
-  failed:     { color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800/50", dot: "bg-red-500" },
-  cancelled:  { color: "text-slate-500 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-800/60", border: "border-slate-200 dark:border-slate-700", dot: "bg-slate-400" },
+  pending:    { color: "text-muted",  bg: "bg-panel-deep",     border: "border-hairline",     dot: "bg-muted animate-pulse" },
+  dispatched: { color: "text-signal", bg: "bg-signal/[0.07]",  border: "border-signal/30",    dot: "bg-signal animate-pulse" },
+  running:    { color: "text-warn",   bg: "bg-warn/[0.07]",    border: "border-warn/30",      dot: "bg-warn animate-pulse" },
+  done:       { color: "text-signal", bg: "bg-signal/[0.07]",  border: "border-signal/30",    dot: "bg-signal" },
+  failed:     { color: "text-primary",bg: "bg-primary/[0.07]", border: "border-primary/40",   dot: "bg-primary" },
+  cancelled:  { color: "text-muted",  bg: "bg-panel-deep",     border: "border-hairline",     dot: "bg-muted" },
 };
 
 function formatCells(n: number, thousands: string) {
@@ -101,9 +108,13 @@ function formatCells(n: number, thousands: string) {
   return String(n);
 }
 
-function elapsed(from: string | null): string {
+// Czas trwania. `to` jest opcjonalne: dla zlecenia W TOKU liczymy do teraz,
+// dla zakończonego — do znacznika zakończenia. Bez tego czas całkowity
+// ukończonej symulacji rósł w nieskończoność przy każdym renderze.
+function elapsed(from: string | null, to?: string | null): string {
   if (!from) return "—";
-  const s = Math.max(0, Math.floor((Date.now() - new Date(from).getTime()) / 1000));
+  const end = to ? new Date(to).getTime() : Date.now();
+  const s = Math.max(0, Math.floor((end - new Date(from).getTime()) / 1000));
   if (s < 60) return `${s} s`;
   if (s < 3600) return `${Math.floor(s / 60)} min ${s % 60} s`;
   return `${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min`;
@@ -127,6 +138,55 @@ function fileTypeKey(name: string): string {
   if (name.endsWith(".prt5")) return "prt5";
   if (name.endsWith(".fds"))  return "fds";
   return "other";
+}
+
+// ── Log konsoli ─────────────────────────────────────────────────────────────
+// Surowy log maszyny miesza dwie rzeczy: postęp solvera FDS i własną
+// telemetrię operacyjną runnera (rozmiary wysyłanych plików, instalacja
+// pakietów, pobieranie instalatora). To drugie nic nie mówi użytkownikowi,
+// a zajmowało cały panel — filtrujemy je.
+const LOG_NOISE =
+  /^(podglad|podglad-diag|migawka wynikow|Downloading|Instaluj|Running FDS installer|FDS extracted|FDS installed|FDS ready|Input ready|Uploading results|→)/i;
+
+type ConsoleEntry = { time: string; msg: string; tone: "ink" | "signal" | "muted" };
+
+function consoleLogEntries(log: string | null, max = 4): ConsoleEntry[] {
+  if (!log) return [];
+
+  const milestones: ConsoleEntry[] = [];
+  let latestStep: ConsoleEntry | null = null;
+
+  for (const raw of log.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    const time = (line.match(/\d{2}:\d{2}:\d{2}/) ?? ["—"])[0];
+    const body = line.replace(/^\[?\d{2}:\d{2}:\d{2}(?:\.\d+)?\]?\s*/, "").trim();
+    if (!body || LOG_NOISE.test(body)) continue;
+
+    // Postęp solvera powtarza się setki razy — trzymamy tylko NAJNOWSZY wpis,
+    // skondensowany do odczytu, zamiast zalewać panel identycznymi liniami.
+    const step = body.match(/Time Step:\s*(\d+).*?Simulation Time:\s*([\d.]+)/i);
+    if (step) {
+      latestStep = {
+        time,
+        msg: `KROK ${step[1]} // T = ${parseFloat(step[2]).toFixed(2)} s`,
+        tone: "signal",
+      };
+      continue;
+    }
+
+    const isError = /^(ERROR|FDS exit 0, ale)/i.test(body);
+    milestones.push({
+      time,
+      msg: body.replace(/^===\s*/, "").replace(/\s*===$/, "").slice(0, 64),
+      tone: isError ? "ink" : "muted",
+    });
+  }
+
+  // Najnowszy krok solvera na górze, pod nim ostatnie kamienie milowe.
+  const tail = milestones.slice(-(max - (latestStep ? 1 : 0))).reverse();
+  return latestStep ? [latestStep, ...tail] : tail;
 }
 
 function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime: number } | null {
@@ -273,6 +333,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [filePage, setFilePage] = useState(1);
   const [finalCsv, setFinalCsv] = useState<{ devc: string | null; hrr: string | null }>({ devc: null, hrr: null });
   // Wyniki częściowe — migawka plików z magazynu dostępna W TRAKCIE obliczeń.
   const [partial, setPartial] = useState<Array<{ name: string; url: string; size: number | null; createdAt: string | null }>>([]);
@@ -418,6 +479,14 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   }, [job?.status, job?.results]);
 
   const allFiles = job?.results ?? [];
+  // Lista wyników potrafi mieć setki pozycji (slice per mesh per wielkość),
+  // więc renderujemy ją stronami. Zaznaczenie i pobieranie działają nadal na
+  // PEŁNYM zbiorze — stronicowanie dotyczy tylko tego, co widać.
+  const FILES_PER_PAGE = 20;
+  const filePages = Math.max(1, Math.ceil(allFiles.length / FILES_PER_PAGE));
+  const filePageSafe = Math.min(filePage, filePages);
+  const fileFrom = (filePageSafe - 1) * FILES_PER_PAGE;
+  const visibleFiles = allFiles.slice(fileFrom, fileFrom + FILES_PER_PAGE);
   const allSelected = allFiles.length > 0 && allFiles.every((f) => selected.has(f.name));
   const someSelected = allFiles.some((f) => selected.has(f.name));
   // Rozmiary paczek — ile użytkownik faktycznie ściągnie klikając „pobierz”.
@@ -591,18 +660,18 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
   // ── Stany brzegowe ──────────────────────────────────────────────────────────
   if (error === "not_found") return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl">
+    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
+      <div className="mx-auto w-full max-w-[1100px]">
         <div className="py-16 text-center">
-          <p className="text-7xl font-black text-slate-100 dark:text-slate-800 select-none leading-none mb-6">404</p>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("notFound.title")}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t("notFound.body", { caseId })}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-8">{t("notFound.hint")}</p>
+          <p className="text-7xl font-black text-hairline select-none leading-none mb-6">404</p>
+          <h2 className="text-xl font-bold text-ink mb-2">{t("notFound.title")}</h2>
+          <p className="text-fr-body text-muted mb-2">{t("notFound.body", { caseId })}</p>
+          <p className="text-fr-sm text-muted mb-8">{t("notFound.hint")}</p>
           <div className="flex items-center justify-center gap-3">
-            <Link href="/symulacje/historia" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
+            <Link href="/symulacje/historia" className="rounded-panel bg-primary px-4 py-2 text-fr-body font-semibold text-white hover:bg-primary/90 transition-colors">
               {t("notFound.history")}
             </Link>
-            <Link href="/symulacje/nowa" className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Link href="/symulacje/nowa" className="rounded-panel border border-hairline px-4 py-2 text-fr-body font-semibold text-ink hover:bg-panel-deep transition-colors">
               {t("notFound.newJob")}
             </Link>
           </div>
@@ -612,22 +681,22 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   );
 
   if (error === "connection") return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl">
-        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-8 text-center">
-          <p className="font-semibold text-red-700 dark:text-red-400 mb-1">{t("conn.title")}</p>
-          <p className="text-sm text-red-600/70 dark:text-red-500/70 mb-4">{t("conn.body")}</p>
-          <Link href="/symulacje" className="text-sm font-medium text-primary hover:underline">{t("conn.back")}</Link>
+    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
+      <div className="mx-auto w-full max-w-[1100px]">
+        <div className="rounded-card border border-primary/50 bg-primary/[0.07] p-8 text-center">
+          <p className="font-semibold text-primary mb-1">{t("conn.title")}</p>
+          <p className="mb-4 text-fr-body text-muted">{t("conn.body")}</p>
+          <Link href="/symulacje" className="text-fr-body font-medium text-primary hover:underline">{t("conn.back")}</Link>
         </div>
       </div>
     </section>
   );
 
   if (!job) return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl space-y-4">
+    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
+      <div className="mx-auto w-full max-w-[1100px] space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          <div key={i} className="h-20 rounded-card bg-panel-deep animate-pulse" />
         ))}
       </div>
     </section>
@@ -646,62 +715,156 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   const isTerminal = ["done", "failed", "cancelled"].includes(job.status);
 
   // Wspólny styl kart sekcji — spójna otoczka w całej stronie
-  const cardCls = "rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E]";
+  const cardCls = "rounded-card border border-hairline bg-panel";
+
+  // ── Dane konsoli zlecenia ──────────────────────────────────────────────
+  // Strona główna obiecuje konkretny pulpit; tu podajemy go z prawdziwymi
+  // danymi, tym samym komponentem `Console`.
+  const cStats = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
+  const cProg  = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
+  const cElapsedSec = job.startedAt
+    ? ((job.status === "done" && job.completedAt ? new Date(job.completedAt) : new Date()).getTime()
+        - new Date(job.startedAt).getTime()) / 1000
+    : null;
+  const cPct = job.status === "done" ? 100 : (cProg?.pct ?? 0);
+
+  // Etapy zlecenia — te same, które wcześniej stały w osobnym bloku osi.
+  const cStages = ([
+    { key: "pending",    label: t("timeline.accepted"),     time: null as string | null },
+    { key: "dispatched", label: t("timeline.serverUp"),     time: job.dispatchedAt },
+    { key: "running",    label: t("timeline.fds"),          time: job.startedAt },
+    { key: "done",       label: t("timeline.resultsReady"), time: job.completedAt },
+  ]).map((st) => {
+    const order = ["pending", "dispatched", "running", "done", "failed"];
+    const si = order.indexOf(st.key);
+    const ci = order.indexOf(job.status);
+    const done = si < ci || (st.key === "done" && job.status === "done");
+    const active = st.key === job.status;
+    return {
+      ...st,
+      state: (job.status === "failed" && si === ci ? "warn" : done ? "ok" : active ? "warn" : "idle") as "ok" | "warn" | "idle",
+      display: st.time
+        ? new Date(st.time).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" })
+        : done ? "OK" : active ? "…" : "—",
+    };
+  });
+
+  const cLog = consoleLogEntries(job.fdsLog);
 
   return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl">
-        <div className="space-y-5" suppressHydrationWarning>
+    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
+      <div className="mx-auto w-full max-w-[1100px]">
+        <div className="space-y-6" suppressHydrationWarning>
 
-          {/* Header */}
+          {/* Nagłówek — kicker w mono nad nazwą pliku, identyfikator i maszyna
+              jako odczyt techniczny, status po prawej. Układ jak na pozostałych
+              stronach chmury. */}
           <div>
-            <Link href="/symulacje" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
+            <Link
+              href="/symulacje"
+              className="inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-muted transition-colors hover:text-primary"
+            >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               {t("back")}
             </Link>
-            <div className="mt-2 flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-700/70 pb-4">
+
+            <div className="mt-5 flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-6">
               <div className="min-w-0">
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate">{job.fileName}</h1>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="font-mono">{job.caseId}</span>
+                <span className="mb-2 block font-mono text-fr-label uppercase text-muted">
+                  FDSRUN // ZLECENIE
+                </span>
+                <h1 className="truncate font-heading text-fr-h2 text-ink">{job.fileName}</h1>
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-fr-sm text-muted">
+                  <span className="text-ink">{job.caseId}</span>
                   {job.serverType && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                    <span className="inline-flex items-center gap-2.5">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                       {serverSpec(job.serverType).label}
                     </span>
                   )}
                 </div>
               </div>
-              <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${cfg.bg} ${cfg.color} shrink-0`}>
-                <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+              <div className={`flex shrink-0 items-center gap-2 rounded-chip border px-3 py-1.5 font-mono text-fr-label uppercase ${cfg.bg} ${cfg.border} ${cfg.color}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                 {statusLabel}
               </div>
             </div>
           </div>
 
-          {/* Status card */}
-          <div className={`rounded-xl border p-5 ${cfg.bg} ${cfg.border}`}>
-            <p className={`text-sm font-semibold ${cfg.color}`}>{statusDesc}</p>
+          {/* ── Konsola zlecenia ──────────────────────────────────────────
+              Ten sam komponent, którym strona główna pokazuje, jak wygląda
+              praca z FDSRun — tu wypełniony realnymi danymi zlecenia. */}
+          <Console
+            className="h-[420px] md:h-[520px]"
+            title={`${t("console.chart")} // ${cStats?.chid ?? job.fileName.replace(/\.fds$/i, "")}`}
+            meta={statusLabel}
+            left={
+              <>
+                <ConsoleHead label={t("console.caseId")} value={job.caseId} live={isRunning} />
+                <div className="flex flex-1 flex-col gap-8 overflow-hidden p-6">
+                  <ConsoleMetric
+                    label={t("console.cells")}
+                    value={job.totalCells ? formatCells(job.totalCells, t("tiles.thousands")) : "—"}
+                  />
+                  <ConsoleMetric
+                    label={t("console.timestep")}
+                    value={cStats?.stepSize != null ? formatDt(cStats.stepSize) : "—"}
+                    tone="text-signal"
+                  />
+                  <ConsoleMetric
+                    label={t("console.wallclock")}
+                    value={cElapsedSec != null ? (cElapsedSec < 3600 ? `${Math.round(cElapsedSec / 60)}` : (cElapsedSec / 3600).toFixed(2)) : "—"}
+                    unit={cElapsedSec != null && cElapsedSec < 3600 ? "min" : "h"}
+                  />
+                </div>
+              </>
+            }
+            right={
+              <>
+                <ConsolePane title={t("timeline.title")}>
+                  <div className="flex flex-col gap-4">
+                    {cStages.map((st) => (
+                      <ConsoleRow key={st.key} label={st.label} value={st.display} state={st.state} />
+                    ))}
+                  </div>
+                </ConsolePane>
+                <ConsolePane title={t("console.log")} badge={isRunning ? t("console.live") : undefined} deep>
+                  {cLog.length ? (
+                    <ConsoleLog entries={cLog} />
+                  ) : (
+                    <p className="font-mono text-fr-sm text-muted">{t("console.noLog")}</p>
+                  )}
+                </ConsolePane>
+              </>
+            }
+          >
+            <ConsoleChart devcCsv={finalCsv.devc ?? job.devcCsv} hrrCsv={finalCsv.hrr ?? job.hrrCsv} />
+          </Console>
+
+          {/* Karta statusu */}
+          <div className={`rounded-card border p-5 md:p-6 ${cfg.bg} ${cfg.border}`}>
+            <p className={`font-heading text-fr-h4 ${cfg.color}`}>{statusDesc}</p>
             {isActive && job.dispatchedAt && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                {t("card.sinceAccepted")} <span className="font-mono font-bold">{elapsed(job.dispatchedAt)}</span>
+              <p className="mt-2 font-mono text-fr-sm text-muted">
+                {t("card.sinceAccepted")} <span className="font-bold text-ink">{elapsed(job.dispatchedAt)}</span>
                 {job.status === "running" && job.startedAt && (
-                  <span className="ml-3">· {t("card.fdsSince")} <span className="font-mono font-bold">{elapsed(job.startedAt)}</span></span>
+                  <span className="ml-3">· {t("card.fdsSince")} <span className="font-bold text-ink">{elapsed(job.startedAt)}</span></span>
                 )}
                 {job.wallHours > 0 && (
-                  <span className="ml-2 text-slate-500 dark:text-slate-400">/ {t("card.estimated")} {mins(job.wallHours)}</span>
+                  <span className="ml-2 text-muted">/ {t("card.estimated")} {mins(job.wallHours)}</span>
                 )}
               </p>
             )}
             {job.status === "done" && job.completedAt && job.dispatchedAt && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                {t("card.totalTime")} <span className="font-mono font-bold">{elapsed(job.dispatchedAt)}</span>
+              <p className="mt-2 font-mono text-fr-sm text-muted">
+                {t("card.totalTime")}{" "}
+                <span className="font-bold text-ink">{elapsed(job.dispatchedAt, job.completedAt)}</span>
               </p>
             )}
             {job.serverType && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                {t("card.machine")} <span className="font-mono font-bold">{serverSpec(job.serverType).label}</span>
-                <span className="ml-1 text-slate-400 dark:text-slate-500">{t("card.machineNote")}</span>
+              <p className="mt-2 font-mono text-fr-sm text-muted">
+                {t("card.machine")} <span className="font-bold text-ink">{serverSpec(job.serverType).label}</span>
+                <span className="ml-1 text-faint">{t("card.machineNote")}</span>
               </p>
             )}
           </div>
@@ -712,22 +875,22 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               <div className="flex items-center gap-3 flex-wrap">
                 {isRunning && !fatalErr && (
                   job.stopRequested ? (
-                    <span className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                    <span className="flex items-center gap-1.5 rounded-panel border border-warn/40 bg-warn/[0.07] px-4 py-2 text-fr-body font-semibold text-warn">
                       <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
                       {t("actions.stopping")}
                     </span>
                   ) : confirmCancel ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 flex-wrap">
-                      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t("actions.confirmStopQ")}</span>
-                      <button onClick={handleStop} disabled={stopping} className="rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60">
+                    <div className="flex items-center gap-2 rounded-panel border border-warn/40 bg-warn/[0.07] px-3 py-2 flex-wrap">
+                      <span className="text-fr-body font-semibold text-ink">{t("actions.confirmStopQ")}</span>
+                      <button onClick={handleStop} disabled={stopping} className="rounded-panel bg-warn hover:opacity-90 px-3 py-1.5 text-fr-body font-semibold text-white transition-colors disabled:opacity-60">
                         {stopping ? t("actions.stopping") : t("actions.yesStop")}
                       </button>
-                      <button onClick={() => setConfirmCancel(false)} disabled={stopping} className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-60">
+                      <button onClick={() => setConfirmCancel(false)} disabled={stopping} className="rounded-panel border border-hairline px-3 py-1.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-60">
                         {t("actions.no")}
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => { setConfirmCancel(true); setConfirmDelete(false); }} className="flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">
+                    <button onClick={() => { setConfirmCancel(true); setConfirmDelete(false); }} className="flex items-center gap-1.5 rounded-panel border border-warn/40 bg-warn/[0.07] px-4 py-2 text-fr-body font-semibold text-warn hover:bg-warn/[0.12] transition-colors">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 16V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2z" /></svg>
                       {t("actions.stop")}
                     </button>
@@ -735,24 +898,24 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 )}
 
                 {confirmDelete ? (
-                  <div className="flex flex-col gap-2 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 w-full">
-                    <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                  <div className="flex flex-col gap-2 rounded-panel border border-primary/50 bg-primary/[0.07] px-4 py-3 w-full">
+                    <p className="text-fr-body font-semibold text-ink">
                       {canCancel ? t("actions.confirmDeleteActive") : t("actions.confirmDelete")}
                     </p>
-                    <p className="text-xs text-red-600/90 dark:text-red-400/90">
+                    <p className="text-fr-sm text-muted">
                       {canCancel ? t("actions.deleteActiveBody") : t("actions.deleteBody")}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <button onClick={handleDelete} disabled={deleting} className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors disabled:opacity-60">
+                      <button onClick={handleDelete} disabled={deleting} className="rounded-panel bg-primary hover:opacity-90 px-3 py-1.5 text-fr-body font-semibold text-white transition-colors disabled:opacity-60">
                         {deleting ? t("actions.deleting") : canCancel ? t("actions.yesStopDelete") : t("actions.yesDelete")}
                       </button>
-                      <button onClick={() => setConfirmDelete(false)} disabled={deleting} className="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-60">
+                      <button onClick={() => setConfirmDelete(false)} disabled={deleting} className="rounded-panel border border-hairline px-3 py-1.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-60">
                         {t("actions.cancel")}
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setConfirmDelete(true); setConfirmCancel(false); }} className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                  <button onClick={() => { setConfirmDelete(true); setConfirmCancel(false); }} className="flex items-center gap-1.5 rounded-panel border border-primary/40 bg-primary/[0.07] px-4 py-2 text-fr-body font-semibold text-primary hover:bg-primary/[0.12] transition-colors">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     {canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}
                   </button>
@@ -760,87 +923,65 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               </div>
 
               {!confirmDelete && !confirmCancel && !job.stopRequested && (
-                <ul className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 space-y-1">
+                <ul className="text-fr-sm leading-relaxed text-muted space-y-1">
                   {isRunning && !fatalErr && (
                     <li>
-                      <span className="font-semibold text-amber-600 dark:text-amber-400">{t("actions.annStopBold")}</span> — {t("actions.annStop")}
+                      <span className="font-semibold text-warn">{t("actions.annStopBold")}</span> — {t("actions.annStop")}
                     </li>
                   )}
                   <li>
-                    <span className="font-semibold text-red-600 dark:text-red-400">{canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}</span> — {t("actions.annDelete")}
+                    <span className="font-semibold text-primary">{canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}</span> — {t("actions.annDelete")}
                     {canCancel && ` ${t("actions.annDeleteActive")}`}
                   </li>
                 </ul>
               )}
 
               {isRunning && job.stopRequested && (
-                <div className="rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-start gap-3">
-                  <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="rounded-panel border border-warn/30 bg-warn/[0.07] p-4 flex items-start gap-3">
+                  <svg className="h-5 w-5 text-warn shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <div>
-                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t("actions.softStopTitle")}</p>
-                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1">{t("actions.softStopBody")}</p>
+                    <p className="text-fr-body font-semibold text-ink">{t("actions.softStopTitle")}</p>
+                    <p className="text-fr-sm text-muted mt-1">{t("actions.softStopBody")}</p>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Timeline */}
-          <div className={`${cardCls} p-5`}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">{t("timeline.title")}</h2>
-            <div className="space-y-3">
-              {([
-                { key: "pending", label: t("timeline.accepted"), time: null as string | null },
-                { key: "dispatched", label: t("timeline.serverUp"), time: job.dispatchedAt },
-                { key: "running", label: t("timeline.fds"), time: job.startedAt },
-                { key: "done", label: t("timeline.resultsReady"), time: job.completedAt },
-              ]).map((step) => {
-                const statuses = ["pending", "dispatched", "running", "done", "failed"];
-                const stepIdx = statuses.indexOf(step.key);
-                const currentIdx = statuses.indexOf(job.status);
-                const done = stepIdx < currentIdx || (step.key === "done" && job.status === "done");
-                const active = step.key === job.status;
-                const failed = job.status === "failed" && stepIdx === currentIdx;
-                return (
-                  <div key={step.key} className="flex items-center gap-3">
-                    <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                      failed ? "bg-red-100 dark:bg-red-900/40" : done ? "bg-green-100 dark:bg-green-900/40" : active ? "bg-primary/10" : "bg-slate-100 dark:bg-slate-700"
-                    }`}>
-                      {done ? (
-                        <svg className="h-3 w-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                      ) : active ? (
-                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-500" />
-                      )}
-                    </div>
-                    <span className={`text-sm ${done || active ? "font-semibold text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>{step.label}</span>
-                    {step.time && (
-                      <span className="ml-auto text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                        {new Date(step.time).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* Model details tiles */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              ...(job.serverType ? [{ label: t("tiles.machine"), value: serverSpec(job.serverType).label }] : []),
-              { label: t("tiles.cells"), value: formatCells(job.totalCells, t("tiles.thousands")) },
-              { label: t("tiles.simTime"), value: `${job.tEnd} s` },
-              { label: t("tiles.vcpuHours"), value: job.vcpuHours.toFixed(1) },
-              { label: t("tiles.netPrice"), value: money(job.price) },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-white dark:bg-[#1E232E] border border-slate-200 dark:border-slate-700 p-4">
-                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
-              </div>
-            ))}
-          </div>
+          {/* ── 01 · Plik wejściowy i wycena ───────────────────────────── */}
+          <Section
+            index="01"
+            kicker={t("sec.inputKicker")}
+            title={t("sec.inputTitle")}
+            hint={t("sec.inputHint")}
+          >
+            <Plate className="p-6 md:p-8" dots>
+              <SpecGrid>
+                <Spec label={t("tiles.file")} value={<span className="font-mono text-fr-h4">{job.fileName}</span>} hint={cStats?.chid ? `CHID: ${cStats.chid}` : undefined} />
+                <Spec label={t("tiles.cells")} value={formatCells(job.totalCells, t("tiles.thousands"))} hint={job.meshCount ? t("sec.meshes", { n: job.meshCount }) : undefined} />
+                <Spec label={t("tiles.simTime")} value={String(job.tEnd)} unit="s" hint={t("sec.simTimeHint")} />
+                <Spec label={t("tiles.netPrice")} value={money(job.price)} tone="text-primary" hint={t("sec.priceHint")} />
+              </SpecGrid>
+            </Plate>
+          </Section>
+
+          {/* ── 02 · Dobrana maszyna ───────────────────────────────────── */}
+          <Section
+            index="02"
+            kicker={t("sec.machineKicker")}
+            title={t("sec.machineTitle")}
+            hint={t("sec.machineHint")}
+          >
+            <Plate className="p-6 md:p-8">
+              <SpecGrid>
+                <Spec label={t("tiles.machine")} value={(job.serverType ?? "—").toUpperCase()} hint={t("sec.provider")} />
+                <Spec label={t("sec.cores")} value={serverSpec(job.serverType).cores ?? "—"} unit="vCPU" hint={job.meshCount ? t("sec.coresHint", { n: job.meshCount }) : undefined} />
+                <Spec label={t("tiles.vcpuHours")} value={job.vcpuHours.toFixed(1)} unit="h" hint={t("sec.vcpuHint")} />
+                <Spec label={t("sec.estWall")} value={job.wallHours > 0 ? mins(job.wallHours) : "—"} hint={t("sec.estWallHint")} />
+              </SpecGrid>
+            </Plate>
+          </Section>
 
           {/* Postęp i logi */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
@@ -870,23 +1011,36 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               : null;
 
             return (
-              <div className={cardCls}>
-                <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("progress.title")}</span>
-                    {job.status === "running" && <span className="text-[10px] text-slate-500 dark:text-slate-400">{t("progress.refresh")}</span>}
-                  </div>
-                  <div className="flex rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden text-xs font-semibold">
+              <Section
+                index="03"
+                kicker={t("sec.progressKicker")}
+                title={t("progress.title")}
+                hint={t("sec.progressHint")}
+                actions={
+                  <>
+                    {job.status === "running" && (
+                      <span className="font-mono text-fr-label uppercase text-muted">{t("progress.refresh")}</span>
+                    )}
                     {(["basic", "advanced"] as const).map((mode) => (
-                      <button key={mode} onClick={() => setLogMode(mode)} className={`px-3 py-1.5 transition-colors ${logMode === mode ? "bg-primary text-white" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}>
+                      <button
+                        key={mode}
+                        onClick={() => setLogMode(mode)}
+                        className={`rounded-chip border px-3 py-1.5 font-mono text-fr-label uppercase transition-colors ${
+                          logMode === mode
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-hairline text-muted hover:text-ink"
+                        }`}
+                      >
                         {mode === "basic" ? t("progress.basic") : t("progress.advanced")}
                       </button>
                     ))}
-                  </div>
-                </div>
+                  </>
+                }
+              >
+              <Plate>
 
                 {logMode === "basic" ? (
-                  <div className="p-5 space-y-4">
+                  <div className="space-y-5 p-6">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {[
                         { label: t("progress.duration"), value: elapsedSec != null ? (elapsedSec < 60 ? `${Math.round(elapsedSec)} s` : elapsedSec < 3600 ? `${Math.floor(elapsedSec / 60)} min` : `${(elapsedSec / 3600).toFixed(1)} h`) : "—" },
@@ -894,21 +1048,21 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                         { label: isEstimate ? t("progress.doneEst") : t("progress.doneLabel"), value: displayPct != null ? `${displayPct.toFixed(1)}%` : "—" },
                         { label: t("progress.remaining"), value: isDone ? t("progress.finished") : remainingStr },
                       ].map((item) => (
-                        <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-4 py-3">
-                          <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">{item.value}</p>
+                        <div key={item.label} className="rounded-panel border border-hairline-soft bg-canvas px-4 py-3">
+                          <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{item.label}</p>
+                          <p className="fr-num font-heading text-fr-h4 text-ink">{item.value}</p>
                         </div>
                       ))}
                     </div>
 
                     {displayPct != null && (
                       <div>
-                        <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                          <div className={`h-full rounded-full transition-all duration-700 ${isDone ? "bg-green-500" : fdsProgress ? "bg-primary" : "bg-slate-400"}`} style={{ width: `${displayPct}%` }} />
+                        <div className="h-3 w-full rounded-full bg-panel-deep overflow-hidden">
+                          <div className={`h-full rounded-full transition-all duration-700 ${isDone ? "bg-signal" : fdsProgress ? "bg-primary" : "bg-muted"}`} style={{ width: `${displayPct}%` }} />
                         </div>
-                        <div className="flex justify-between mt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                        <div className="flex justify-between mt-1 text-fr-sm font-mono text-muted">
                           <span>0 s</span>
-                          <span className="text-slate-300 dark:text-slate-600 italic">{isEstimate ? t("progress.estProgress") : ""}</span>
+                          <span className="text-faint italic">{isEstimate ? t("progress.estProgress") : ""}</span>
                           <span>{job.tEnd} s</span>
                         </div>
                       </div>
@@ -928,9 +1082,9 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                             { label: t("progress.cells"), value: (stats.totalCells ?? job.totalCells) != null ? (stats.totalCells ?? job.totalCells)!.toLocaleString(numLocale) : "—" },
                             { label: t("progress.fdsStart"), value: stats.startTime ?? "—" },
                           ].map((item) => (
-                            <div key={item.label} className="rounded-lg bg-slate-50 dark:bg-[#0B1120] border border-slate-100 dark:border-slate-700 px-3 py-2">
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">{item.label}</p>
-                              <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-200 truncate">{item.value}</p>
+                            <div key={item.label} className="rounded-panel border border-hairline-soft bg-canvas px-3 py-2.5">
+                              <p className="mb-1 font-mono text-fr-label uppercase text-muted">{item.label}</p>
+                              <p className="truncate font-mono text-fr-sm font-semibold text-ink">{item.value}</p>
                             </div>
                           ))}
                         </div>
@@ -939,37 +1093,42 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
                     {logTail && (
                       <div>
-                        <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">{t("progress.lastEvents")}</p>
-                        <div className="rounded-lg bg-slate-900 p-3"><pre className="text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap">{logTail}</pre></div>
+                        <p className="mb-2 font-mono text-fr-label uppercase text-muted">{t("progress.lastEvents")}</p>
+                        <div className="rounded-panel bg-well p-3"><pre className="text-fr-sm font-mono text-signal leading-relaxed whitespace-pre-wrap">{logTail}</pre></div>
                       </div>
                     )}
 
                     {!job.fdsLog && job.status === "running" && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">{t("progress.waitingFirst")}</p>
+                      <p className="text-fr-sm text-muted text-center py-2">{t("progress.waitingFirst")}</p>
                     )}
                   </div>
                 ) : (
-                  <div className="p-5">
-                    <div ref={termRef} className="rounded-lg bg-slate-900 p-3 text-[11px] font-mono text-green-400 leading-relaxed whitespace-pre-wrap break-all" style={{ height: "480px", overflowY: "scroll" }}
+                  <div className="p-6">
+                    <div ref={termRef} className="rounded-panel bg-well p-3 text-fr-sm font-mono text-signal leading-relaxed whitespace-pre-wrap break-all" style={{ height: "480px", overflowY: "scroll" }}
                       onScroll={(e) => { const el = e.currentTarget; termScrolledUpRef.current = el.scrollHeight - el.scrollTop - el.clientHeight > 60; }}>
                       {job.fdsLog ?? t("progress.waitingData")}
                     </div>
                   </div>
                 )}
-              </div>
+              </Plate>
+              </Section>
             );
           })()}
 
-          {/* Podgląd przekroju na żywo */}
+          {/* ── 04 · Wykresy i podgląd ─────────────────────────────────── */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (
-            <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} caseId={job.caseId} done={job.status === "done"} />
+            <Section
+              index="04"
+              kicker={t("sec.chartsKicker")}
+              title={t("sec.chartsTitle")}
+              hint={t("sec.chartsHint")}
+            >
+              <div className="space-y-4">
+                <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} caseId={job.caseId} done={job.status === "done"} />
+                <LiveCharts devcCsv={finalCsv.devc ?? job.devcCsv} hrrCsv={finalCsv.hrr ?? job.hrrCsv} setpoints={job.devcSetpoints} running={isRunning && !fatalErr} />
+              </div>
+            </Section>
           )}
-
-          {/* Wyniki na żywo — wykresy DEVC / HRR */}
-          {(job.status === "running" || job.status === "done" || job.status === "failed") && (
-            <LiveCharts devcCsv={finalCsv.devc ?? job.devcCsv} hrrCsv={finalCsv.hrr ?? job.hrrCsv} setpoints={job.devcSetpoints} running={isRunning && !fatalErr} />
-          )}
-
           {/* Wyniki częściowe — pobieranie W TRAKCIE obliczeń, bez zatrzymywania */}
           {(job.status === "running" || job.status === "dispatched") && (() => {
             const snapPct = snapshot && job.tEnd > 0
@@ -977,18 +1136,18 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               : null;
             return (
               <div className={cardCls}>
-                <div className="px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
-                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t("partial.title")}</span>
-                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{t("partial.lead")}</p>
+                <div className="px-5 pt-4 pb-3 border-b border-hairline-soft">
+                  <span className="font-mono text-fr-micro uppercase text-faint">{t("partial.title")}</span>
+                  <p className="mt-0.5 text-fr-sm text-muted">{t("partial.lead")}</p>
                 </div>
 
-                <div className="p-5 space-y-4">
+                <div className="space-y-5 p-6">
                   {/* Akcje */}
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       onClick={() => downloadMany(partial)}
                       disabled={partial.length === 0 || seqRunning}
-                      className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -999,7 +1158,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                     <button
                       onClick={loadPartial}
                       disabled={partialLoading}
-                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60"
+                      className="flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-2 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep disabled:opacity-60"
                     >
                       <svg className={`h-3.5 w-3.5 ${partialLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1010,14 +1169,14 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
                   {/* Zakres: do jakiego czasu symulacji sięgają te wyniki */}
                   {partial.length === 0 ? (
-                    <p className="py-2 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="py-2 text-fr-sm text-muted">
                       {partialLoading ? t("partial.loading") : t("partial.empty")}
                     </p>
                   ) : (
-                    <div className="rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] px-4 py-3">
+                    <div className="rounded-panel border border-hairline-soft bg-canvas px-4 py-3">
                       {snapshot ? (
                         <>
-                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          <p className="text-fr-sm font-semibold text-ink">
                             {t("partial.coverage", {
                               t: snapshot.t.toFixed(1),
                               tEnd: job.tEnd,
@@ -1025,11 +1184,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                             })}
                           </p>
                           {snapPct != null && (
-                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-hairline">
                               <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${snapPct}%` }} />
                             </div>
                           )}
-                          <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          <p className="mt-1.5 text-fr-sm text-muted">
                             {snapshot.at
                               ? `${t("partial.snapAt", { time: new Date(snapshot.at).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" }) })} · `
                               : ""}
@@ -1037,7 +1196,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                           </p>
                         </>
                       ) : (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{t("partial.coverageUnknown")}</p>
+                        <p className="text-fr-sm text-muted">{t("partial.coverageUnknown")}</p>
                       )}
                     </div>
                   )}
@@ -1045,35 +1204,35 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   {/* Lista plików — zwijana, do pobrania pojedynczo */}
                   {partial.length > 0 && (
                     <details className="group">
-                      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-primary dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+                      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                         <svg className="h-3.5 w-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                         {t("partial.showFiles", { n: partial.length })}
                       </summary>
                       <div className="mt-3 overflow-x-auto">
-                        <table className="w-full border-collapse text-sm">
+                        <table className="w-full border-collapse text-fr-body">
                           <thead>
-                            <tr className="border-b border-slate-100 dark:border-slate-700">
-                              <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("results.thFile")}</th>
-                              <th className="hidden pb-2 pl-4 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 sm:table-cell">{t("results.thType")}</th>
-                              <th className="pb-2 pl-4 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("results.thSize")}</th>
+                            <tr className="border-b border-hairline-soft">
+                              <th className="pb-2 text-left text-fr-sm font-semibold uppercase tracking-wider text-muted">{t("results.thFile")}</th>
+                              <th className="hidden pb-2 pl-4 text-left text-fr-sm font-semibold uppercase tracking-wider text-muted sm:table-cell">{t("results.thType")}</th>
+                              <th className="pb-2 pl-4 text-right text-fr-sm font-semibold uppercase tracking-wider text-muted">{t("results.thSize")}</th>
                               <th className="w-24 pb-2 pl-4" />
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                          <tbody className="divide-y divide-hairline-soft">
                             {partial.map((f) => (
                               <tr key={f.name}>
                                 <td className="min-w-0 max-w-[220px] py-2.5 align-middle">
                                   <div className="flex items-center gap-2">
-                                    <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
-                                    <span className="truncate font-mono text-slate-700 dark:text-slate-200">{f.name}</span>
+                                    <span className="shrink-0 text-fr-body leading-none">{fileIcon(f.name)}</span>
+                                    <span className="truncate font-mono text-ink">{f.name}</span>
                                   </div>
                                 </td>
-                                <td className="hidden whitespace-nowrap py-2.5 pl-4 align-middle text-xs text-slate-500 dark:text-slate-400 sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
-                                <td className="whitespace-nowrap py-2.5 pl-4 text-right align-middle font-mono text-xs text-slate-500 dark:text-slate-400">{formatSize(f.size)}</td>
+                                <td className="hidden whitespace-nowrap py-2.5 pl-4 align-middle text-fr-sm text-muted sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
+                                <td className="whitespace-nowrap py-2.5 pl-4 text-right align-middle font-mono text-fr-sm text-muted">{formatSize(f.size)}</td>
                                 <td className="py-2.5 pl-4 text-right align-middle">
-                                  <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+                                  <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep">
                                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
@@ -1088,9 +1247,9 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                     </details>
                   )}
 
-                  {dlMsg && <p className="text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
-                  {dlWarn && <p className="text-[11px] text-amber-600 dark:text-amber-400">{dlWarn}</p>}
-                  <p className="text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">{t("partial.note")}</p>
+                  {dlMsg && <p className="text-fr-sm text-muted">{dlMsg}</p>}
+                  {dlWarn && <p className="text-fr-sm text-warn">{dlWarn}</p>}
+                  <p className="text-fr-sm leading-relaxed text-faint">{t("partial.note")}</p>
                 </div>
               </div>
             );
@@ -1101,37 +1260,38 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
             const explained = explainFdsErrors(job.fdsLog, errLocale);
             if (explained.length === 0) return null;
             return (
-              <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 flex items-start gap-4">
-                <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" /></svg>
+              <div className="rounded-card border border-warn/40 bg-warn/[0.07] p-5 flex items-start gap-4">
+                <svg className="h-5 w-5 text-warn shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" /></svg>
                 <div className="min-w-0 w-full">
-                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t("warn.title")}</p>
-                  <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1">{t("warn.body")}</p>
+                  <p className="text-fr-body font-semibold text-ink">{t("warn.title")}</p>
+                  <p className="text-fr-sm text-muted mt-1">{t("warn.body")}</p>
                   <div className="mt-3"><FdsErrorCards errors={explained} /></div>
                 </div>
               </div>
             );
           })()}
 
-          {/* Wyniki */}
+          {/* ── 05 · Wyniki ────────────────────────────────────────────── */}
           {job.status === "done" && job.results && job.results.length > 0 && (
-            <div className="rounded-xl border border-green-200 dark:border-green-800/50 bg-white dark:bg-[#1E232E] p-6">
+            <Section
+              index="05"
+              kicker={t("sec.resultsKicker")}
+              title={`${t("results.title")} (${job.results.length}${allSize ? ` · ${allSize.label}` : ""})`}
+              hint={t("sec.resultsHint")}
+            >
+            <div className="rounded-card border border-signal/30 bg-panel p-6">
               <div className="flex items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer" />
-                  <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {t("results.title")}
-                    <span className="ml-1.5 text-slate-500 dark:text-slate-400 font-normal" title={allSize ? t("results.totalSizeHint") : undefined}>
-                      ({job.results.length}{allSize ? ` · ${allSize.label}` : ""})
-                    </span>
-                  </h2>
-                </div>
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 cursor-pointer rounded-chip border-hairline text-primary" />
+                  <span className="font-mono text-fr-label uppercase text-muted">{t("results.selectAll")}</span>
+                </label>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || seqRunning} className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || seqRunning} className="flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1.5 text-fr-sm font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.downloadSelected")}
-                    {someSelected && selectedSize ? <span className="font-normal text-slate-500 dark:text-slate-400">({selectedSize.label})</span> : null}
+                    {someSelected && selectedSize ? <span className="font-normal text-muted">({selectedSize.label})</span> : null}
                   </button>
-                  <button onClick={() => downloadMany(allFiles, true)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={() => downloadMany(allFiles, true)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-panel bg-primary hover:bg-primary/90 px-3 py-1.5 text-fr-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.zipAll")}
                     {allSize ? <span className="font-normal text-white/75">({allSize.label})</span> : null}
@@ -1139,36 +1299,36 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 </div>
               </div>
 
-              {dlMsg && <p className="mb-1.5 text-[11px] text-slate-500 dark:text-slate-400">{dlMsg}</p>}
-              {dlWarn && <p className="mb-1.5 text-[11px] text-amber-600 dark:text-amber-400">{dlWarn}</p>}
+              {dlMsg && <p className="mb-1.5 text-fr-sm text-muted">{dlMsg}</p>}
+              {dlWarn && <p className="mb-1.5 text-fr-sm text-warn">{dlWarn}</p>}
 
               {/* Ratunek na urwane pobrania: podział wyników na mniejsze paczki */}
               <details
                 open={pkgOpen}
                 onToggle={(e) => setPkgOpen((e.target as HTMLDetailsElement).open)}
-                className="group mb-4 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-[#0B1120] px-4 py-3"
+                className="group mb-4 rounded-panel border border-hairline-soft bg-canvas px-4 py-3"
               >
-                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-primary dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                   <svg className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                   {t("results.splitTitle")}
                 </summary>
 
-                <p className="mt-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                <p className="mt-2 text-fr-sm leading-relaxed text-muted">
                   {t("results.splitLead", { name: caseId })}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t("results.splitSize")}</span>
+                  <span className="text-fr-sm font-semibold text-muted">{t("results.splitSize")}</span>
                   {PACKAGE_SIZE_OPTIONS.map((b) => (
                     <button
                       key={b}
                       onClick={() => setPkgTarget(b)}
-                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      className={`rounded-panel border px-2.5 py-1 text-fr-sm font-semibold transition-colors ${
                         b === pkgTarget
                           ? "border-primary bg-primary text-white"
-                          : "border-slate-200 text-slate-600 hover:bg-white dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                          : "border-hairline text-muted hover:bg-panel"
                       }`}
                     >
                       {packageLabel(b)}
@@ -1180,17 +1340,17 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   {packages.map((part, i) => {
                     const partSize = totalSize(part);
                     return (
-                      <li key={i} className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 dark:bg-[#1E232E]">
-                        <span className="min-w-0 text-xs text-slate-600 dark:text-slate-300">
+                      <li key={i} className="flex items-center justify-between gap-3 rounded-panel bg-panel px-3 py-2">
+                        <span className="min-w-0 text-fr-sm text-muted">
                           <span className="font-semibold">{t("results.partLabel", { i: i + 1, n: packages.length })}</span>
-                          <span className="ml-1.5 text-slate-500 dark:text-slate-400">
+                          <span className="ml-1.5 text-muted">
                             {t("results.partMeta", { files: part.length, size: partSize?.label ?? "—" })}
                           </span>
                         </span>
                         <button
                           onClick={() => downloadPart(part, i + 1, packages.length)}
                           disabled={seqRunning}
-                          className="shrink-0 rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                          className="shrink-0 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {t("results.download")}
                         </button>
@@ -1199,52 +1359,52 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   })}
                 </ul>
 
-                <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
+                <div className="mt-3 border-t border-hairline pt-3">
                   <button
                     onClick={() => void downloadEach(allFiles)}
                     disabled={seqRunning}
-                    className="text-xs font-semibold text-primary transition-colors hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                    className="text-fr-sm font-semibold text-primary transition-colors hover:underline disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {t("results.perFile")}
                   </button>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 text-fr-sm leading-relaxed text-muted">
                     {canPickFolder ? t("results.perFileFolder", { name: caseId }) : t("results.perFileLoose")}
                   </p>
                 </div>
               </details>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
+                <table className="w-full text-fr-body border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-700">
+                    <tr className="border-b border-hairline-soft">
                       <th className="pb-2 pr-3 w-8" />
-                      <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("results.thFile")}</th>
-                      <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4 hidden sm:table-cell">{t("results.thType")}</th>
-                      <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4 hidden sm:table-cell">{t("results.thCreated")}</th>
-                      <th className="pb-2 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4">{t("results.thSize")}</th>
+                      <th className="pb-2 text-left text-fr-sm font-semibold uppercase tracking-wider text-muted">{t("results.thFile")}</th>
+                      <th className="pb-2 text-left text-fr-sm font-semibold uppercase tracking-wider text-muted pl-4 hidden sm:table-cell">{t("results.thType")}</th>
+                      <th className="pb-2 text-left text-fr-sm font-semibold uppercase tracking-wider text-muted pl-4 hidden sm:table-cell">{t("results.thCreated")}</th>
+                      <th className="pb-2 text-right text-fr-sm font-semibold uppercase tracking-wider text-muted pl-4">{t("results.thSize")}</th>
                       <th className="pb-2 pl-4 w-24" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                    {job.results.map((f) => (
+                  <tbody className="divide-y divide-hairline-soft">
+                    {visibleFiles.map((f) => (
                       <tr key={f.name} className="group">
                         <td className="py-2.5 pr-3 align-middle">
-                          <input type="checkbox" checked={selected.has(f.name)} onChange={() => toggleFile(f.name)} className="h-4 w-4 rounded border-slate-300 text-primary cursor-pointer" />
+                          <input type="checkbox" checked={selected.has(f.name)} onChange={() => toggleFile(f.name)} className="h-4 w-4 rounded border-hairline text-primary cursor-pointer" />
                         </td>
                         <td className="py-2.5 align-middle min-w-0 max-w-[200px]">
                           <div className="flex items-center gap-2">
-                            <span className="shrink-0 text-base leading-none">{fileIcon(f.name)}</span>
-                            <span className="font-mono text-slate-700 dark:text-slate-200 truncate">{f.name}</span>
+                            <span className="shrink-0 text-fr-body leading-none">{fileIcon(f.name)}</span>
+                            <span className="font-mono text-ink truncate">{f.name}</span>
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:hidden pl-6">{t(`fileType.${fileTypeKey(f.name)}`)}</p>
+                          <p className="text-fr-sm text-muted mt-0.5 sm:hidden pl-6">{t(`fileType.${fileTypeKey(f.name)}`)}</p>
                         </td>
-                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
-                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:table-cell">
+                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-fr-sm text-muted hidden sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
+                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-fr-sm font-mono text-muted hidden sm:table-cell">
                           {f.createdAt ? new Date(f.createdAt).toLocaleString(numLocale, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
                         </td>
-                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-xs font-mono text-slate-500 dark:text-slate-400 text-right">{formatSize(f.size)}</td>
+                        <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-fr-sm font-mono text-muted text-right">{formatSize(f.size)}</td>
                         <td className="py-2.5 pl-4 align-middle text-right">
-                          <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                          <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted hover:bg-panel-deep transition-colors">
                             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             {t("results.download")}
                           </button>
@@ -1254,27 +1414,44 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   </tbody>
                 </table>
               </div>
+
+              <Pager
+                page={filePageSafe}
+                pages={filePages}
+                total={allFiles.length}
+                from={fileFrom + 1}
+                to={Math.min(fileFrom + FILES_PER_PAGE, allFiles.length)}
+                onPage={setFilePage}
+                labelRange={t("results.range", {
+                  from: fileFrom + 1,
+                  to: Math.min(fileFrom + FILES_PER_PAGE, allFiles.length),
+                  total: allFiles.length,
+                })}
+                labelPrev={t("results.prev")}
+                labelNext={t("results.next")}
+              />
             </div>
+            </Section>
           )}
 
           {/* Płatność */}
           {job.status === "done" && (
-            <div className={`rounded-xl border p-5 ${job.paymentStatus === "paid" ? "border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20" : "border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20"}`}>
+            <div className={`rounded-card border p-5 ${job.paymentStatus === "paid" ? "border-signal/30 bg-signal/[0.07]" : "border-warn/30 bg-warn/[0.07]"}`}>
               {platnosc === "sukces" && job.paymentStatus !== "paid" && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">{t("payment.verifying")}</p>
+                <p className="text-fr-sm text-warn mb-3">{t("payment.verifying")}</p>
               )}
               {platnosc === "anulowano" && (
-                <p className="text-xs text-red-600 dark:text-red-400 mb-3">{t("payment.cancelledMsg")}</p>
+                <p className="text-fr-sm text-primary mb-3">{t("payment.cancelledMsg")}</p>
               )}
 
               {job.paymentStatus === "paid" ? (
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 shrink-0">
-                    <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-signal/15 shrink-0">
+                    <svg className="h-5 w-5 text-signal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-green-700 dark:text-green-400">{t("payment.done")}</p>
-                    <p className="text-xs text-green-600/70 dark:text-green-500/70 mt-0.5">
+                    <p className="text-fr-body font-semibold text-signal">{t("payment.done")}</p>
+                    <p className="mt-1 text-fr-sm text-muted">
                       {t("payment.amount")} <span className="font-semibold">{money(job.price, true)}</span> {t("payment.net")}
                     </p>
                   </div>
@@ -1282,14 +1459,14 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               ) : (
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">{t("payment.awaiting")}</p>
-                    <p className="text-xs text-amber-600/80 dark:text-amber-500 mt-0.5">
+                    <p className="text-fr-body font-semibold text-warn">{t("payment.awaiting")}</p>
+                    <p className="text-fr-sm text-warn/80 mt-0.5">
                       {t("payment.toPay")} <span className="font-bold">{money(job.price, true)}</span> {t("payment.net")}
-                      <span className="ml-1 text-amber-500/70 dark:text-amber-600">(~{money(job.price * 1.23, true)} {t("payment.gross")})</span>
+                      <span className="ml-1 text-warn/70">(~{money(job.price * 1.23, true)} {t("payment.gross")})</span>
                     </p>
-                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-1">{t("payment.note")}</p>
+                    <p className="text-fr-sm text-warn/70 mt-1">{t("payment.note")}</p>
                   </div>
-                  <button onClick={handlePay} disabled={paying} className="flex items-center gap-2 rounded-lg bg-primary hover:bg-primary/90 px-5 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
+                  <button onClick={handlePay} disabled={paying} className="flex items-center gap-2 rounded-panel bg-primary hover:bg-primary/90 px-5 py-2.5 text-fr-body font-bold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
                     {paying ? (
                       <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
                     ) : (
@@ -1304,11 +1481,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
           {/* Anulowano */}
           {job.status === "cancelled" && (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5 flex items-start gap-4">
-              <svg className="h-5 w-5 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div className="rounded-card border border-hairline bg-panel-deep/40 p-5 flex items-start gap-4">
+              <svg className="h-5 w-5 text-muted shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t("cancelled.title")}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t("cancelled.body")}</p>
+                <p className="font-mono text-fr-micro uppercase text-faint">{t("cancelled.title")}</p>
+                <p className="text-fr-sm text-muted mt-1">{t("cancelled.body")}</p>
               </div>
             </div>
           )}
@@ -1320,13 +1497,13 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
             const errLines = extractErrorLines(job.fdsLog);
             const explained = explainFdsErrors(job.fdsLog, errLocale);
             return (
-              <div className="rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-5 flex items-start gap-4">
-                <svg className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="rounded-card border border-primary/40 bg-primary/[0.07] p-5 flex items-start gap-4">
+                <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div className="min-w-0 w-full">
-                  <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                  <p className="text-fr-body font-semibold text-primary">
                     {launchFailure ? t("failed.launchTitle") : t("failed.interruptedTitle")}
                   </p>
-                  <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
+                  <p className="text-fr-sm text-muted mt-1">
                     {launchFailure ? t("failed.launchBody") : t("failed.interruptedBody")}
                     {stillRunning && ` ${t("failed.serverFinishing")}`}
                     {job.fdsExitCode != null && <> {" "}{t("failed.exitCode", { code: job.fdsExitCode })}</>}
@@ -1334,19 +1511,19 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
                   {explained.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2">{t("failed.whatMeans")}</p>
+                      <p className="text-fr-sm font-semibold text-primary mb-2">{t("failed.whatMeans")}</p>
                       <FdsErrorCards errors={explained} />
                     </div>
                   )}
 
                   {errLines.length > 0 && (
                     <details className="mt-3" open={explained.length === 0}>
-                      <summary className="text-[11px] font-medium text-red-600/80 dark:text-red-500 cursor-pointer select-none">{t("failed.rawConsole")}</summary>
-                      <div className="mt-2 rounded-lg bg-slate-900 p-3 max-h-56 overflow-auto"><pre className="text-[11px] font-mono text-red-300 leading-relaxed whitespace-pre-wrap break-all">{errLines.join("\n")}</pre></div>
+                      <summary className="text-fr-sm font-medium text-muted cursor-pointer select-none">{t("failed.rawConsole")}</summary>
+                      <div className="mt-2 rounded-panel bg-well p-3 max-h-56 overflow-auto"><pre className="text-fr-sm font-mono text-primary leading-relaxed whitespace-pre-wrap break-all">{errLines.join("\n")}</pre></div>
                     </details>
                   )}
 
-                  <p className="text-xs text-red-600/80 dark:text-red-500 mt-3">
+                  <p className="text-fr-sm text-muted mt-3">
                     {t("failed.noCharge")}{" "}
                     <a href="mailto:biuro@fp-solutions.pl" className="underline">biuro@fp-solutions.pl</a>
                   </p>

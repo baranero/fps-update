@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { TONE_SURFACE, TONE_TEXT } from "@/lib/tone";
+import { Btn, SectionLabel, Skeleton, inputCls, labelCls } from "@/components/Cloud/ui";
 
 type Profile = {
   full_name: string;
@@ -17,12 +19,9 @@ const empty: Profile = { full_name: "", company: "", nip: "", phone: "", address
 type Msg = { ok: boolean; text: string };
 
 function Toast({ msg, onDismiss }: { msg: Msg; onDismiss: () => void }) {
+  const tone = msg.ok ? "ok" : "primary";
   return (
-    <div className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium ${
-      msg.ok
-        ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
-        : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-    }`}>
+    <div className={`flex items-center gap-3 rounded-panel border px-4 py-3 text-fr-sm ${TONE_SURFACE[tone]} ${TONE_TEXT[tone]}`}>
       {msg.ok ? (
         <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -33,7 +32,7 @@ function Toast({ msg, onDismiss }: { msg: Msg; onDismiss: () => void }) {
         </svg>
       )}
       <span className="flex-1">{msg.text}</span>
-      <button onClick={onDismiss} className="opacity-50 hover:opacity-100 transition-opacity">
+      <button onClick={onDismiss} className="opacity-50 transition-opacity hover:opacity-100">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
@@ -110,31 +109,27 @@ export default function InvoiceDataForm({ variant = "section" }: { variant?: "se
     opts?: { placeholder?: string; hint?: string }
   ) => (
     <div>
-      <label className="block mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
-        {label}
-      </label>
-      {opts?.hint && (
-        <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">{opts.hint}</p>
-      )}
+      <label className={labelCls}>{label}</label>
+      {opts?.hint && <p className="-mt-1 mb-1.5 text-fr-sm text-muted">{opts.hint}</p>}
       <input
         type="text"
         value={profile[key]}
         onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
         placeholder={opts?.placeholder}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-primary dark:focus:border-primary transition-colors"
+        className={inputCls}
       />
     </div>
   );
 
   if (loading) {
-    return <div className="h-40 max-w-lg rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />;
+    return <Skeleton className="h-40 max-w-lg" />;
   }
 
   if (loadError) {
-    return <p className="text-sm text-red-500">{t("invoice.saveErr")}</p>;
+    return <p className="text-fr-sm text-primary">{t("invoice.saveErr")}</p>;
   }
 
-  const formCls = variant === "panel" ? "space-y-4" : "space-y-4 max-w-lg";
+  const formCls = variant === "panel" ? "space-y-4" : "max-w-lg space-y-4";
 
   const form = (
     <form onSubmit={handleSave} className={formCls}>
@@ -145,13 +140,9 @@ export default function InvoiceDataForm({ variant = "section" }: { variant?: "se
       {field(t("invoice.address"), "address", { placeholder: t("invoice.phAddress") })}
 
       {saveMsg && <Toast msg={saveMsg} onDismiss={() => setSaveMsg(null)} />}
-      <button
-        type="submit"
-        disabled={saveLoading}
-        className="rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-60 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
-      >
+      <Btn type="submit" disabled={saveLoading}>
         {saveLoading ? t("invoice.saving") : t("invoice.save")}
-      </button>
+      </Btn>
     </form>
   );
 
@@ -159,7 +150,7 @@ export default function InvoiceDataForm({ variant = "section" }: { variant?: "se
   if (variant === "panel") {
     return (
       <div className="space-y-4">
-        <p className="text-xs text-slate-500 dark:text-slate-400">{t("invoice.subtitle")}</p>
+        <p className="text-fr-sm text-muted">{t("invoice.subtitle")}</p>
         {form}
       </div>
     );
@@ -167,9 +158,9 @@ export default function InvoiceDataForm({ variant = "section" }: { variant?: "se
 
   // Section: pełna sekcja z nagłówkiem — drop-in dla strony Profilu.
   return (
-    <section className="border-t border-slate-200 dark:border-slate-700 pt-8">
-      <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">{t("invoice.title")}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{t("invoice.subtitle")}</p>
+    <section className="border-t border-hairline pt-8">
+      <SectionLabel className="mb-1 block">{t("invoice.title")}</SectionLabel>
+      <p className="mb-4 text-fr-sm text-muted">{t("invoice.subtitle")}</p>
       {form}
     </section>
   );

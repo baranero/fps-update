@@ -14,14 +14,17 @@ const ThemeToggler = () => {
 
   if (!mounted) {
     // Placeholder o dokładnie takim samym rozmiarze jak przycisk — bez skoku układu
-    return <div className="h-9 w-9 rounded-lg" aria-hidden="true"></div>;
+    return <div className="h-9 w-9 rounded-tile" aria-hidden="true"></div>;
   }
 
   return (
     <button
       aria-label="Przełącz motyw"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+      // Przycisk stoi w belce obu projektów, ale tokeny powierzchni (muted/ink/
+      // panel-deep) działają też na fp-solutions.pl — jeden zestaw klas zamiast
+      // pary slate + dark:.
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-tile text-muted transition-colors hover:bg-panel-deep hover:text-ink"
     >
       {/* Ikona Słońca (Tryb Jasny) */}
       <svg

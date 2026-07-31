@@ -21,6 +21,10 @@ export const SITE_MODE: SiteMode | null =
 // Baza adresu serwisu chmury (osobna domena) — do linków krzyżowych i maili.
 export const CLOUD_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
 
+// Baza adresu witryny usługowej — do linków krzyżowych z chmury.
+export const MARKETING_URL =
+  process.env.NEXT_PUBLIC_MARKETING_URL ?? "https://fp-solutions.pl";
+
 // Link wejścia do chmury (+ opcjonalna ścieżka, np. "/signup"). W produkcji
 // absolutny na fdsrun.com; w dev względny, żeby nawigacja została lokalna.
 export function cloudUrl(path = ""): string {
@@ -28,6 +32,28 @@ export function cloudUrl(path = ""): string {
   return `${CLOUD_URL}${path}`;
 }
 
+// Lustro cloudUrl() w drugą stronę: link z fdsrun.com na fp-solutions.pl
+// (np. kalkulatory z historii raportów). W dev zostaje względny, żeby nie
+// wyrzucać z localhosta na produkcję.
+export function marketingUrl(path = ""): string {
+  if (process.env.NODE_ENV === "development") return path || "/narzedzia";
+  return `${MARKETING_URL}${path}`;
+}
+
+// ŚCIEŻKA strony głównej FDSRun w bieżącym projekcie — do nawigacji wewnątrz
+// aplikacji (router.push), więc bez hosta. W projekcie „cloud" landing stoi pod
+// czystym „/", w dev pod „/chmura" (bo „/" serwuje wtedy witrynę usług).
+// Używane po wylogowaniu i po usunięciu konta: użytkownik ma wylądować na
+// landingu FDSRun, a nie na ekranie logowania ani na stronie usługowej.
+export function cloudHomePath(): string {
+  return SITE_MODE === "cloud" ? "/" : "/chmura";
+}
+
+// Cała przestrzeń konta mieszka pod /symulacje/* (pulpit, kreator, historia,
+// rozliczenia, statystyki, profil, raporty, admin). Pod /narzedzia zostały
+// wyłącznie stuby przekierowań po starych adresach — trzymamy je na liście
+// chmury, żeby na fdsrun.com wykonały redirect zamiast wypaść 301 na
+// fp-solutions.pl, gdzie docelowe strony nie istnieją.
 const CLOUD_PATHS = [
   "/chmura", "/funkcje", "/cennik",
   "/symulacje", "/signin", "/signup", "/auth",

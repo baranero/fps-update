@@ -6,7 +6,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
-import { cloudUrl, resolveIsCloud } from "@/lib/cloud";
+import { cloudHomePath, cloudUrl, resolveIsCloud } from "@/lib/cloud";
 
 const Header = () => {
   const t = useTranslations("nav");
@@ -65,7 +65,7 @@ const Header = () => {
     setUserEmail(null);
     setAccountOpen(false);
     setNavbarOpen(false);
-    router.push("/");
+    router.push(cloudHomePath());
     router.refresh();
   }
 
@@ -74,24 +74,30 @@ const Header = () => {
 
   return (
     <header
-      className={`sticky top-0 left-0 z-40 flex w-full items-center transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm"
-          : "bg-white dark:bg-[#0B1120] border-b border-transparent"
-      }`}
+      className={
+        // FDSRun: stała, cienka belka na tokenach powierzchni (wzór Stitch).
+        // Usługi: dotychczasowe zachowanie z cieniem po przewinięciu.
+        isCloud
+          ? "sticky left-0 top-0 z-40 flex w-full items-center border-b border-hairline bg-canvas/95 backdrop-blur-md transition-colors duration-300"
+          : `sticky top-0 left-0 z-40 flex w-full items-center transition-all duration-300 ${
+              scrolled
+                ? "bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm"
+                : "bg-white dark:bg-[#0B1120] border-b border-transparent"
+            }`
+      }
     >
       <div className="container">
         <div className="relative -mx-4 flex items-center justify-between">
           {/* Logo — marka zależna od sekcji (chmura = FDSRun, usługi = FP Solutions) */}
           <div className="w-max px-4 xl:mr-16 xl:whitespace-nowrap">
             {isCloud ? (
-              <Link href="/chmura" className="header-logo flex items-center gap-2.5 py-4 lg:py-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-sm shadow-primary/30">
+              <Link href={cloudHomePath()} className="header-logo flex items-center gap-2.5 py-4 lg:py-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-tile border border-primary/30 bg-primary/10 text-primary">
                   <svg className="h-[18px] w-[18px]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.547 3.75 3.75 0 013.255 3.719z" />
                   </svg>
                 </span>
-                <span className="font-display text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                <span className="font-heading text-fr-h4 font-bold tracking-tight text-ink">
                   FDS<span className="text-primary">Run</span>
                 </span>
               </Link>
@@ -119,30 +125,32 @@ const Header = () => {
               <button
                 onClick={() => setNavbarOpen(!navbarOpen)}
                 aria-label="Menu"
-                className="absolute right-4 top-1/2 block -translate-y-1/2 rounded-lg px-3 py-[6px] ring-primary focus:ring-2 lg:hidden"
+                className="absolute right-4 top-1/2 block -translate-y-1/2 rounded-panel px-3 py-[6px] ring-primary focus:ring-2 lg:hidden"
               >
                 <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-slate-800 transition-all duration-300 dark:bg-white ${
-                    navbarOpen ? "top-[7px] rotate-45" : ""
-                  }`}
+                  className={`relative my-1.5 block h-0.5 w-[30px] transition-all duration-300 ${
+                    isCloud ? "bg-ink" : "bg-slate-800 dark:bg-white"
+                  } ${navbarOpen ? "top-[7px] rotate-45" : ""}`}
                 />
                 <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-slate-800 transition-all duration-300 dark:bg-white ${
-                    navbarOpen ? "opacity-0" : ""
-                  }`}
+                  className={`relative my-1.5 block h-0.5 w-[30px] transition-all duration-300 ${
+                    isCloud ? "bg-ink" : "bg-slate-800 dark:bg-white"
+                  } ${navbarOpen ? "opacity-0" : ""}`}
                 />
                 <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-slate-800 transition-all duration-300 dark:bg-white ${
-                    navbarOpen ? "top-[-8px] -rotate-45" : ""
-                  }`}
+                  className={`relative my-1.5 block h-0.5 w-[30px] transition-all duration-300 ${
+                    isCloud ? "bg-ink" : "bg-slate-800 dark:bg-white"
+                  } ${navbarOpen ? "top-[-8px] -rotate-45" : ""}`}
                 />
               </button>
 
               {/* Nav menu */}
               <nav
-                className={`navbar absolute right-0 z-30 w-[260px] rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-xl duration-300 dark:border-slate-700 dark:bg-[#111827] lg:visible lg:static lg:w-auto lg:border-none lg:bg-transparent lg:p-0 lg:opacity-100 lg:shadow-none dark:lg:bg-transparent ${
-                  navbarOpen ? "top-full opacity-100 visible" : "top-[120%] opacity-0 invisible"
-                }`}
+                className={`navbar absolute right-0 z-30 w-[260px] px-6 py-4 shadow-xl duration-300 lg:visible lg:static lg:w-auto lg:border-none lg:bg-transparent lg:p-0 lg:opacity-100 lg:shadow-none dark:lg:bg-transparent ${
+                  isCloud
+                    ? "rounded-panel border border-hairline bg-panel"
+                    : "rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-[#111827]"
+                } ${navbarOpen ? "top-full opacity-100 visible" : "top-[120%] opacity-0 invisible"}`}
               >
                 <ul className="block lg:flex lg:items-center lg:space-x-6 xl:space-x-10">
                   {/* Menu konsultingu tylko na usługach — na chmurze nagłówek jest slim (FDSRun) */}
@@ -204,10 +212,10 @@ const Header = () => {
                       <Link
                         href={href}
                         onClick={() => setNavbarOpen(false)}
-                        className={`flex py-2 text-sm font-medium lg:inline-flex lg:px-0 lg:py-5 ${
+                        className={`flex py-2 text-fr-body transition-colors lg:inline-flex lg:px-0 lg:py-6 ${
                           pathname === href
-                            ? "text-primary"
-                            : "text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                            ? "font-semibold text-primary lg:border-b-2 lg:border-primary"
+                            : "text-muted hover:text-ink"
                         }`}
                       >
                         {href === "/funkcje" ? tcn("features") : tcn("pricing")}
@@ -231,29 +239,29 @@ const Header = () => {
 
                   {/* Konto — mobile — tylko w chmurze; witryna usług nie ma logowania */}
                   {isCloud && (
-                  <li className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700 lg:hidden">
+                  <li className="mt-3 border-t border-hairline pt-3 lg:hidden">
                     {userEmail ? (
                       <div className="space-y-1">
-                        <p className="truncate px-1 pb-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                        <p className="truncate px-1 pb-1 font-mono text-fr-micro text-faint">
                           {userEmail}
                         </p>
                         <Link
-                          href={isCloud ? "/symulacje" : "/narzedzia"}
+                          href="/symulacje"
                           onClick={() => setNavbarOpen(false)}
-                          className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                          className="block rounded-tile px-1 py-2 text-fr-body text-muted transition-colors hover:text-ink"
                         >
-                          {isCloud ? tc("dashboard") : t("account.toolsPanel")}
+                          {tc("dashboard")}
                         </Link>
                         <Link
-                          href="/narzedzia/profil"
+                          href="/symulacje/profil"
                           onClick={() => setNavbarOpen(false)}
-                          className="block rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                          className="block rounded-tile px-1 py-2 text-fr-body text-muted transition-colors hover:text-ink"
                         >
                           {t("account.myProfile")}
                         </Link>
                         <button
                           onClick={handleLogout}
-                          className="block w-full rounded-lg px-1 py-2 text-left text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                          className="block w-full rounded-tile px-1 py-2 text-left text-fr-body text-muted transition-colors hover:text-ink"
                         >
                           {t("account.signOut")}
                         </button>
@@ -263,14 +271,14 @@ const Header = () => {
                         <Link
                           href="/signin"
                           onClick={() => setNavbarOpen(false)}
-                          className="rounded-lg px-1 py-2 text-sm font-medium text-slate-700 hover:text-primary dark:text-slate-300 dark:hover:text-white"
+                          className="rounded-tile px-1 py-2 text-fr-body text-muted transition-colors hover:text-ink"
                         >
                           {t("account.signIn")}
                         </Link>
                         <Link
                           href="/signup"
                           onClick={() => setNavbarOpen(false)}
-                          className="rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                          className="rounded-panel bg-primary px-4 py-2 text-center text-fr-body font-bold text-white transition-opacity hover:opacity-90"
                         >
                           {t("account.signUp")}
                         </Link>
@@ -297,12 +305,24 @@ const Header = () => {
 
               {/* Uruchom symulację — CTA (desktop, chmura) */}
               {isCloud && (
-                <Link
-                  href="/symulacje/nowa"
-                  className="hidden rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 lg:inline-flex"
-                >
-                  {tcn("run")}
-                </Link>
+                <>
+                  {/* „Zaloguj" jako osobny przycisk tylko dla niezalogowanych —
+                      zalogowany ma te akcje w menu konta po prawej. */}
+                  {!userEmail && (
+                    <Link
+                      href="/signin"
+                      className="hidden rounded-panel border border-hairline px-4 py-2 text-fr-body text-muted transition-colors hover:text-ink lg:inline-flex"
+                    >
+                      {t("account.signIn")}
+                    </Link>
+                  )}
+                  <Link
+                    href="/symulacje/nowa"
+                    className="hidden rounded-panel bg-primary px-4 py-2 text-fr-body font-bold text-white transition-opacity hover:opacity-90 lg:inline-flex"
+                  >
+                    {tcn("run")}
+                  </Link>
+                </>
               )}
 
               <ThemeToggler />
@@ -317,32 +337,32 @@ const Header = () => {
                       aria-label={t("account.menu")}
                       aria-expanded={accountOpen}
                       title={userEmail}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-white shadow-sm transition-opacity hover:opacity-90"
+                      className="flex h-9 w-9 items-center justify-center rounded-tile bg-primary font-heading text-fr-body font-bold uppercase text-white transition-opacity hover:opacity-90"
                     >
                       {userEmail[0]}
                     </button>
 
                     {accountOpen && (
-                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#111827]">
-                        <p className="truncate px-3 pb-2 pt-1 text-xs text-slate-500 dark:text-slate-400">{userEmail}</p>
+                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-panel border border-hairline bg-panel p-2 shadow-fr-float">
+                        <p className="truncate px-3 pb-2 pt-1 font-mono text-fr-micro text-faint">{userEmail}</p>
                         <Link
-                          href={isCloud ? "/symulacje" : "/narzedzia"}
+                          href="/symulacje"
                           onClick={() => setAccountOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                          className="block rounded-tile px-3 py-2 text-fr-body text-muted transition-colors hover:bg-panel-deep hover:text-ink"
                         >
-                          {isCloud ? tc("dashboard") : t("account.toolsPanel")}
+                          {tc("dashboard")}
                         </Link>
                         <Link
-                          href="/narzedzia/profil"
+                          href="/symulacje/profil"
                           onClick={() => setAccountOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                          className="block rounded-tile px-3 py-2 text-fr-body text-muted transition-colors hover:bg-panel-deep hover:text-ink"
                         >
                           {t("account.myProfile")}
                         </Link>
-                        <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                        <div className="my-1 border-t border-hairline-soft" />
                         <button
                           onClick={handleLogout}
-                          className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                          className="block w-full rounded-tile px-3 py-2 text-left text-fr-body text-muted transition-colors hover:bg-panel-deep hover:text-ink"
                         >
                           {t("account.signOut")}
                         </button>
@@ -355,7 +375,7 @@ const Header = () => {
                       onClick={() => setAccountOpen((o) => !o)}
                       aria-label={t("account.menu")}
                       aria-expanded={accountOpen}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                      className="flex h-9 w-9 items-center justify-center rounded-tile border border-hairline text-muted transition-colors hover:bg-panel-deep hover:text-ink"
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -363,18 +383,18 @@ const Header = () => {
                     </button>
 
                     {accountOpen && (
-                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#111827]">
+                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-panel border border-hairline bg-panel p-2 shadow-fr-float">
                         <Link
                           href="/signin"
                           onClick={() => setAccountOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                          className="block rounded-tile px-3 py-2 text-fr-body text-muted transition-colors hover:bg-panel-deep hover:text-ink"
                         >
                           {t("account.signIn")}
                         </Link>
                         <Link
                           href="/signup"
                           onClick={() => setAccountOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                          className="block rounded-tile px-3 py-2 text-fr-body font-semibold text-primary transition-colors hover:bg-primary/10"
                         >
                           {t("account.signUp")}
                         </Link>

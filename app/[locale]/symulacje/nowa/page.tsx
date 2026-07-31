@@ -6,6 +6,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { parseFds, estimateCost, FdsParseResult, FdsEstimate } from "@/lib/fds/parser";
 import { createClient } from "@/lib/supabase/client";
 import CloudMarketing from "@/components/Cloud/CloudMarketing";
+import { CHIP_SHAPE, TONE_CHIP } from "@/lib/tone";
 
 type Submission = {
   case_id: string;
@@ -28,30 +29,32 @@ function formatHours(h: number) {
   return `${h.toFixed(1)} h`;
 }
 
+// Skala złożoności w palecie serwisu: chłodny „signal" dla lekkich modeli,
+// przez neutralny, po ostrzegawczy i markowy przy najcięższych.
 function complexityColor(c: FdsEstimate["complexity"]) {
   return {
-    mała: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    średnia: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    duża: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    "bardzo duża": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    mała: TONE_CHIP.signal,
+    średnia: TONE_CHIP.muted,
+    duża: TONE_CHIP.warn,
+    "bardzo duża": TONE_CHIP.primary,
   }[c];
 }
 
 function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("symulacje.status");
   const cls: Record<string, string> = {
-    pending:    "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
-    dispatched: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    running:    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    done:       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    error:      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    pending:    TONE_CHIP.muted,
+    dispatched: TONE_CHIP.ink,
+    running:    TONE_CHIP.warn,
+    done:       TONE_CHIP.signal,
+    error:      TONE_CHIP.primary,
   };
   const label: Record<string, string> = {
     pending: t("oczekuje"), dispatched: t("wKolejce"), running: t("wTrakcie"),
     done: t("zakonczone"), error: t("blad"),
   };
   return (
-    <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls[status] ?? "bg-slate-100 text-slate-500"}`}>
+    <span className={`${CHIP_SHAPE} ${cls[status] ?? TONE_CHIP.muted}`}>
       {label[status] ?? status}
     </span>
   );
@@ -204,9 +207,9 @@ export default function SymulacjePage() {
   // Sprawdzamy uprawnienia — nie pokazujemy kreatora, zanim nie wiemy, kto to.
   if (allowed === null) {
     return (
-      <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-        <div className="container max-w-3xl">
-          <div className="h-40 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-14">
+        <div className="mx-auto w-full max-w-[1100px]">
+          <div className="h-40 rounded-card bg-panel-deep animate-pulse" />
         </div>
       </section>
     );
@@ -216,30 +219,32 @@ export default function SymulacjePage() {
   // (zero kosztu serwera), więc każdy może wgrać plik i poznać koszt. Bramka
   // dostępu jest dopiero na przycisku „Uruchom" w kroku wyceny (patrz niżej).
   return (
-    <section className="relative z-10 bg-slate-50 dark:bg-[#0B1120] min-h-screen py-10">
-      <div className="container max-w-3xl">
+    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-14">
+      <div className="mx-auto w-full max-w-[1100px]">
 
-        {/* Hero */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* Hero — ten sam układ co na stronie głównej: kicker w mono, nagłówek
+            Manrope, lead, a pod spodem pasek twardych parametrów oddzielony
+            cienką kreską. Świadomie BEZ okrągłej „pigułki" z badge'em — landing
+            takich nie ma, a to ona najbardziej odstawała od reszty. */}
+        <div className="mb-14">
+          <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{t("badge")}</span>
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-[28px]">
+              <span className="mb-3 block font-mono text-fr-label uppercase text-muted">
+                FDSRUN // NOWE ZLECENIE
+              </span>
+              <h1 className="max-w-[720px] fr-balance font-heading text-fr-h1 text-ink">
                 {t("title")}
               </h1>
-              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              <p className="mt-5 max-w-2xl text-fr-lead text-muted">
                 {t("lead")}
               </p>
             </div>
             {history.length > 0 && (
               <Link
                 href="/symulacje/historia"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:text-primary"
+                className="inline-flex shrink-0 items-center gap-2 rounded-panel border border-hairline px-4 py-2.5 text-fr-body font-semibold text-muted transition-colors hover:border-primary/40 hover:text-primary"
               >
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {t("historyLink")}
@@ -247,26 +252,24 @@ export default function SymulacjePage() {
             )}
           </div>
 
-          {/* Trust / spec strip */}
-          <div className="mt-5 flex flex-wrap gap-2">
+          {/* Pasek specyfikacji — 1:1 jak pod konsolą na stronie głównej */}
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 border-t border-hairline pt-6">
             {[t("trust.vm"), t("trust.epyc"), t("trust.payg"), t("trust.retention")].map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-[#1E232E] dark:text-slate-400"
-              >
-                <svg className="h-3 w-3 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
+              <span key={tag} className="flex items-center gap-2.5 font-mono text-fr-sm text-ink">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 {tag}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
 
-          {/* Steps indicator */}
-          <div className="flex items-center gap-2">
+          {/* Wskaźnik kroków w języku pasa etapów ze strony głównej: węzeł na
+              osi (romb dla aktywnego), etykieta meta w mono nad nazwą kroku.
+              Zamiast okrągłych pigułek z zieloną „zrobione", która wprowadzała
+              kolor spoza palety serwisu. */}
+          <div className="grid grid-cols-3 gap-4 border-b border-hairline pb-8 sm:gap-8">
             {(["upload", "review", "done"] as const).map((s, i) => {
               const labels = [t("steps.file"), t("steps.estimate"), t("steps.confirm")];
               const active = s === step || (s === "review" && step === "submitting");
@@ -274,22 +277,31 @@ export default function SymulacjePage() {
                 (s === "upload" && (step === "review" || step === "submitting" || step === "done")) ||
                 (s === "review" && step === "done");
               return (
-                <div key={s} className="flex items-center gap-2">
-                  {i > 0 && <div className={`h-px w-6 ${done || active ? "bg-primary" : "bg-slate-200 dark:bg-slate-700"}`} />}
-                  <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-                    done
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                      : active
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                  }`}>
-                    {done ? (
-                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : null}
-                    {labels[i]}
+                <div key={s} className="flex flex-col items-start">
+                  <div className="relative mb-4 flex h-8 w-full items-center">
+                    {active ? (
+                      <span className="absolute left-0 z-10 h-3 w-3 rotate-45 border border-primary bg-primary/20 shadow-[0_0_15px_rgb(var(--fr-signal)/0.35)]" />
+                    ) : done ? (
+                      <span className="absolute left-0 z-10 h-3 w-3 rotate-45 border border-signal bg-signal/30" />
+                    ) : (
+                      <span className="absolute left-[2px] z-10 h-2 w-2 border border-hairline bg-canvas" />
+                    )}
+                    <span
+                      className={`ml-5 h-px w-full ${
+                        active ? "bg-primary/25" : done ? "bg-signal/25" : "bg-hairline-soft"
+                      }`}
+                    />
                   </div>
+                  <span
+                    className={`mb-1 font-mono text-fr-label uppercase ${
+                      active ? "text-primary" : done ? "text-signal" : "text-muted"
+                    }`}
+                  >
+                    {done ? t("steps.stateDone") : active ? t("steps.stateActive") : `0${i + 1}`}
+                  </span>
+                  <span className={`font-heading text-fr-h4 ${active || done ? "text-ink" : "text-muted"}`}>
+                    {labels[i]}
+                  </span>
                 </div>
               );
             })}
@@ -297,63 +309,73 @@ export default function SymulacjePage() {
 
           {/* Step 1: Upload */}
           {step === "upload" && (
-            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-5">
-              <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">{t("upload.heading")}</h2>
+            <div className="relative overflow-hidden rounded-card border border-hairline bg-panel p-6 md:p-8">
+              {/* Znaczniki narożników — ten sam detal co w ramce analitycznej
+                  i na kartach logowania */}
+              <span className="pointer-events-none absolute left-3 top-3 h-2 w-2 border-l border-t border-hairline" />
+              <span className="pointer-events-none absolute right-3 top-3 h-2 w-2 border-r border-t border-hairline" />
+              <span className="pointer-events-none absolute bottom-3 left-3 h-2 w-2 border-b border-l border-hairline" />
+              <span className="pointer-events-none absolute bottom-3 right-3 h-2 w-2 border-b border-r border-hairline" />
+
+              <div className="relative space-y-6">
+              <h2 className="font-mono text-fr-label uppercase text-muted">{t("upload.heading")}</h2>
 
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={onDrop}
                 onClick={() => inputRef.current?.click()}
-                className={`cursor-pointer rounded-md border-2 border-dashed p-10 text-center transition-colors ${
+                className={`fr-dots relative cursor-pointer rounded-panel border border-dashed p-12 text-center transition-colors ${
                   dragging
-                    ? "border-primary bg-primary/5"
+                    ? "border-primary bg-primary/[0.06]"
                     : file
-                    ? "border-green-400 bg-green-50 dark:bg-green-900/20"
-                    : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
+                    ? "border-signal bg-signal/[0.06]"
+                    : "border-hairline hover:border-primary/40"
                 }`}
               >
                 <input ref={inputRef} type="file" accept=".fds" className="hidden" onChange={onInputChange} />
 
                 {file ? (
                   <div className="space-y-1">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 mb-3">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile border border-signal/30 bg-signal/10 text-signal">
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <p className="font-bold text-slate-900 dark:text-white">{file.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{(file.size / 1024).toFixed(1)} KB</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t("upload.pickAnother")}</p>
+                    <p className="font-mono text-fr-body font-bold text-ink">{file.name}</p>
+                    <p className="fr-num font-mono text-fr-sm text-muted">{(file.size / 1024).toFixed(1)} KB</p>
+                    <p className="mt-2 text-fr-sm text-muted">{t("upload.pickAnother")}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 mb-3">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile border border-hairline bg-panel-deep text-muted">
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                     </div>
-                    <p className="font-semibold text-slate-700 dark:text-slate-300">{t("upload.drop")}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{t("upload.formats")}</p>
+                    <p className="font-heading text-fr-h4 text-ink">{t("upload.drop")}</p>
+                    <p className="font-mono text-fr-sm text-muted">{t("upload.formats")}</p>
                   </div>
                 )}
               </div>
 
               {parseError && (
-                <div className="flex gap-3 rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 p-4">
-                  <svg className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div role="alert" className="flex gap-3 rounded-panel border border-primary/40 bg-primary/[0.07] p-4">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-red-700 dark:text-red-400">{parseError}</p>
+                  <p className="text-fr-sm text-ink">{parseError}</p>
                 </div>
               )}
 
-              <div className="flex gap-3 rounded-md border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-900/20 p-4">
-                <svg className="h-5 w-5 shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Nota o analizie lokalnej — na tokenach „signal" zamiast błękitu
+                  Tailwinda, którego paleta serwisu nie zna. */}
+              <div className="flex gap-3 rounded-panel border border-signal/25 bg-signal/[0.06] p-4">
+                <svg className="mt-0.5 h-5 w-5 shrink-0 text-signal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                  <p className="font-semibold">{t("upload.infoTitle")}</p>
+                <div className="space-y-1 text-fr-sm text-muted">
+                  <p className="font-semibold text-ink">{t("upload.infoTitle")}</p>
                   <p>{t("upload.infoBody")}</p>
                   <p>{t("upload.infoLocal")}</p>
                 </div>
@@ -362,7 +384,7 @@ export default function SymulacjePage() {
               <button
                 onClick={analyze}
                 disabled={!file || analyzing}
-                className="flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-panel bg-primary px-7 py-3.5 text-fr-body font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {analyzing ? (
                   <>
@@ -381,34 +403,35 @@ export default function SymulacjePage() {
                   </>
                 )}
               </button>
+              </div>
             </div>
           )}
 
           {/* Historia zleceń */}
           {step === "upload" && history.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">{t("upload.previousOrders")}</p>
-              <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <p className="mb-4 font-mono text-fr-label uppercase text-muted">{t("upload.previousOrders")}</p>
+              <div className="overflow-hidden rounded-card border border-hairline">
+                <div className="divide-y divide-hairline-soft">
                   {history.map((s) => (
                     <Link
                       key={s.case_id}
                       href={`/symulacje/${s.case_id}`}
-                      className="flex items-center justify-between gap-4 px-4 py-3 bg-white dark:bg-[#1E232E] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                      className="flex items-center justify-between gap-4 px-4 py-3 bg-panel hover:bg-panel-deep transition-colors group"
                     >
                       <div className="min-w-0">
-                        <p className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">{s.case_id}</p>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{s.file_name}</p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        <p className="text-fr-sm font-mono font-semibold text-muted">{s.case_id}</p>
+                        <p className="text-fr-body font-medium text-ink truncate">{s.file_name}</p>
+                        <p className="text-fr-sm text-muted mt-0.5">
                           {new Date(s.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <StatusBadge status={s.status} />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <span className="font-mono text-fr-micro uppercase text-faint">
                           {s.price.toLocaleString()} zł
                         </span>
-                        <svg className="h-4 w-4 text-slate-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-4 w-4 text-faint group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -430,16 +453,16 @@ export default function SymulacjePage() {
           {(step === "review" || step === "submitting") && parseResult && estimate && (
             <div className="space-y-5">
               {/* Summary card */}
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6">
+              <div className="rounded-panel border border-hairline bg-panel p-6">
                 <div className="flex items-start justify-between mb-5">
                   <div>
-                    <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("review.analysis")}</h2>
-                    <p className="font-bold text-slate-900 dark:text-white">{file?.name}</p>
+                    <h2 className="font-mono text-fr-micro uppercase text-faint mb-1.5">{t("review.analysis")}</h2>
+                    <p className="font-bold text-ink">{file?.name}</p>
                     {parseResult.chid && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">CHID: {parseResult.chid}</p>
+                      <p className="text-fr-sm text-muted mt-0.5">CHID: {parseResult.chid}</p>
                     )}
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${complexityColor(estimate.complexity)}`}>
+                  <span className={`${CHIP_SHAPE} ${complexityColor(estimate.complexity)}`}>
                     {t("review.complexity", { level: t(`complexityLevels.${estimate.complexity}`) })}
                   </span>
                 </div>
@@ -469,20 +492,20 @@ export default function SymulacjePage() {
                       sub: undefined as string | undefined,
                     },
                   ].map((item) => (
-                    <div key={item.label} className="rounded bg-slate-50 dark:bg-[#0B1120] p-4">
-                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2">{item.label}</p>
-                      <p className="text-lg font-semibold text-slate-900 dark:text-white">{item.value}</p>
-                      {item.sub && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{item.sub}</p>}
+                    <div key={item.label} className="rounded-tile border border-hairline-soft bg-panel-deep p-4">
+                      <p className="mb-2 font-mono text-fr-micro uppercase text-muted">{item.label}</p>
+                      <p className="fr-num font-heading text-fr-h3 text-ink">{item.value}</p>
+                      {item.sub && <p className="text-fr-sm text-muted mt-0.5">{item.sub}</p>}
                     </div>
                   ))}
                 </div>
 
                 {parseResult.meshDetails.length > 1 && (
                   <div className="mt-4">
-                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2">{t("review.meshDetails")}</p>
+                    <p className="mb-2 font-mono text-fr-micro uppercase text-muted">{t("review.meshDetails")}</p>
                     <div className="flex flex-wrap gap-2">
                       {parseResult.meshDetails.map((m, i) => (
-                        <span key={i} className="rounded bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-mono text-slate-600 dark:text-slate-300">
+                        <span key={i} className="rounded-chip border border-hairline-soft bg-panel-deep px-2.5 py-1 font-mono text-fr-sm text-muted">
                           #{i + 1} {m.ijk[0]}×{m.ijk[1]}×{m.ijk[2]} = {formatCells(m.cells)} {t("review.cellsWord")}
                         </span>
                       ))}
@@ -491,7 +514,7 @@ export default function SymulacjePage() {
                 )}
 
                 {(parseResult.obstCount > 0 || parseResult.ventCount > 0 || parseResult.devcCount > 0) && (
-                  <div className="mt-4 flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="mt-4 flex gap-3 text-fr-sm text-muted">
                     {parseResult.obstCount > 0 && <span>{t("review.obst", { n: parseResult.obstCount })}</span>}
                     {parseResult.ventCount > 0 && <span>{t("review.vent", { n: parseResult.ventCount })}</span>}
                     {parseResult.devcCount > 0 && <span>{t("review.devc", { n: parseResult.devcCount })}</span>}
@@ -499,64 +522,73 @@ export default function SymulacjePage() {
                 )}
               </div>
 
-              {/* Estimate card */}
-              <div className="rounded-lg border border-amber-200/60 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/20 p-6">
-                <h2 className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-3">{t("estimate.heading")}</h2>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div>
-                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">{t("estimate.server")}</p>
-                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-200 uppercase">
-                      {estimate.serverType}
-                    </p>
-                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
-                      {t("estimate.serverSub", { cores: estimate.serverCores })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">{t("estimate.estTime")}</p>
-                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
-                      {formatHours(estimate.wallHours)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">{t("estimate.dt")}</p>
-                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">
-                      {estimate.dtEstimate < 0.01
-                        ? `${(estimate.dtEstimate * 1000).toFixed(1)} ms`
-                        : `${estimate.dtEstimate.toFixed(3)} s`}
-                    </p>
-                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">
-                      {estimate.cellDimSource === "file"
-                        ? t("estimate.dtFromFile", { dx: (parseResult.minCellDim! * 100).toFixed(1) })
-                        : t("estimate.dtAssumed")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-amber-600/70 dark:text-amber-500 mb-1">{t("estimate.costLabel")}</p>
-                    <p className="text-3xl font-bold text-amber-900 dark:text-amber-200">
-                      ~{estimate.price.toLocaleString()} zł
-                    </p>
-                    <p className="text-[11px] text-amber-600/70 dark:text-amber-500 mt-0.5">{t("estimate.costSub")}</p>
-                  </div>
-                </div>
+              {/* Wycena — kluczowy odczyt kreatora, więc dostaje traktowanie
+                  ramki analitycznej ze strony głównej: ciemniejszy panel z
+                  teksturą, etykiety w mono, liczby w Manrope, kwota w kolorze
+                  marki. Wcześniej cała karta była bursztynowa — kolor, którego
+                  paleta serwisu używa wyłącznie do ostrzeżeń. */}
+              <div className="relative overflow-hidden rounded-card border border-hairline bg-panel-deep p-6 md:p-8">
+                <div className="fr-dots pointer-events-none absolute inset-0 opacity-40" />
+                <span className="pointer-events-none absolute left-3 top-3 h-2 w-2 border-l border-t border-hairline" />
+                <span className="pointer-events-none absolute right-3 top-3 h-2 w-2 border-r border-t border-hairline" />
+                <span className="pointer-events-none absolute bottom-3 left-3 h-2 w-2 border-b border-l border-hairline" />
+                <span className="pointer-events-none absolute bottom-3 right-3 h-2 w-2 border-b border-r border-hairline" />
 
-                <p className="mt-4 text-[11px] text-amber-600/70 dark:text-amber-500 border-t border-amber-200/60 dark:border-amber-800/40 pt-3">
-                  {t("estimate.note")}
-                </p>
+                <div className="relative">
+                  <h2 className="mb-6 font-mono text-fr-label uppercase text-muted">{t("estimate.heading")}</h2>
+
+                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+                    <div>
+                      <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.server")}</p>
+                      <p className="font-heading text-fr-h3 uppercase text-ink">{estimate.serverType}</p>
+                      <p className="mt-1 font-mono text-fr-sm text-muted">
+                        {t("estimate.serverSub", { cores: estimate.serverCores })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.estTime")}</p>
+                      <p className="fr-num font-heading text-fr-h3 text-ink">{formatHours(estimate.wallHours)}</p>
+                    </div>
+                    <div>
+                      <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.dt")}</p>
+                      <p className="fr-num font-heading text-fr-h3 text-signal">
+                        {estimate.dtEstimate < 0.01
+                          ? `${(estimate.dtEstimate * 1000).toFixed(1)} ms`
+                          : `${estimate.dtEstimate.toFixed(3)} s`}
+                      </p>
+                      <p className="mt-1 font-mono text-fr-sm text-muted">
+                        {estimate.cellDimSource === "file"
+                          ? t("estimate.dtFromFile", { dx: (parseResult.minCellDim! * 100).toFixed(1) })
+                          : t("estimate.dtAssumed")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.costLabel")}</p>
+                      <p className="fr-num font-heading text-fr-h2 text-primary">
+                        ~{estimate.price.toLocaleString()} zł
+                      </p>
+                      <p className="mt-1 font-mono text-fr-sm text-muted">{t("estimate.costSub")}</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-6 border-t border-hairline pt-4 font-mono text-fr-sm text-muted">
+                    {t("estimate.note")}
+                  </p>
+                </div>
               </div>
 
               {/* Zamówienie — tylko dla użytkowników z dostępem do uruchamiania.
                   Estymator jest publiczny, więc reszta zna już koszt i widzi CTA „poproś o dostęp". */}
               {allowed ? (
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E232E] p-6 space-y-4">
+              <div className="rounded-panel border border-hairline bg-panel p-6 space-y-4">
                 <div>
-                  <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400">{t("form.heading")}</h2>
-                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <h2 className="text-fr-sm font-medium text-muted">{t("form.heading")}</h2>
+                  <p className="mt-1 text-fr-sm text-muted">
                     {t("form.linkedInfo", { email: form.email ? ` (${form.email})` : "" })}
                   </p>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <label className="mb-1.5 block text-fr-sm font-bold text-muted">
                     {t("form.messageLabel")}
                   </label>
                   <textarea
@@ -564,16 +596,16 @@ export default function SymulacjePage() {
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                     rows={3}
                     placeholder={t("form.messagePlaceholder")}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0B1120] px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                    className="w-full rounded-panel border border-hairline bg-canvas px-4 py-2.5 text-fr-body text-ink placeholder-faint focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
                 </div>
 
                 {submitError && (
-                  <div className="flex gap-3 rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 p-4">
-                    <svg className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div role="alert" className="flex gap-3 rounded-panel border border-primary/40 bg-primary/[0.07] p-4">
+                    <svg className="mt-0.5 h-5 w-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-sm text-red-700 dark:text-red-400">{submitError}</p>
+                    <p className="text-fr-sm text-ink">{submitError}</p>
                   </div>
                 )}
 
@@ -581,7 +613,7 @@ export default function SymulacjePage() {
                   <button
                     onClick={submit}
                     disabled={!canSubmit || step === "submitting"}
-                    className="flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {step === "submitting" ? (
                       <>
@@ -603,27 +635,27 @@ export default function SymulacjePage() {
                   <button
                     onClick={reset}
                     disabled={step === "submitting"}
-                    className="rounded-md border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
+                    className="rounded-panel border border-hairline px-4 py-2.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-40"
                   >
                     {t("form.back")}
                   </button>
                 </div>
               </div>
               ) : (
-                <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-6">
+                <div className="rounded-panel border border-primary/25 bg-primary/[0.06] p-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-panel bg-primary/10 text-primary">
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">{t("restricted.title")}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{t("restricted.lead")}</p>
+                      <p className="text-fr-body font-bold text-ink">{t("restricted.title")}</p>
+                      <p className="mt-1 text-fr-body leading-relaxed text-muted">{t("restricted.lead")}</p>
                       <div className="mt-4 flex flex-wrap items-center gap-3">
                         <a
                           href="mailto:biuro@fp-solutions.pl"
-                          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+                          className="inline-flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white transition-colors hover:bg-primary/90"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -632,7 +664,7 @@ export default function SymulacjePage() {
                         </a>
                         <a
                           href="tel:+48790782993"
-                          className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                          className="inline-flex items-center gap-2 rounded-panel border border-hairline px-5 py-2.5 text-fr-body font-semibold text-ink transition-colors hover:bg-panel-deep"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -641,7 +673,7 @@ export default function SymulacjePage() {
                         </a>
                         <button
                           onClick={reset}
-                          className="text-sm font-medium text-slate-500 transition-colors hover:text-primary dark:text-slate-400"
+                          className="text-fr-body font-medium text-muted transition-colors hover:text-primary"
                         >
                           {t("form.back")}
                         </button>
@@ -655,27 +687,35 @@ export default function SymulacjePage() {
 
           {/* Step 3: Done */}
           {step === "done" && (
-            <div className="rounded-lg border border-green-200 dark:border-green-800/40 bg-green-50 dark:bg-green-900/20 p-8 text-center space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400">
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{t("done.title")}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  {t("done.caseNo")} <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{caseId}</span>
+            <div className="relative overflow-hidden rounded-card border border-hairline bg-panel p-8 text-center md:p-12">
+              <div className="fr-dots pointer-events-none absolute inset-0 opacity-40" />
+              <span className="pointer-events-none absolute left-3 top-3 h-2 w-2 border-l border-t border-hairline" />
+              <span className="pointer-events-none absolute right-3 top-3 h-2 w-2 border-r border-t border-hairline" />
+              <span className="pointer-events-none absolute bottom-3 left-3 h-2 w-2 border-b border-l border-hairline" />
+              <span className="pointer-events-none absolute bottom-3 right-3 h-2 w-2 border-b border-r border-hairline" />
+
+              <div className="relative space-y-5">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-tile border border-signal/30 bg-signal/10 text-signal">
+                  <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-heading text-fr-h2 text-ink">{t("done.title")}</h2>
+                  <p className="mt-2 font-mono text-fr-body text-muted">
+                    {t("done.caseNo")} <span className="font-bold text-ink">{caseId}</span>
+                  </p>
+                </div>
+                <p className="mx-auto max-w-md text-fr-body text-muted">
+                  {t("done.body", { email: form.email })}
                 </p>
+                <button
+                  onClick={reset}
+                  className="inline-flex items-center gap-2 rounded-panel border border-hairline px-6 py-3 text-fr-body font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  {t("done.again")}
+                </button>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                {t("done.body", { email: form.email })}
-              </p>
-              <button
-                onClick={reset}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors"
-              >
-                {t("done.again")}
-              </button>
             </div>
           )}
 
