@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { deleteResults } from "@/lib/hetzner/storage";
+import { caseModelPaths } from "@/lib/fds/runFile";
 import { getServer, deleteServer } from "@/lib/hetzner/client";
 
 const RETENTION_DAYS = 60;
@@ -40,9 +41,11 @@ export async function POST(req: NextRequest) {
         // Usuń wyniki z Hetzner Object Storage
         await deleteResults(row.case_id);
 
-        // Usuń plik wejściowy .fds z Supabase Storage
-        if (row.file_path) {
-          await supabase.storage.from("fds-files").remove([row.file_path]);
+        // Usuń plik wejściowy .fds z Supabase Storage — wraz z kopią
+        // uruchomieniową, jeśli powstała (przypisanie siatek do procesów).
+        const paths = caseModelPaths(row.file_path);
+        if (paths.length) {
+          await supabase.storage.from("fds-files").remove(paths);
         }
 
         // Oznacz jako wyczyszczone

@@ -6,15 +6,20 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import LiveCharts from "./LiveCharts";
 import ConsoleChart from "./ConsoleChart";
+import ConsoleReadings from "./ConsoleReadings";
 import { Pager, Plate, Section, Spec, SpecGrid, Tabs } from "@/components/Cloud/Section";
-import { Console, ConsoleHead, ConsoleLog, ConsoleMetric, ConsolePane, ConsoleRow } from "@/components/Cloud/Console";
+import {
+  Console, ConsoleHead, ConsoleLog, ConsoleMetric, ConsoleNote, ConsolePane, ConsoleProgress, ConsoleRow,
+} from "@/components/Cloud/Console";
 import SliceView from "./SliceView";
 import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
 import type { FdsSliceJson } from "@/lib/fds/slice";
-import { explainFdsErrors, type FdsErrorInfo } from "@/lib/fds/errors";
+import { explainFdsErrors, diagnoseFailure, type FdsErrorInfo } from "@/lib/fds/errors";
 import {
-  GB, PACKAGE_MAX_BYTES, PACKAGE_SIZE_OPTIONS, DEFAULT_PACKAGE_BYTES, splitIntoPackages,
+  GB, PACKAGE_SIZE_OPTIONS, DEFAULT_PACKAGE_BYTES, splitIntoPackages,
 } from "@/lib/fds/download-limits";
+import { fetchResult, proxyResultUrl, resultHref } from "@/lib/fds/result-fetch";
+import { saveFilePicker, streamZipToFile, type WritableFileHandle } from "@/lib/fds/zip-client";
 
 interface JobData {
   caseId: string;
@@ -22,6 +27,7 @@ interface JobData {
   fileName: string;
   totalCells: number;
   meshCount: number | null;
+  mpiProcs: number | null;
   tEnd: number;
   complexity: string;
   vcpuHours: number;
@@ -296,6 +302,21 @@ function formatDuration(sec: number): string {
   return `${(sec / 3600).toFixed(1)} h`;
 }
 
+// Ile jeszcze zostało: tempo dotychczasowej pracy przeniesione na resztę
+// zadania. Poniżej 1% tempo jest jeszcze przypadkowe (rozruch, alokacja
+// pamięci), więc wtedy nie zgadujemy — lepiej „—" niż prognoza z sufitu.
+function remainingSec(pct: number | null, elapsedSec: number | null): number | null {
+  if (pct === null || elapsedSec === null || pct <= 1) return null;
+  return Math.max(0, Math.round((elapsedSec / pct) * (100 - pct)));
+}
+
+// Czas rozbity na liczbę i jednostkę — szyna konsoli składa je osobno.
+function splitDuration(sec: number): { value: string; unit: string } {
+  if (sec < 60)   return { value: String(Math.round(sec)), unit: "s" };
+  if (sec < 3600) return { value: String(Math.ceil(sec / 60)), unit: "min" };
+  return { value: (sec / 3600).toFixed(1), unit: "h" };
+}
+
 export default function JobStatusPage({ params }: { params: { caseId: string } }) {
   const { caseId } = params;
   const t = useTranslations("symDetail");
@@ -456,22 +477,26 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.fdsLog, logMode]);
 
+  // „Obliczenia się skończyły” ≠ „skończyły się sukcesem”. Pliki wynikowe trafiają
+  // do magazynu także po błędzie FDS (migawki + finalny upload z maszyny liczącej),
+  // więc wszystko, co czyta wyniki Z MAGAZYNU, ma działać również dla "failed".
+  const finished = job?.status === "done" || job?.status === "failed";
+
   useEffect(() => {
-    if (job?.status !== "done" || !job.results?.length) return;
+    if (!finished || !job?.results?.length) return;
     const devcF = job.results.find((f) => f.name.toLowerCase().endsWith("_devc.csv"));
     const hrrF = job.results.find((f) => f.name.toLowerCase().endsWith("_hrr.csv"));
     if (!devcF && !hrrF) return;
     let cancelled = false;
-    // Doczytywanie pełnych CSV przez proxy (same-origin) — nie wprost z magazynu,
-    // żeby uniknąć blokady CORS (jak przy pobieraniu plików / ZIP).
-    const load = async (name?: string) => {
-      if (!name) return null;
+    // Pełne CSV czytamy wprost z magazynu; proxy tylko awaryjnie (bez CORS).
+    const load = async (f?: { name: string; url?: string }) => {
+      if (!f) return null;
       try {
-        return await (await fetch(`/api/symulacje/${caseId}/download?file=${encodeURIComponent(name)}`)).text();
+        return await (await fetchResult(f.url, proxyResultUrl(caseId, f.name))).text();
       } catch { return null; }
     };
     (async () => {
-      const [devc, hrr] = await Promise.all([load(devcF?.name), load(hrrF?.name)]);
+      const [devc, hrr] = await Promise.all([load(devcF), load(hrrF)]);
       if (!cancelled) setFinalCsv({ devc, hrr });
     })();
     return () => { cancelled = true; };
@@ -503,16 +528,17 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allFiles.map((f) => f.name)));
 
-  // Pobieranie przez własny proxy (same-origin) — omija CORS magazynu Hetzner.
-  const proxyUrl = (name: string) =>
-    `/api/symulacje/${caseId}/download?file=${encodeURIComponent(name)}`;
+  // Podpisany adres pliku z listy wyników — stąd bierze go podgląd przekroju
+  // i zapis do folderu, żeby czytać wprost z magazynu.
+  const fileUrlByName = (name: string) => job?.results?.find((f) => f.name === name)?.url;
 
   // Pobranie pojedynczego pliku. Preferuj BEZPOŚREDNI podpisany URL (magazyn wymusza
   // pobranie przez ResponseContentDisposition) — przeglądarka strumieniuje wprost na
-  // dysk, bez obciążania serwera i bez limitów funkcji. Proxy jako fallback.
+  // dysk, bez obciążania serwera i bez limitów funkcji. Gdy adresu brakuje, kotwica
+  // idzie na nasz route, a ten i tak oddaje przekierowanie do magazynu.
   const downloadFile = (f: { name: string; url?: string }) => {
     const a = document.createElement("a");
-    a.href = f.url ?? proxyUrl(f.name);
+    a.href = f.url ?? resultHref(caseId, f.name);
     a.download = f.name;
     a.rel = "noopener";
     a.click();
@@ -533,12 +559,13 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
   // Zapis plików do podkatalogu o nazwie symulacji we wskazanym folderze.
   // Bajty lecą wprost z magazynu do dysku (fetch → strumień na plik), z pominięciem
-  // naszego serwera. Wymaga zgody magazynu na CORS — inaczej rzuca i wracamy do klasyki.
+  // naszego serwera. Bez CORS pojedynczy plik schodzi na proxy zamiast wywracać
+  // cały zapis — użytkownik dostaje komplet, my płacimy tylko za wyjątki.
   const saveToFolder = async (files: Array<{ name: string; url?: string }>, dir: DirHandle) => {
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       setDlMsg(t("results.savingToFolder", { i: i + 1, n: files.length, name: caseId }));
-      const resp = await fetch(f.url ?? proxyUrl(f.name));
+      const resp = await fetchResult(f.url, proxyResultUrl(caseId, f.name));
       if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status} (${f.name})`);
       const handle = await dir.getFileHandle(f.name, { create: true });
       await resp.body.pipeTo(await handle.createWritable());
@@ -594,16 +621,57 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     return `/api/symulacje/${caseId}/download-zip${s ? `?${s}` : ""}`;
   };
 
-  // Najpierw pytamy route, czy paczkę da się spakować (?probe=1). Kotwica nie widzi
-  // kodu odpowiedzi — bez tego JSON z błędem wylądowałby na dysku jako „.zip”.
-  // Gdy się nie da (za duża / zmieniła się zawartość magazynu), pobieramy plik po pliku.
+  // Paczka ZIP. Domyślnie pakowana W PRZEGLĄDARCE: pliki lecą wprost z magazynu,
+  // archiwum powstaje po drodze i idzie strumieniem na dysk, więc nie przechodzi
+  // przez nasze funkcje ani przez ich limit czasu. Serwerowe pakowanie zostaje
+  // dla przeglądarek bez zapisu strumieniowego (dziś: innych niż Chrome/Edge).
   const downloadPackage = async (
-    files: Array<{ name: string; url?: string }>,
+    files: Array<{ name: string; url?: string; size: number | null }>,
     part?: number,
     parts?: number
   ) => {
-    setDlMsg(t("results.preparingZip"));
+    const zipName = part && parts && parts > 1 ? `${caseId}_cz${part}z${parts}.zip` : `${caseId}.zip`;
     setDlWarn(null);
+
+    // Okno „zapisz jako" musi otworzyć się w geście użytkownika — stąd przed
+    // pierwszym `await` w tej funkcji.
+    const picker = saveFilePicker();
+    if (picker) {
+      let handle: WritableFileHandle | null = null;
+      try {
+        handle = await picker({
+          suggestedName: zipName,
+          types: [{ description: "ZIP", accept: { "application/zip": [".zip"] } }],
+        });
+      } catch {
+        // Anulowany wybór pliku = rezygnacja, nie powód do pakowania na serwerze.
+        setDlMsg(null);
+        return;
+      }
+      setSeqRunning(true);
+      try {
+        await streamZipToFile({
+          caseId,
+          files,
+          handle,
+          onProgress: (i, n) => setDlMsg(t("results.zippingLocal", { i, n })),
+        });
+        setDlMsg(t("results.zippedLocal", { name: zipName }));
+        setTimeout(() => setDlMsg(null), 10000);
+        return;
+      } catch (err) {
+        console.error("zip w przeglądarce:", err);
+        setDlWarn(t("results.zipLocalFailed"));
+        // Schodzimy na paczkę z serwera — działa, tylko przez nasz origin.
+      } finally {
+        setSeqRunning(false);
+      }
+    }
+
+    // ── Zejście awaryjne: paczka składana przez funkcję serwerową ────────────
+    // Najpierw pytamy route, czy paczkę da się spakować (?probe=1). Kotwica nie widzi
+    // kodu odpowiedzi — bez tego JSON z błędem wylądowałby na dysku jako „.zip”.
+    setDlMsg(t("results.preparingZip"));
     const names = files.map((f) => f.name);
     let ok = false;
     try {
@@ -635,26 +703,13 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     void downloadPackage(files, part, parts);
   };
 
-  // Jeden ZIP, jeśli zestaw mieści się w limicie paczki. Jeśli nie — pokazujemy
-  // podział zamiast startować pobranie, które i tak by się urwało.
-  const downloadMany = (
-    files: Array<{ name: string; url?: string; size: number | null }>,
-    canSplit = false
-  ) => {
+  // Pobranie zestawu plików. Domyślnie WPROST z magazynu: zapis do wskazanego
+  // folderu, a gdy przeglądarka tego nie umie — seria pobrań. ZIP przechodzi
+  // przez funkcję serwerową i kosztuje podwójny transfer, więc został świadomym
+  // wyborem z osobnego panelu, a nie domyślną ścieżką.
+  const downloadMany = (files: Array<{ name: string; url?: string; size: number | null }>) => {
     if (files.length === 0) return;
     if (files.length === 1) { downloadFile(files[0]); return; }
-    const sized = totalSize(files);
-    const fitsOnePackage = sized !== null && !sized.partial && sized.bytes <= PACKAGE_MAX_BYTES;
-    if (fitsOnePackage) {
-      void downloadPackage(files);
-      return;
-    }
-    if (canSplit && sized !== null) {
-      const parts = splitIntoPackages(files, pkgTarget);
-      setPkgOpen(true);
-      setDlMsg(t("results.splitNeeded", { n: parts.length }));
-      return;
-    }
     void downloadEach(files);
   };
 
@@ -726,7 +781,25 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     ? ((job.status === "done" && job.completedAt ? new Date(job.completedAt) : new Date()).getTime()
         - new Date(job.startedAt).getTime()) / 1000
     : null;
-  const cPct = job.status === "done" ? 100 : (cProg?.pct ?? 0);
+
+  // Jeden model postępu dla całej strony: konsola u góry i sekcja „Postęp
+  // obliczeń" niżej muszą pokazywać ten sam procent i ten sam pozostały czas —
+  // dwie osobne arytmetyki rozjechałyby się przy pierwszej zmianie.
+  //
+  // Zanim FDS zapisze pierwszy krok, postęp da się tylko oszacować z czasu
+  // pracy względem wyceny. Taki szacunek nie dobija do 100%, żeby pasek nie
+  // twierdził, że jest po wszystkim, kiedy solver dopiero się rozkręca.
+  const cWallEstPct = job.status !== "done" && !cProg && cElapsedSec !== null && job.wallHours > 0
+    ? Math.min(90, (cElapsedSec / (job.wallHours * 3600)) * 100)
+    : null;
+  const cPct = job.status === "done" ? 100 : (cProg?.pct ?? cWallEstPct);
+  const cIsEstimate = job.status !== "done" && !cProg && cWallEstPct !== null;
+  const cRemSec = job.status === "done" ? null : remainingSec(cPct, cElapsedSec);
+  const cEta = cRemSec !== null
+    ? new Date(Date.now() + cRemSec * 1000).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const clock = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" }) : "—";
 
   // Etapy zlecenia — te same, które wcześniej stały w osobnym bloku osi.
   const cStages = ([
@@ -795,39 +868,85 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               Ten sam komponent, którym strona główna pokazuje, jak wygląda
               praca z FDSRun — tu wypełniony realnymi danymi zlecenia. */}
           <Console
-            className="h-[420px] md:h-[520px]"
+            className="h-[460px] md:h-[560px]"
             title={`${t("console.chart")} // ${cStats?.chid ?? job.fileName.replace(/\.fds$/i, "")}`}
             meta={statusLabel}
             left={
               <>
                 <ConsoleHead label={t("console.caseId")} value={job.caseId} live={isRunning} />
-                <div className="flex flex-1 flex-col gap-8 overflow-hidden p-6">
-                  <ConsoleMetric
-                    label={t("console.cells")}
-                    value={job.totalCells ? formatCells(job.totalCells, t("tiles.thousands")) : "—"}
+                {/* Szyna odpowiada na trzy pytania czekającego, w tej kolejności:
+                    ile już zrobione, kiedy odbiorę, ile zapłacę. Parametry
+                    solvera (krok, komórki, siatki) schodzą do stopki — są
+                    dowodem, że model liczy się tak, jak zamówiono, ale nikt na
+                    ich podstawie niczego nie decyduje. */}
+                <div className="flex flex-1 flex-col gap-6 overflow-hidden p-6">
+                  <ConsoleProgress
+                    label={t("console.progress")}
+                    pct={cPct}
+                    done={job.status === "done"}
+                    sub={
+                      job.status === "done"
+                        ? t("console.simAt", { cur: String(job.tEnd), end: String(job.tEnd) })
+                        : cProg
+                        ? t("console.simAt", { cur: cProg.currentTime.toFixed(0), end: String(job.tEnd) })
+                        : cIsEstimate
+                        ? t("console.pctEstimate")
+                        : t("console.beforeStart")
+                    }
                   />
+                  {isTerminal ? (
+                    <ConsoleMetric
+                      label={t("console.totalTime")}
+                      value={elapsed(job.dispatchedAt, job.completedAt)}
+                      sub={job.completedAt ? t("console.finishedAt", { time: clock(job.completedAt) }) : undefined}
+                    />
+                  ) : (
+                    <ConsoleMetric
+                      label={t("console.remaining")}
+                      value={cRemSec !== null ? `${cIsEstimate ? "~" : ""}${splitDuration(cRemSec).value}` : "—"}
+                      unit={cRemSec !== null ? splitDuration(cRemSec).unit : undefined}
+                      sub={
+                        cEta
+                          ? t("console.etaAt", { time: cEta })
+                          : job.wallHours > 0
+                          ? t("console.estWall", { v: mins(job.wallHours) })
+                          : undefined
+                      }
+                    />
+                  )}
                   <ConsoleMetric
-                    label={t("console.timestep")}
-                    value={cStats?.stepSize != null ? formatDt(cStats.stepSize) : "—"}
-                    tone="text-signal"
-                  />
-                  <ConsoleMetric
-                    label={t("console.wallclock")}
-                    value={cElapsedSec != null ? (cElapsedSec < 3600 ? `${Math.round(cElapsedSec / 60)}` : (cElapsedSec / 3600).toFixed(2)) : "—"}
-                    unit={cElapsedSec != null && cElapsedSec < 3600 ? "min" : "h"}
+                    label={t("console.cost")}
+                    value={money(job.price)}
+                    tone="text-primary"
+                    sub={t("console.costNote")}
                   />
                 </div>
+                <ConsoleNote>
+                  {[
+                    t("console.cellsNote", { v: formatCells(job.totalCells, t("tiles.thousands")) }),
+                    job.meshCount ? t("console.meshesNote", { n: job.meshCount }) : null,
+                    cStats?.stepSize != null ? t("console.stepNote", { v: formatDt(cStats.stepSize) }) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </ConsoleNote>
               </>
             }
             right={
               <>
-                <ConsolePane title={t("timeline.title")}>
-                  <div className="flex flex-col gap-4">
-                    {cStages.map((st) => (
-                      <ConsoleRow key={st.key} label={st.label} value={st.display} state={st.state} />
-                    ))}
-                  </div>
-                </ConsolePane>
+                <ConsoleReadings
+                  devcCsv={finalCsv.devc ?? job.devcCsv}
+                  hrrCsv={finalCsv.hrr ?? job.hrrCsv}
+                  setpoints={job.devcSetpoints}
+                  fallbackTitle={t("timeline.title")}
+                  fallback={
+                    <div className="flex flex-col gap-4">
+                      {cStages.map((st) => (
+                        <ConsoleRow key={st.key} label={st.label} value={st.display} state={st.state} />
+                      ))}
+                    </div>
+                  }
+                />
                 <ConsolePane title={t("console.log")} badge={isRunning ? t("console.live") : undefined} deep>
                   {cLog.length ? (
                     <ConsoleLog entries={cLog} />
@@ -975,8 +1094,22 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
           >
             <Plate className="p-6 md:p-8">
               <SpecGrid>
-                <Spec label={t("tiles.machine")} value={(job.serverType ?? "—").toUpperCase()} hint={t("sec.provider")} />
-                <Spec label={t("sec.cores")} value={serverSpec(job.serverType).cores ?? "—"} unit="vCPU" hint={job.meshCount ? t("sec.coresHint", { n: job.meshCount }) : undefined} />
+                <Spec label={t("tiles.machine")} value={serverSpec(job.serverType).label} hint={t("sec.provider")} />
+                <Spec
+                  label={t("sec.cores")}
+                  value={serverSpec(job.serverType).cores ?? "—"}
+                  unit="vCPU"
+                  hint={
+                    job.mpiProcs && job.meshCount && job.meshCount > job.mpiProcs
+                      ? t("sec.coresSplitHint", {
+                          procs: job.mpiProcs,
+                          meshes: Math.ceil(job.meshCount / job.mpiProcs),
+                        })
+                      : job.meshCount
+                      ? t("sec.coresHint", { n: job.meshCount })
+                      : undefined
+                  }
+                />
                 <Spec label={t("tiles.vcpuHours")} value={job.vcpuHours.toFixed(1)} unit="h" hint={t("sec.vcpuHint")} />
                 <Spec label={t("sec.estWall")} value={job.wallHours > 0 ? mins(job.wallHours) : "—"} hint={t("sec.estWallHint")} />
               </SpecGrid>
@@ -985,25 +1118,18 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
           {/* Postęp i logi */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
+            // Postęp, procent i prognoza pochodzą z modelu policzonego raz, na
+            // potrzeby konsoli u góry strony — tutaj są tylko inaczej podane.
+            // Dwie kopie tej arytmetyki potrafiłyby pokazać dwa różne „zostało”.
             const isDone      = job.status === "done";
-            const fdsProgress = job.fdsLog ? parseFdsProgress(job.fdsLog, job.tEnd) : null;
-            const stats       = job.fdsLog ? parseFdsStats(job.fdsLog) : null;
-            const elapsedSec = job.startedAt
-              ? ((isDone && job.completedAt ? new Date(job.completedAt) : new Date()).getTime() - new Date(job.startedAt).getTime()) / 1000
-              : null;
-            const wallEstPct = !isDone && !fdsProgress && elapsedSec != null && job.wallHours > 0
-              ? Math.min(90, (elapsedSec / (job.wallHours * 3600)) * 100) : null;
-            const displayPct = isDone ? 100 : (fdsProgress?.pct ?? wallEstPct);
-            const isEstimate = !isDone && !fdsProgress && wallEstPct != null;
-
-            let remainingStr = "—";
-            if (!isDone && fdsProgress && elapsedSec && fdsProgress.pct > 1) {
-              const remSec = Math.max(0, Math.round(elapsedSec / fdsProgress.pct * (100 - fdsProgress.pct)));
-              remainingStr = remSec < 60 ? `${remSec} s` : `${Math.ceil(remSec / 60)} min`;
-            } else if (!isDone && wallEstPct && elapsedSec && wallEstPct > 1) {
-              const remSec = Math.max(0, Math.round(elapsedSec / wallEstPct * (100 - wallEstPct)));
-              remainingStr = remSec < 60 ? `~${remSec} s` : `~${Math.ceil(remSec / 60)} min`;
-            }
+            const stats       = cStats;
+            const fdsProgress = cProg;
+            const elapsedSec  = cElapsedSec;
+            const displayPct  = cPct;
+            const isEstimate  = cIsEstimate;
+            const remainingStr = cRemSec === null
+              ? "—"
+              : `${isEstimate ? "~" : ""}${formatDuration(cRemSec)}`;
 
             const logTail = job.fdsLog
               ? job.fdsLog.split("\n").filter((l) => l.trim() && !/^\[?\d{2}:\d{2}:\d{2}\]?/.test(l)).slice(-6).join("\n")
@@ -1124,7 +1250,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
               hint={t("sec.chartsHint")}
             >
               <div className="space-y-4">
-                <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} caseId={job.caseId} done={job.status === "done"} />
+                <SliceView slice={job.sliceJson} running={isRunning && !fatalErr} caseId={job.caseId} finished={finished} fileUrl={fileUrlByName} />
                 <LiveCharts devcCsv={finalCsv.devc ?? job.devcCsv} hrrCsv={finalCsv.hrr ?? job.hrrCsv} setpoints={job.devcSetpoints} running={isRunning && !fatalErr} />
               </div>
             </Section>
@@ -1272,14 +1398,21 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
           })()}
 
           {/* ── 05 · Wyniki ────────────────────────────────────────────── */}
-          {job.status === "done" && job.results && job.results.length > 0 && (
+          {/* Także po błędzie — pliki policzone do momentu przerwania czekają w magazynie. */}
+          {finished && job.results && job.results.length > 0 && (
             <Section
               index="05"
               kicker={t("sec.resultsKicker")}
               title={`${t("results.title")} (${job.results.length}${allSize ? ` · ${allSize.label}` : ""})`}
-              hint={t("sec.resultsHint")}
+              hint={job.status === "failed" ? t("sec.resultsHintFailed") : t("sec.resultsHint")}
             >
-            <div className="rounded-card border border-signal/30 bg-panel p-6">
+            <div className={`rounded-card border bg-panel p-6 ${job.status === "failed" ? "border-warn/30" : "border-signal/30"}`}>
+              {job.status === "failed" && (
+                <div className="mb-4 rounded-panel border border-warn/40 bg-warn/[0.07] px-4 py-3">
+                  <p className="text-fr-body font-semibold text-warn">{t("results.partialTitle")}</p>
+                  <p className="mt-1 text-fr-sm leading-relaxed text-muted">{t("results.partialBody")}</p>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-3 mb-4">
                 <label className="flex cursor-pointer items-center gap-2.5">
                   <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 cursor-pointer rounded-chip border-hairline text-primary" />
@@ -1291,7 +1424,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                     {t("results.downloadSelected")}
                     {someSelected && selectedSize ? <span className="font-normal text-muted">({selectedSize.label})</span> : null}
                   </button>
-                  <button onClick={() => downloadMany(allFiles, true)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-panel bg-primary hover:bg-primary/90 px-3 py-1.5 text-fr-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={() => downloadMany(allFiles)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-panel bg-primary hover:bg-primary/90 px-3 py-1.5 text-fr-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.zipAll")}
                     {allSize ? <span className="font-normal text-white/75">({allSize.label})</span> : null}
@@ -1299,10 +1432,17 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 </div>
               </div>
 
+              {/* Gdzie wylądują pliki — wcześniej ta informacja siedziała w panelu
+                  paczek, a dotyczy ścieżki domyślnej. */}
+              <p className="mb-4 text-fr-sm leading-relaxed text-muted">
+                {canPickFolder ? t("results.perFileFolder", { name: caseId }) : t("results.perFileLoose")}
+              </p>
+
               {dlMsg && <p className="mb-1.5 text-fr-sm text-muted">{dlMsg}</p>}
               {dlWarn && <p className="mb-1.5 text-fr-sm text-warn">{dlWarn}</p>}
 
-              {/* Ratunek na urwane pobrania: podział wyników na mniejsze paczki */}
+              {/* Archiwum ZIP — jedyna ścieżka, która przechodzi przez nasz serwer,
+                  więc schowana pod rozwijanym panelem i podzielona na paczki. */}
               <details
                 open={pkgOpen}
                 onToggle={(e) => setPkgOpen((e.target as HTMLDetailsElement).open)}
@@ -1312,11 +1452,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   <svg className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  {t("results.splitTitle")}
+                  {t("results.zipTitle")}
                 </summary>
 
                 <p className="mt-2 text-fr-sm leading-relaxed text-muted">
-                  {t("results.splitLead", { name: caseId })}
+                  {t("results.zipLead", { name: caseId })}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1359,18 +1499,6 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   })}
                 </ul>
 
-                <div className="mt-3 border-t border-hairline pt-3">
-                  <button
-                    onClick={() => void downloadEach(allFiles)}
-                    disabled={seqRunning}
-                    className="text-fr-sm font-semibold text-primary transition-colors hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {t("results.perFile")}
-                  </button>
-                  <p className="mt-1 text-fr-sm leading-relaxed text-muted">
-                    {canPickFolder ? t("results.perFileFolder", { name: caseId }) : t("results.perFileLoose")}
-                  </p>
-                </div>
               </details>
 
               <div className="overflow-x-auto">
@@ -1434,6 +1562,15 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
             </Section>
           )}
 
+          {/* Błąd, a magazyn pusty — powiedz to wprost. Bez tego strona kończy się
+              samym komunikatem o błędzie i nie wiadomo, czy pliki są, czy ich nie ma. */}
+          {job.status === "failed" && (!job.results || job.results.length === 0) && (
+            <div className="rounded-card border border-hairline bg-panel p-5">
+              <p className="text-fr-body font-semibold text-ink">{t("results.noneTitle")}</p>
+              <p className="mt-1 text-fr-sm leading-relaxed text-muted">{t("results.noneBody")}</p>
+            </div>
+          )}
+
           {/* Płatność */}
           {job.status === "done" && (
             <div className={`rounded-card border p-5 ${job.paymentStatus === "paid" ? "border-signal/30 bg-signal/[0.07]" : "border-warn/30 bg-warn/[0.07]"}`}>
@@ -1492,22 +1629,60 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
 
           {/* Błąd */}
           {effectiveFailed && (() => {
-            const launchFailure = !job.startedAt;
             const stillRunning = job.status !== "failed";
             const errLines = extractErrorLines(job.fdsLog);
-            const explained = explainFdsErrors(job.fdsLog, errLocale);
+            // Przyczyna przerwania — rozróżnia błąd FDS od ubicia przez nasz
+            // nadzorca czasu. Wcześniej każdy „failed” dostawał treść o odrzuconym
+            // pliku wejściowym, nawet gdy FDS liczył bez jednego błędu.
+            const diag = diagnoseFailure(
+              {
+                log: job.fdsLog,
+                startedAt: job.startedAt,
+                completedAt: job.completedAt,
+                wallHours: job.wallHours,
+                tEnd: job.tEnd,
+              },
+              errLocale
+            );
+            const explained = diag.errors;
             return (
               <div className="rounded-card border border-primary/40 bg-primary/[0.07] p-5 flex items-start gap-4">
                 <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div className="min-w-0 w-full">
                   <p className="text-fr-body font-semibold text-primary">
-                    {launchFailure ? t("failed.launchTitle") : t("failed.interruptedTitle")}
+                    {t(`failed.kind.${diag.kind}.title`)}
                   </p>
                   <p className="text-fr-sm text-muted mt-1">
-                    {launchFailure ? t("failed.launchBody") : t("failed.interruptedBody")}
+                    {diag.kind === "watchdog" && diag.timing
+                      ? t("failed.kind.watchdog.body", {
+                          elapsed: diag.timing.elapsedH.toFixed(1),
+                          limit: diag.timing.limitH.toFixed(1),
+                          estimated: diag.timing.estimatedH.toFixed(1),
+                        })
+                      : t(`failed.kind.${diag.kind}.body`)}
                     {stillRunning && ` ${t("failed.serverFinishing")}`}
                     {job.fdsExitCode != null && <> {" "}{t("failed.exitCode", { code: job.fdsExitCode })}</>}
                   </p>
+
+                  {/* Dokąd doszły obliczenia — bez tego „przerwane” nie mówi,
+                      czy zginęła cała symulacja, czy zabrakło ostatnich sekund. */}
+                  {diag.progress && (
+                    <div className="mt-3 rounded-panel border border-hairline-soft bg-canvas px-4 py-3">
+                      <p className="text-fr-sm font-semibold text-ink">
+                        {t("failed.reached", {
+                          t: diag.progress.t.toFixed(1),
+                          tEnd: diag.progress.tEnd,
+                          pct: diag.progress.pct.toFixed(1),
+                        })}
+                      </p>
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-hairline">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${diag.progress.pct}%` }} />
+                      </div>
+                      {job.results && job.results.length > 0 && (
+                        <p className="mt-1.5 text-fr-sm text-muted">{t("failed.reachedNote")}</p>
+                      )}
+                    </div>
+                  )}
 
                   {explained.length > 0 && (
                     <div className="mt-3">

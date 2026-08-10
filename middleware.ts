@@ -14,10 +14,16 @@ const intlMiddleware = createIntlMiddleware(routing);
 const MARKETING_HOST = "fp-solutions.pl";
 const CLOUD_HOST = "fdsrun.com";
 
+// Dokumenty prawne: po polsku mieszkają na witrynie usługowej, po angielsku
+// (kurtuazyjne tłumaczenie dla klienta chmury) — na fdsrun.com/en/*.
+const LEGAL_PATHS = ["/regulamin", "/polityka-prywatnosci", "/polityka-cookies"];
+
 // Ścieżki należące do serwisu chmurowego (fdsrun.com). „rest" jest bez prefiksu
 // języka. Root ("/") NIE jest tu — na chmurze obsługiwany osobno (rewrite na landing).
 function isCloudPath(rest: string): boolean {
-  const cloud = ["/chmura", "/funkcje", "/cennik", "/symulacje", "/signin", "/signup", "/auth"];
+  // Uwaga: baza wiedzy chmury stoi pod /baza-wiedzy, a NIE pod /blog — /blog
+  // należy do witryny usługowej i musi zostać na fp-solutions.pl.
+  const cloud = ["/chmura", "/funkcje", "/cennik", "/baza-wiedzy", "/symulacje", "/signin", "/signup", "/auth"];
   // Stare adresy konta pod /narzedzia — dziś tylko stuby przekierowań na
   // /symulacje/*. Zostają po stronie chmury, żeby wykonały redirect zamiast
   // polecieć 301 na fp-solutions.pl, gdzie te strony nie istnieją.
@@ -56,14 +62,26 @@ export async function middleware(request: NextRequest) {
     if (rest === "/chmura") {
       return redirectToHost(CLOUD_HOST, prefix || "/"); // /chmura → czysty root
     }
-    if (rest !== "/" && !isCloudPath(rest)) {
-      return redirectToHost(MARKETING_HOST); // treść usług → fp-solutions.pl
+    // Dokumenty prawne po angielsku serwuje chmura (/en/regulamin itd.), bo
+    // fp-solutions.pl jest wyłącznie polska i nie ma dokąd tam odesłać klienta
+    // EN. Polska wersja zostaje na witrynie usługowej — jeden dokument, jeden
+    // adres kanoniczny w danym języku.
+    const isEnglishLegal = locale === "en" && LEGAL_PATHS.includes(rest);
+    if (rest !== "/" && !isCloudPath(rest) && !isEnglishLegal) {
+      // Bez prefiksu języka: witryna usługowa nie ma wersji EN, więc /en/cfd
+      // musi wylądować na /cfd, a nie na nieistniejącym fp-solutions.pl/en/cfd.
+      return redirectToHost(MARKETING_HOST, rest);
     }
-    // else: „/" (landing) lub ścieżka chmury → serwuj (auth niżej).
+    // else: „/" (landing), ścieżka chmury lub prawne EN → serwuj (auth niżej).
   } else if (SITE_MODE === "marketing") {
     // Ten projekt = usługi (fp-solutions.pl). Treść chmury → fdsrun.com.
     if (isCloudPath(rest)) {
       return redirectToHost(CLOUD_HOST, rest === "/chmura" ? prefix || "/" : undefined);
+    }
+    // Witryna usługowa jest polska — adresy /en/* nie mają tu wersji językowej
+    // i renderowałyby polską treść pod angielskim URL-em (duplikat dla robota).
+    if (locale === "en") {
+      return redirectToHost(MARKETING_HOST, rest);
     }
     // else: ścieżka usługowa → serwuj.
   }

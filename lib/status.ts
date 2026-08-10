@@ -1,6 +1,10 @@
-// Jedno źródło prawdy dla statusów zleceń FDS — etykiety PL, tony akcentów
-// i kolory wykresów. Wcześniej każda strona miała własną mapę (rozjazd nazw
-// "W toku" vs "W trakcie" i palet `green-100 dark:green-900`). Importuj stąd wszędzie.
+// Jedno źródło prawdy dla statusów zleceń FDS — tony akcentów i kolory wykresów.
+// Wcześniej każda strona miała własną mapę (rozjazd nazw "W toku" vs "W trakcie"
+// i palet `green-100 dark:green-900`). Importuj stąd wszędzie.
+//
+// ETYKIETY tu NIE mieszkają: serwis jest dwujęzyczny, więc nazwa statusu idzie
+// z tłumaczeń (namespace `status`, klucze = StatusKey). `statusMeta()` zwraca
+// klucz, a komponent renderuje `t(meta.key)`.
 //
 // Kolor idzie przez tony systemu FDSRun (primary/signal/warn/ok/muted), a nie
 // przez surową paletę Tailwinda — dzięki temu badge statusu ma tę samą formę,
@@ -12,27 +16,28 @@ export type StatusKey =
   | "pending" | "dispatched" | "running"
   | "done" | "failed" | "error" | "cancelled";
 
-export type StatusMeta = { label: string; tone: Tone; cls: string };
+/** `key` wskazuje wpis w namespace `status` (tam „unknown" to myślnik). */
+export type StatusMeta = { key: StatusKey | "unknown"; tone: Tone; cls: string };
 
-const TONES: Record<string, { label: string; tone: Tone }> = {
-  pending:    { label: "Oczekuje",   tone: "warn" },
-  dispatched: { label: "W kolejce",  tone: "signal" },
-  running:    { label: "W toku",     tone: "signal" },
-  done:       { label: "Zakończone", tone: "ok" },
-  failed:     { label: "Błąd",       tone: "primary" },
-  error:      { label: "Błąd",       tone: "primary" },
-  cancelled:  { label: "Anulowane",  tone: "muted" },
+const TONES: Record<StatusKey, Tone> = {
+  pending:    "warn",
+  dispatched: "signal",
+  running:    "signal",
+  done:       "ok",
+  failed:     "primary",
+  error:      "primary",
+  cancelled:  "muted",
 };
 
-function meta(label: string, tone: Tone): StatusMeta {
-  return { label, tone, cls: chipCls(tone) };
+function meta(key: StatusKey | "unknown", tone: Tone): StatusMeta {
+  return { key, tone, cls: chipCls(tone) };
 }
 
 export const STATUS: Record<string, StatusMeta> = Object.fromEntries(
-  Object.entries(TONES).map(([key, { label, tone }]) => [key, meta(label, tone)])
+  Object.entries(TONES).map(([key, tone]) => [key, meta(key as StatusKey, tone)])
 );
 
-export const DEFAULT_STATUS: StatusMeta = meta("—", "muted");
+export const DEFAULT_STATUS: StatusMeta = meta("unknown", "muted");
 
 export function statusMeta(key: string): StatusMeta {
   return STATUS[key] ?? DEFAULT_STATUS;

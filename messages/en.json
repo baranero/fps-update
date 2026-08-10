@@ -1,0 +1,1562 @@
+{
+  "language": {
+    "label": "Language",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "offer": "Services",
+    "ibp": "Fire Safety Manual",
+    "cfd": "CFD simulations",
+    "operat": "Fire protection report",
+    "audit": "Fire safety audit",
+    "scenario": "Fire development scenario",
+    "explosion": "Explosion risk assessment",
+    "ssp": "Fire alarm system design",
+    "smoke": "Smoke control systems",
+    "cfdCloud": "CFD Cloud",
+    "forDesigner": "For engineers",
+    "calculators": "Calculators",
+    "reports": "Reports",
+    "blog": "Blog",
+    "contact": "Contact",
+    "account": {
+      "menu": "Account menu",
+      "profile": "Your profile",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "toolsPanel": "Tools panel",
+      "myProfile": "Profile"
+    }
+  },
+  "cfdNav": {
+    "brand": "CFD Cloud",
+    "dashboard": "Dashboard",
+    "new": "New simulation",
+    "history": "History",
+    "billing": "Billing",
+    "stats": "Statistics",
+    "toTools": "Tools",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "admin": "Admin"
+  },
+  "cloudNav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "kb": "Knowledge base",
+    "run": "Run a simulation"
+  },
+  "cloudFooter": {
+    "product": "Product",
+    "account": "Account",
+    "orders": "Jobs",
+    "services": "Fire safety services",
+    "contact": "Contact",
+    "legal": "Legal",
+    "dashboard": "Dashboard",
+    "history": "History",
+    "billing": "Billing",
+    "stats": "Statistics",
+    "infra": "Servers in the European Union"
+  },
+  "status": {
+    "pending": "Pending",
+    "dispatched": "Queued",
+    "running": "Running",
+    "done": "Completed",
+    "failed": "Error",
+    "error": "Error",
+    "cancelled": "Cancelled",
+    "unknown": "—",
+    "all": "All"
+  },
+  "charts": {
+    "unitPcs": "jobs",
+    "hoursSeries": "Compute time (h)"
+  },
+  "footer": {
+    "tagline": "End-to-end fire protection services: system design, documentation and CFD simulations.",
+    "contact": "Contact",
+    "pages": "Pages",
+    "offer": "Services",
+    "rights": "Fire Protection Solutions — Jakub Baran",
+    "privacy": "Privacy policy",
+    "cookies": "Cookie policy",
+    "terms": "Terms of service"
+  },
+  "cloudFeatures": {
+    "metadata": {
+      "title": "Features — CFD/FDS computing in the cloud | FDSRun",
+      "description": "FDS on dedicated servers, automatic hardware sizing, a cost estimator, live result previews and full result downloads. All without infrastructure of your own."
+    },
+    "badge": "Features",
+    "title": "Everything you need to run CFD",
+    "lead": "You upload an FDS file, we pick the server, run the solver and hand back the results. No infrastructure of your own, no waiting in a university cluster queue, no tying up your laptop for hours.",
+    "items": {
+      "f1Title": "FDS in the cloud",
+      "f1Desc": "Run the Fire Dynamics Simulator solver on dedicated servers — no installation, no MPI configuration, no limits imposed by your own hardware.",
+      "f2Title": "Automatic server sizing",
+      "f2Desc": "The system reads the mesh and core count from your .fds file and picks a machine to match. You never pay for cores you cannot use.",
+      "f3Title": "Cost estimator",
+      "f3Desc": "Before anything starts, upload the file and see the estimated runtime and cost within seconds. The estimate runs in your browser, no account needed.",
+      "f4Title": "Live result preview",
+      "f4Desc": "DEVC/HRR charts and slice planes update while the solver runs — you can tell whether the scenario is heading the right way long before it finishes.",
+      "f5Title": "Complete results to download",
+      "f5Desc": "Smokeview files, CSVs and slices download straight from storage — individually or zipped, split into parts for large result sets.",
+      "f6Title": "History and billing",
+      "f6Desc": "Every job with its price, runtime and status in one place. Enter your invoicing details once and they apply to every settlement."
+    }
+  },
+  "cloudPricing": {
+    "metadata": {
+      "title": "Pricing — pay for what you use | FDSRun",
+      "description": "No subscription. The cost of a CFD simulation follows the compute time and the power of the server we pick. Get the exact price for your .fds file in the estimator, no account required."
+    },
+    "badge": "Pricing",
+    "title": "You pay for actual usage",
+    "lead": "No subscription, no standing fees. The cost follows the compute time and the power of the server we pick — exactly as much as your simulation took.",
+    "modelHeading": "How we calculate the cost",
+    "model": {
+      "m1Title": "Server power",
+      "m1Desc": "The more meshes and cores your file needs, the stronger the machine and the higher the hourly rate. Sizing is automatic.",
+      "m2Title": "Compute time",
+      "m2Desc": "You pay for the actual solver runtime — from start to finish — not for a full day of server rental.",
+      "m3Title": "No subscription",
+      "m3Desc": "Zero standing fees, zero commitments. No runs, no charges. Ideal for irregular project work."
+    },
+    "examplesHeading": "Example quotes",
+    "examplesNote": "Indicative only — the estimator gives the exact price for your file.",
+    "examples": {
+      "e1Name": "Stairwell",
+      "e1Spec": "~3M cells · T_END 900 s",
+      "e1Price": "~PLN 80–120",
+      "e2Name": "Underground car park",
+      "e2Spec": "~8M cells · T_END 1200 s",
+      "e2Price": "~PLN 250–400",
+      "e3Name": "Large facility",
+      "e3Spec": "~20M cells · T_END 1800 s",
+      "e3Price": "~PLN 600–900"
+    },
+    "includedHeading": "Included",
+    "included": {
+      "i1": "Dedicated compute server",
+      "i2": "Automatic hardware sizing",
+      "i3": "Live result preview",
+      "i4": "Results kept for 60 days",
+      "i5": "Email status notifications",
+      "i6": "History and invoicing details"
+    },
+    "ctaTitle": "Find out what your file will cost",
+    "ctaLead": "Upload the .fds — the estimator works out the runtime and price in seconds, with no account and no commitment."
+  },
+  "cloudSpotlight": {
+    "badge": "CFD Cloud",
+    "titleStart": "FDS computing",
+    "titleAccent": "without infrastructure of your own",
+    "lead": "Upload a .fds file — you get an estimated cost, the run happens in the cloud and the results come back to you. You pay only for the compute time and result storage you actually use.",
+    "cta": "Go to FDSRun ↗",
+    "separateNote": "This is a separate computing service — the CFD cloud lives at fdsrun.com.",
+    "steps": {
+      "s1Title": "Upload the .fds file",
+      "s1Desc": "Your model is analysed locally in the browser — you see the estimated cost before the file is sent anywhere.",
+      "s2Title": "Confirm and pay",
+      "s2Desc": "The system picks the optimal server and starts the run. You follow progress live — the log refreshes every 5 seconds.",
+      "s3Title": "Download the results",
+      "s3Desc": "When the run finishes you get an email with links to the SMV, CSV and log files. Everything stays available for 60 days."
+    },
+    "features": {
+      "f1Title": "A dedicated VM per job",
+      "f1Desc": "Every simulation gets its own server — no queue, no sharing of resources.",
+      "f2Title": "Available worldwide",
+      "f2Desc": "Interface in Polish and English. Servers in Europe — low latency for PL, DE, UK and AE.",
+      "f3Title": "Usage-based billing",
+      "f3Desc": "Charged for actual compute time plus result storage. Stripe, BLIK, Przelewy24. Invoices in your account.",
+      "f4Title": "Results for 60 days",
+      "f4Desc": "SMV files, slice files, DEVC CSVs and logs — kept for 60 days, downloaded over a secure link."
+    }
+  },
+  "kb": {
+    "metadata": {
+      "title": "Knowledge base — how to run FDS | FDSRun",
+      "description": "Practical articles on the Fire Dynamics Simulator: computational mesh, design fire, ventilation, measurements and result analysis. Plus the FDS + PyroSim course from scratch."
+    },
+    "badge": "Knowledge base",
+    "title": "How to run FDS so the result holds up",
+    "lead": "Straight answers to the questions that come back on every project: what mesh to use, how to write the design fire, what to measure and how long it will all take. No theory detached from the .fds file.",
+    "articlesHeading": "Articles",
+    "empty": "The first articles are coming shortly.",
+    "readingTime": "{minutes} min read",
+    "lessonLabel": "Lesson {n}",
+    "soon": "Coming soon",
+    "back": "Knowledge base",
+    "tagsLabel": "Tags",
+    "moreHeading": "Read next",
+    "ctaRun": "Run a simulation",
+    "ctaCourse": "Course outline",
+    "ctaFeatures": "See the features",
+    "courseBadge": "Course",
+    "courseTitle": "FDS + PyroSim from scratch",
+    "courseLead": "Ten lessons from your first input file to a report that passes review. Each one ships with a ready-made file to download and an example computed on FDSRun.",
+    "courseProgress": "{done} of {total} lessons published",
+    "courseCta": "See the course outline",
+    "course": {
+      "metadata": {
+        "title": "FDS + PyroSim course from scratch | FDSRun",
+        "description": "Ten lessons on using the Fire Dynamics Simulator and PyroSim: installation, building the input file, geometry, mesh and MPI, design fire, ventilation, measurements, running and reporting."
+      },
+      "title": "FDS + PyroSim from scratch",
+      "lead": "The course takes you from an empty folder to a finished report: you build a room model, add the fire, ventilation and measurements, run the solver and read the results. Every lesson ends with a working .fds file you can compute on FDSRun.",
+      "outline": "Outline",
+      "note": "Lessons are published as they are written. Missing a topic? Write to us — the order follows what people ask for."
+    }
+  },
+  "headers": {
+    "regulamin": {
+      "crumb": "Terms",
+      "title": "Terms of service",
+      "desc": "Rules for using the website and the terms on which services are provided electronically."
+    },
+    "cookies": {
+      "crumb": "Cookies",
+      "title": "Cookie policy",
+      "desc": "Information about cookies and tracking technologies used on this service."
+    },
+    "privacy": {
+      "crumb": "Privacy",
+      "title": "Privacy policy",
+      "desc": "How personal data of users is processed and protected."
+    }
+  },
+  "cloudLanding": {
+    "metadata": {
+      "title": "FDSRun — FDS fire simulations in the cloud",
+      "description": "Upload your FDS input file, see the cost within seconds and run the solver on cloud servers. Quotes without an account, billing based on actual usage."
+    },
+    "panelCaption": "Illustrative job · payment after the run completes",
+    "finalCta": {
+      "title": "Price it and run your first simulation",
+      "lead": "Upload a .fds file — you will see the cost within seconds, no account required. You pay for the server time you actually use.",
+      "line1": "Price the run.",
+      "line2": "Start the simulation.",
+      "contact": "Write to us"
+    },
+    "hero": {
+      "line1": "FDS fire simulations",
+      "line2": "computed in the cloud",
+      "lead": "Upload a .fds file — you will see an estimated cost within seconds, before you commit to running anything. The simulation runs in the cloud and you only pay for the compute time it actually takes.",
+      "ctaSecondary": "See pricing",
+      "sideLink": "Full feature list"
+    },
+    "console": {
+      "caseId": "JOB",
+      "chartTitle": "HRR // STAIRWELL_A",
+      "chartMeta": "ILLUSTRATIVE PREVIEW",
+      "progress": "PROGRESS",
+      "progressSub": "T = 405 / 900 s of simulated fire",
+      "remaining": "REMAINING",
+      "remainingVal": "41",
+      "remainingUnit": "min",
+      "etaSub": "finishes around 14:32",
+      "cost": "ESTIMATED COST",
+      "costVal": "88 PLN",
+      "costSub": "net · billed by actual computation time",
+      "modelNote": "3.24M cells · 15 meshes · 0.84 ms step",
+      "readings": "MODEL READINGS",
+      "max": "max",
+      "min": "min",
+      "r_hrr": "HRR",
+      "r_hrr_v": "2,480",
+      "r_temp": "T_CEILING_3M",
+      "r_temp_v": "138",
+      "r_vis": "VISIBILITY_1.8M",
+      "r_vis_v": "7.4",
+      "hrrMax": "HRR_MAX // 2,480 kW",
+      "tCeiling": "T_CEILING 138 °C",
+      "chartNow": "NOW",
+      "logTitle": "SOLVER LOG",
+      "live": "LIVE",
+      "log1": "STEP 12,480 // T = 405.0 s",
+      "log2": "DEVC READINGS WRITTEN",
+      "log3": "SERVER STARTED"
+    },
+    "figures": {
+      "title": "Computing without a server room of your own. Anatomy of a single job.",
+      "f1Caption": "FIG 0.1 / MODEL PARTITIONING",
+      "f1Title": "Meshes from the .fds file",
+      "f1Desc": "We read the &MESH sections and count the cells in each one — that is the basis for both the estimate and the machine sizing.",
+      "f2Caption": "FIG 0.2 / CORE ALLOCATION",
+      "f2Title": "One mesh per core",
+      "f2Desc": "Meshes go to separate MPI processes on a dedicated server. No queue, no resource sharing.",
+      "f3Caption": "FIG 0.3 / FIRE DEVELOPMENT",
+      "f3Title": "HRR curve and simulated time",
+      "f3Desc": "The &TIME and &REAC sections give the simulated duration, and the CFL condition gives the real compute time."
+    },
+    "parser": {
+      "badge": "Quote",
+      "title": "From a .fds file to a concrete figure",
+      "lead": "The analysis happens locally in your browser. The file only reaches our server once you accept the quote.",
+      "points": {
+        "p1": "The &MESH, &TIME and &REAC sections plus model elements (&OBST, &VENT, &DEVC) are read without uploading the file.",
+        "p2": "Runtime estimated from the CFL condition and a throughput of ~240,000 cell-timesteps/s per core.",
+        "p3": "You see the cost before the start — no subscription, no account."
+      },
+      "panel": {
+        "file": "FILE",
+        "cells": "CELLS",
+        "note1": "LOCAL ANALYSIS // FILE NEVER LEAVES THE BROWSER",
+        "note2": "ESTIMATE FROM THE CFL CONDITION",
+        "cost": "ESTIMATED COST",
+        "costValue": "PLN 87"
+      }
+    },
+    "progress": {
+      "badge": "Progress",
+      "title": "Follow the run live",
+      "lead": "The log refreshes every few seconds and the DEVC and HRR charts grow as the solver works. You do not have to wait for the end to see whether the model is heading the right way.",
+      "cta": "Run your first simulation",
+      "panel": {
+        "timeline": "JOB TIMELINE // 0xAF",
+        "timelineMeta": "15 MESHES // T_END 900 s",
+        "done": "DONE",
+        "eta": "FORECAST",
+        "evt1": "START // MESH_01…08",
+        "evt2": "DEVC // TC_STAIRWELL_3M",
+        "evt3": "RESULTS QUEUE",
+        "telemetry": "TELEMETRY",
+        "refresh": "EVERY 5 s",
+        "mCpu": "CORES",
+        "mStep": "STEP ms",
+        "mLeft": "REMAINING",
+        "hrrLive": "HRR // LIVE",
+        "alloc": "MESH ALLOCATION",
+        "pending": "PENDING"
+      },
+      "queue": {
+        "title": "YOUR JOBS",
+        "m1": "RUNNING // 67%",
+        "m2": "COMPLETED // 60 DAYS",
+        "m3": "COMPLETED // 60 DAYS",
+        "open": "OPEN",
+        "details": "RESULTS"
+      }
+    },
+    "stages": {
+      "s1Meta": "STATUS: ACTIVE",
+      "s1Title": "Quote",
+      "s1Desc": "Cells and the estimated cost are worked out locally in your browser.",
+      "s1Stat": "NO ACCOUNT // NO UPLOAD",
+      "s2Meta": "STEP 02",
+      "s2Title": "Confirmation",
+      "s2Desc": "You accept the amount, and only then does the file go to the server.",
+      "s2Stat": "STRIPE // BLIK // P24",
+      "s3Meta": "STEP 03",
+      "s3Title": "Computation",
+      "s3Desc": "A dedicated machine runs the solver while you watch progress live.",
+      "s3Stat": "DEDICATED MACHINE // EU",
+      "s4Meta": "STEP 04",
+      "s4Title": "Results",
+      "s4Desc": "SMV files, slice planes, DEVC CSVs and the full solver log.",
+      "s4Stat": "AVAILABLE FOR 60 DAYS"
+    },
+    "facts": {
+      "f1Body": "Every job gets its own virtual machine — no queue and no sharing compute with anyone else.",
+      "f1Label": "A dedicated VM per job",
+      "f1Meta": "Servers in the European Union",
+      "f2Body": "You pay for actual compute time and result storage. No subscription, no standing fees.",
+      "f2Label": "Usage-based billing",
+      "f2Meta": "VAT invoice in your account"
+    }
+  },
+  "auth": {
+    "common": {
+      "orEmail": "or email and password",
+      "email": "Email address",
+      "emailPlaceholder": "john@company.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "redirecting": "Redirecting…",
+      "backToSignin": "Back to sign in",
+      "generic": "Something went wrong. Please try again."
+    },
+    "signin": {
+      "title": "Sign in",
+      "noAccount": "No account yet?",
+      "signUp": "Sign up",
+      "google": "Continue with Google",
+      "github": "Continue with GitHub",
+      "forgot": "Forgot your password?",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "errInvalid": "Incorrect email or password.",
+      "errNotConfirmed": "Confirm your email address before signing in. Check your inbox.",
+      "errLinkInvalid": "The verification link has expired or is invalid. Try signing in again."
+    },
+    "signup": {
+      "title": "Create an account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "consent": "I have read and accept the <privacy>privacy policy</privacy> and the <terms>terms of service</terms>. I consent to my personal data being processed for the purpose of running my account and delivering the service.",
+      "consentRequiredOauth": "Accept the privacy policy and terms of service before continuing.",
+      "consentRequired": "You must accept the privacy policy and the terms of service.",
+      "google": "Sign up with Google",
+      "github": "Sign up with GitHub",
+      "passwordPlaceholder": "at least 8 characters",
+      "submit": "Sign up",
+      "submitting": "Creating account…",
+      "gdpr": "The data controller is Fire Protection Solutions. We process your data solely for the purposes set out in the privacy policy. You have the right to access, rectify, erase and port your data.",
+      "errExists": "An account with this email address already exists.",
+      "errInvalidEmail": "Invalid email address format.",
+      "errWeak": "That password is too weak. Use at least 8 characters.",
+      "errGeneric": "Something went wrong while creating your account. Please try again."
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "We will send a password reset link to your email address.",
+      "sentTitle": "Check your inbox",
+      "sentBody": "We sent a link to <b>{email}</b>. It is valid for 24 hours.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "error": "We could not send the email. Check the address and try again."
+    },
+    "newPassword": {
+      "title": "New password",
+      "subtitle": "Set a new password for your account.",
+      "newPass": "New password",
+      "newPassPlaceholder": "At least 8 characters",
+      "confirm": "Confirm password",
+      "confirmPlaceholder": "Repeat the password",
+      "tooShort": "The password must be at least 8 characters long.",
+      "mismatch": "The passwords do not match.",
+      "error": "We could not change the password. The link may have expired — please try again.",
+      "sendNewLink": "Send a new link",
+      "submit": "Set new password",
+      "submitting": "Saving…"
+    },
+    "confirmEmail": {
+      "title": "Check your email",
+      "body": "We sent a confirmation link to your email address. Click it to activate your account and go to your dashboard.",
+      "validity": "The link is valid for 24 hours.",
+      "spam": "If the email has not arrived, check your spam folder.",
+      "back": "← Back to sign in",
+      "metaTitle": "Confirm your email address | Fire Protection Solutions"
+    },
+    "product": {
+      "badge": "FP Solutions",
+      "cfdTitle": "CFD Cloud",
+      "cfdSubtitle": "FDS computing in the cloud without infrastructure of your own",
+      "calcTitle": "Design tools",
+      "calcSubtitle": "Engineering calculators aligned with the standards",
+      "cfd1": "A dedicated VM per job — no queues",
+      "cfd2": "Billing based on actual compute time plus result storage",
+      "cfd3": "Live FDS log, refreshed every 5 seconds",
+      "cfd4": "Results (SMV, CSV, logs) available for 60 days",
+      "calc1": "CNBOP-PIB W-0003:2016 calculator — stairwells",
+      "calc2": "Aᴄz sizing to PN-B-02877-4:2025 and VdS",
+      "calc3": "Print-ready report in PDF and DOCX",
+      "calc4": "Formulas taken straight from the guidelines — standard-compliant",
+      "footer": "Sign in or create an account — it costs nothing",
+      "signUp": "Sign up →"
+    }
+  },
+  "symDashboard": {
+    "title": "Dashboard",
+    "greeting": "Hi {name} 👋",
+    "subtitle": "An overview of your CFD simulations in one place.",
+    "newSim": "New simulation",
+    "kpiTotal": "Simulations total",
+    "kpiActive": "Running",
+    "kpiSpent": "Cost (completed)",
+    "kpiToPay": "Due",
+    "activeTitle": "Simulations in progress",
+    "activeLive": "live",
+    "activeEmpty": "No active simulations.",
+    "activeEmptyCta": "Order a new simulation →",
+    "activeEstProgress": "estimated progress",
+    "activeOrdered": "Ordered",
+    "cellsWord": "cells",
+    "recentTitle": "Recently completed",
+    "recentViewAll": "View all →",
+    "recentEmpty": "You have no completed simulations yet.",
+    "paid": "Paid",
+    "toPay": "Due",
+    "shortcutsTitle": "Quick access",
+    "scHistoryTitle": "History",
+    "scHistoryDesc": "Every job — active and completed.",
+    "scBillingTitle": "Billing",
+    "scBillingDesc": "Costs, invoices and CSV export.",
+    "scStatsTitle": "Statistics",
+    "scStatsDesc": "Cost and compute time over time.",
+    "scInvoiceTitle": "Invoicing details",
+    "scInvoiceDesc": "One set of billing details for everything."
+  },
+  "symHistory": {
+    "back": "← CFD Cloud",
+    "title": "Simulation history",
+    "live": "Live",
+    "subtitle": "Every FDS job linked to your account.",
+    "searchPlaceholder": "Job number (e.g. FDS-ABC123-XY)",
+    "open": "Open",
+    "loading": "Loading…",
+    "loginPrompt": "Sign in to see your simulation history.",
+    "loginCta": "Sign in →",
+    "empty": "No simulations ordered yet.",
+    "emptyCta": "Submit your first job →",
+    "tabAll": "All",
+    "tabActive": "Running",
+    "tabDone": "Completed",
+    "tabFailed": "Errors",
+    "tabCancelled": "Cancelled",
+    "filterLabel": "History filter",
+    "noFilterResults": "No results for this filter.",
+    "deleteError": "Deletion failed.",
+    "connError": "Connection error.",
+    "confirmDelete": "Delete <code>{id}</code>?",
+    "confirmActive": "The compute server will be stopped and the job deleted.",
+    "confirmDone": "The input file and results will be permanently deleted.",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete job",
+    "meshes": "{count, plural, one {# mesh} other {# meshes}}",
+    "cellsWord": "cells",
+    "est": "est. {time}",
+    "status": {
+      "pending": "Pending",
+      "dispatched": "Queued",
+      "running": "Running",
+      "done": "Completed",
+      "failed": "Error",
+      "cancelled": "Cancelled",
+      "error": "Error"
+    }
+  },
+  "symulacje": {
+    "badge": "CFD Cloud",
+    "title": "FDS simulations in the cloud",
+    "lead": "Upload your FDS input file — we show an estimated cost and start the run. You pay only for the compute time and result storage you actually use, with no subscription.",
+    "historyLink": "Simulation history",
+    "trust": {
+      "vm": "A dedicated VM per job",
+      "epyc": "Servers in the European Union",
+      "payg": "Usage-based billing",
+      "retention": "Results for 60 days"
+    },
+    "steps": {
+      "file": "FDS file",
+      "estimate": "Quote",
+      "confirm": "Confirmation",
+      "stateActive": "IN PROGRESS",
+      "stateDone": "DONE"
+    },
+    "upload": {
+      "heading": "Upload an FDS file",
+      "drop": "Drag a file here or click to choose one",
+      "formats": "Supported formats: .fds",
+      "pickAnother": "Click to choose a different file",
+      "onlyFds": "Only files with the .fds extension are accepted",
+      "readError": "The file could not be read.",
+      "infoTitle": "What does the system analyse?",
+      "infoBody": "The &MESH sections (number and size of meshes), &TIME (simulated duration), &REAC (fuel) and model elements (&OBST, &VENT, &DEVC).",
+      "infoLocal": "The file stays local — it is uploaded only after you accept the quote.",
+      "analyze": "Analyse the file",
+      "analyzing": "Analysing the file…",
+      "previousOrders": "Previous jobs"
+    },
+    "deliverables": {
+      "heading": "What you get",
+      "d1Title": "Smokeview visualisation",
+      "d1Desc": ".smv files together with slice planes and boundaries — the full picture of how the fire and smoke developed.",
+      "d2Title": "Device data (DEVC)",
+      "d2Desc": "CSV files with temperature, visibility and velocity readings — ready for assessing evacuation conditions.",
+      "d3Title": "Full FDS solver log",
+      "d3Desc": "The complete run with solver parameters — for verification and project documentation.",
+      "d4Title": "Secure access for 60 days",
+      "d4Desc": "You download results over a signed link; after 60 days they are removed from the server automatically."
+    },
+    "faq": {
+      "heading": "Frequently asked questions",
+      "q1": "Which files are supported?",
+      "a1": "FDS input files with the .fds extension. We read the &MESH, &TIME and &REAC sections plus model elements (&OBST, &VENT, &DEVC) directly in your browser.",
+      "q2": "What does it cost and when do I pay?",
+      "a2": "You pay for actual compute time and result storage — no subscription, no standing fees. You see the estimated cost before the run starts, and payment (Stripe, BLIK, Przelewy24) happens after the computation finishes. A VAT invoice is available in your account.",
+      "q3": "How long does a run take?",
+      "a3": "It depends on the cell count and the simulated duration. We show a runtime estimate with the quote, based on the CFL condition and a throughput of ~240,000 cell-timesteps/s per core. Every job gets its own dedicated compute server.",
+      "q4": "Can I run several simulations at once?",
+      "a4": "Yes. Each job starts a separate virtual machine — there is no queue and no resource sharing between your simulations.",
+      "q5": "Is my file safe?",
+      "a5": "The file is analysed locally in your browser and uploaded only after you accept the quote. The computation runs on servers in the European Union, and the machine is destroyed once the job finishes."
+    },
+    "complexityLevels": {
+      "mała": "small",
+      "średnia": "medium",
+      "duża": "large",
+      "bardzo duża": "very large"
+    },
+    "review": {
+      "analysis": "File analysis",
+      "complexity": "Complexity: {level}",
+      "cellsWord": "cells",
+      "cores": "Compute cores",
+      "meshesMpi": "{count} MPI meshes",
+      "coresMix": "{mpi} MPI × {omp} OMP",
+      "cellsTotal": "Cells (total)",
+      "simTime": "Simulated time",
+      "fuel": "Fuel (REAC)",
+      "meshDetails": "Mesh details",
+      "obst": "Obstructions (OBST): {n}",
+      "vent": "Vents (VENT): {n}",
+      "devc": "Devices (DEVC): {n}"
+    },
+    "estimate": {
+      "heading": "Estimated quote",
+      "server": "Compute server",
+      "serverSub": "{procs} parallel processes · {ram} GB RAM",
+      "estTime": "Estimated compute time",
+      "dt": "Time step Δt",
+      "dtFromFile": "from the file (dx={dx} cm)",
+      "dtAssumed": "assuming dx = 10 cm",
+      "costLabel": "Estimated cost",
+      "costSub": "net · payable after the run",
+      "note": "This is a preliminary estimate. The final price is charged once the run finishes, based on the server time and result storage actually used. You pay only for finished results.",
+      "serverSubPending": "selecting a machine…",
+      "coresValue": "{cores} vCPU",
+      "timeRange": "typically {lo} – {hi}"
+    },
+    "form": {
+      "heading": "Message for the job",
+      "linkedInfo": "The job will be linked to your account{email}. We will send the quote and run status to that address.",
+      "messageLabel": "Message (optional)",
+      "messagePlaceholder": "e.g. project name, deadline, extra requirements…",
+      "submit": "Send for computation",
+      "submitting": "Submitting the job…",
+      "back": "Back",
+      "genericError": "Something went wrong. Please try again.",
+      "networkError": "No connection to the server. Please try again.",
+      "fallbackName": "User"
+    },
+    "done": {
+      "title": "Job accepted",
+      "caseNo": "Job number:",
+      "body": "An engineer will check the file and send the final quote to {email} before the run starts. We usually reply within one business day.",
+      "again": "Submit another job"
+    },
+    "status": {
+      "oczekuje": "Pending",
+      "wKolejce": "Queued",
+      "wTrakcie": "Running",
+      "zakonczone": "Completed",
+      "blad": "Error"
+    },
+    "restricted": {
+      "badge": "Coming soon",
+      "title": "CFD simulations in the cloud — coming soon",
+      "lead": "Running CFD/FDS computations straight from your account is in the final stages of preparation. We will open it up shortly.",
+      "body": "Want early access? Write or call and we will enable it on your account.",
+      "emailCta": "Write to us",
+      "phoneCta": "Call us",
+      "back": "← Back to dashboard"
+    },
+    "parseErrors": {
+      "unreadable": "The structure of the FDS file could not be read.",
+      "noNamelists": "The file contains no FDS namelists. Check that the file is valid.",
+      "noMesh": "No &MESH section found. Check that the FDS file is complete.",
+      "noTime": "No &TIME section (T_END) found. The simulated duration is required for the quote."
+    },
+    "picker": {
+      "heading": "Compute mode",
+      "lead": "The same model runs faster on a larger machine or cheaper on a smaller one. Pick what matters more to you — the results are identical, only time and cost differ.",
+      "meshes": "{count} meshes in the model",
+      "tier": {
+        "eco": "Economy",
+        "balanced": "Balanced",
+        "fast": "Fastest",
+        "custom": "Custom"
+      },
+      "alsoFastest": "also fastest",
+      "range": "typically {lo} – {hi}",
+      "hardware": "{cores} vCPU · {ram} GB RAM",
+      "oneMeshPerProc": "{procs} parallel processes, one mesh each",
+      "meshesPerProc": "{procs} parallel processes, {meshes} meshes each",
+      "split": "{procs} proc. × {meshes} meshes",
+      "showAll": "Show all configurations ({count})",
+      "hideAll": "Hide configurations",
+      "col": {
+        "mode": "Option",
+        "hardware": "Machine",
+        "split": "Work split",
+        "time": "Time",
+        "cost": "Estimated cost"
+      },
+      "paretoNote": "The list only shows options that nothing else beats on both time and cost at once. Time is an estimate — billing follows actual compute time."
+    }
+  },
+  "profile": {
+    "loadError": "The profile could not be loaded.",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "memberSince": "Member since {date} · sign-in: {provider}",
+    "providerEmail": "email",
+    "stats": {
+      "simulations": "FDS simulations",
+      "active": "Active runs",
+      "reports": "Reports",
+      "spent": "Spend (paid)"
+    },
+    "quickAccess": "Quick access",
+    "links": {
+      "newSimTitle": "New FDS simulation",
+      "newSimDesc": "Upload a .fds file and run it in the cloud.",
+      "historyTitle": "Simulation history",
+      "historyDesc": "Browse and download the results of every job.",
+      "calcTitle": "Calculators",
+      "calcDesc": "Sizing of smoke vents and air inlets to the standards.",
+      "reportsTitle": "Reports",
+      "reportsDesc": "Saved PDF and DOCX reports from the calculators.",
+      "billingTitle": "Billing",
+      "billingDesc": "Invoices and payment history for your simulations.",
+      "statsTitle": "Statistics",
+      "statsDesc": "Resource usage and a cost summary."
+    },
+    "billing": {
+      "title": "Billing model",
+      "badge": "Pay-as-you-go",
+      "desc": "You pay only for the compute power and storage you actually use — no subscription, no standing fees. A quote appears before every simulation starts, and invoices are waiting in Billing.",
+      "chipEn": "Interface PL / EN",
+      "chipVat": "VAT invoices",
+      "cta": "Billing →"
+    },
+    "invoice": {
+      "title": "Invoicing details",
+      "subtitle": "Used automatically when invoices for simulations are issued.",
+      "fullName": "Full name",
+      "company": "Company",
+      "nip": "VAT ID",
+      "nipHint": "Digits only, no dashes.",
+      "phone": "Phone",
+      "address": "Address",
+      "save": "Save details",
+      "saving": "Saving…",
+      "savedOk": "Your details have been saved.",
+      "saveErr": "Could not save. Please try again.",
+      "phFullName": "John Smith",
+      "phCompany": "Fire Protection Ltd.",
+      "phNip": "0000000000",
+      "phPhone": "+48 000 000 000",
+      "phAddress": "1 Example St, 00-000 Warsaw"
+    },
+    "security": {
+      "title": "Security",
+      "current": "Current password",
+      "new": "New password",
+      "newPlaceholder": "at least 8 characters",
+      "change": "Change password",
+      "changing": "Changing…",
+      "changedOk": "Your password has been changed.",
+      "changeErr": "Could not change the password. Please try again.",
+      "currentWrong": "The current password is incorrect.",
+      "tooShort": "The new password must be at least 8 characters long.",
+      "oauthNote": "You sign in through <b>{provider}</b>. Your password is managed on their side — there is no need to set one here."
+    },
+    "danger": {
+      "title": "Delete account",
+      "warning": "Deleting your account is irreversible. All your data, simulation history and reports will be permanently removed in line with Art. 17 GDPR.",
+      "confirmLabel": "Type your email address to confirm: <b>{email}</b>",
+      "delete": "Permanently delete account",
+      "deleting": "Deleting…",
+      "mismatch": "The email address does not match.",
+      "error": "Could not delete the account. Please try again or contact us."
+    }
+  },
+  "billing": {
+    "kicker": "FDSRUN // COSTS AND INVOICES",
+    "title": "Billing",
+    "lead": "The cost history of FDS runs linked to your account.",
+    "back": "Dashboard",
+    "exportCsv": "Export CSV",
+    "invoiceData": "Invoicing details",
+    "invoiceDataLead": "One set of details used on every invoice for your simulations.",
+    "signInPrompt": "Sign in to see your billing history.",
+    "signIn": "Sign in",
+    "noJobs": "No simulations ordered yet.",
+    "firstJob": "Submit your first job",
+    "kpiTotal": "Total amount (completed)",
+    "kpiDone": "Completed simulations",
+    "kpiActive": "Simulations running",
+    "net": "net",
+    "jobsCount": "{n, plural, one {job} other {jobs}}",
+    "active": "active",
+    "noActive": "none active",
+    "filterLabel": "Billing filter",
+    "noneForFilter": "No results for this filter.",
+    "cells": "{n} cells",
+    "completedOn": "completed {date}",
+    "paid": "Paid",
+    "unpaid": "Due",
+    "openJob": "Open job",
+    "sum": "Total ({filter})",
+    "csv": {
+      "caseId": "Job number",
+      "file": "File",
+      "date": "Order date",
+      "status": "Status",
+      "server": "Server",
+      "cells": "Cells",
+      "time": "Compute time",
+      "amount": "Net amount (PLN)"
+    }
+  },
+  "stats": {
+    "kicker": "FDSRUN // USAGE",
+    "title": "Statistics",
+    "lead": "An overview of your compute activity — the last 12 months.",
+    "back": "Dashboard",
+    "signInPrompt": "Sign in to see your statistics.",
+    "signIn": "Sign in",
+    "empty": "No data yet — submit your first FDS job.",
+    "emptyCta": "Submit a job",
+    "kpiTotal": "Simulations total",
+    "kpiTotalSub": "{n} completed",
+    "kpiCost": "Total net cost",
+    "kpiTime": "Total compute time",
+    "kpiAvg": "Avg. cost / sim.",
+    "doneSub": "completed",
+    "costByMonth": "Net cost by month (PLN)",
+    "cost": "Cost",
+    "simsAndTime": "Simulations and compute time by month",
+    "sims": "Simulations",
+    "statusSplit": "Status breakdown",
+    "serverType": "Compute server type"
+  },
+  "reportsHistory": {
+    "kicker": "FDSRUN // PDF REPORTS",
+    "title": "Report history",
+    "lead": "Click a project to return to the calculator with its data.",
+    "back": "Dashboard",
+    "loading": "Loading…",
+    "empty": "No saved reports.",
+    "toCalculators": "Go to the calculators",
+    "noName": "Untitled",
+    "rename": "Rename",
+    "delete": "Delete"
+  },
+  "admin": {
+    "title": "Administrator panel",
+    "lead": "Managing simulations and users",
+    "badge": "Admin",
+    "backLabel": "Dashboard",
+    "loading": "Loading the panel",
+    "noAccessTitle": "No access",
+    "noAccessText": "This page is available to administrators only.",
+    "backToDashboard": "Back to dashboard",
+    "sections": {
+      "dashboard": "Overview",
+      "analytics": "Analytics",
+      "sims": "Simulations",
+      "users": "Users",
+      "infra": "Infrastructure",
+      "label": "Panel sections",
+      "calibration": "Calibration"
+    },
+    "attention": {
+      "title": "Needs attention",
+      "pending": "{n, plural, one {# pending} other {# pending}}",
+      "failed": "{n, plural, one {# with an error} other {# with errors}}",
+      "unpaid": "{amount} due"
+    },
+    "kpi": {
+      "all": "All",
+      "pending": "Pending",
+      "running": "Running",
+      "done": "Completed",
+      "failed": "Errors",
+      "revenue": "Revenue",
+      "unpaid": "Due",
+      "users": "Users"
+    },
+    "recent": "Recent jobs",
+    "cols": {
+      "status": "Status",
+      "caseId": "Case ID",
+      "email": "Email",
+      "file": "File",
+      "server": "Server",
+      "price": "Price",
+      "date": "Date",
+      "time": "Time",
+      "costHz": "HZ cost",
+      "margin": "Margin",
+      "client": "Client / company",
+      "registered": "Registered",
+      "lastSignIn": "Last sign-in",
+      "sims": "Simulations",
+      "done": "Completed",
+      "revenue": "Revenue"
+    },
+    "filterStatus": "Status filter",
+    "searchSims": "Search: case_id, email, file…",
+    "searchUsers": "Search: email, name, company, VAT ID…",
+    "search": "Search",
+    "csvTitle": "Export the current page to CSV",
+    "noResults": "No results",
+    "noUsers": "No users",
+    "usersCount": "{n, plural, one {# user} other {# users}}",
+    "pagination": "{from}–{to} of {total} · page {page}/{pages}",
+    "prev": "Previous",
+    "next": "Next",
+    "statusChange": "Change status (currently: {status})",
+    "priceLabel": "Price (PLN)",
+    "priceEdit": "Edit price",
+    "serverLifetime": "Server lifetime: {time}",
+    "marginTitle": "Client price − Hetzner server cost (storage excluded). Full settlement in the job details.",
+    "downloadFds": "Download the .fds file",
+    "downloadFdsAria": "Download the .fds file of job {caseId}",
+    "details": "Details",
+    "detailsAria": "Details of job {caseId}",
+    "delete": "Delete job",
+    "deleteAria": "Delete job {caseId}",
+    "deleteConfirm": "Delete job {caseId}?\n\nThis cannot be undone — it destroys the server (if running), the input file and the results in storage.",
+    "deleteFailed": "The job could not be deleted. Please try again.",
+    "toggleInvoice": "Show / hide invoicing details",
+    "invoiceData": "Invoicing details",
+    "noInvoiceData": "This user has not filled in their invoicing details yet.",
+    "invoice": {
+      "fullName": "Full name",
+      "company": "Company",
+      "nip": "VAT ID",
+      "phone": "Phone",
+      "address": "Address",
+      "updated": "Updated"
+    },
+    "csv": {
+      "caseId": "Case ID",
+      "email": "Email",
+      "name": "Name",
+      "file": "File",
+      "status": "Status",
+      "server": "Server",
+      "cells": "Cells",
+      "hours": "Time (h)",
+      "price": "Price (PLN)",
+      "hetznerCost": "Hetzner cost (EUR)",
+      "margin": "Margin excl. storage (PLN)",
+      "created": "Created",
+      "completed": "Completed"
+    },
+    "infra": {
+      "loadFailed": "Could not fetch data from Hetzner.",
+      "retry": "Try again",
+      "checkToken": "Check HETZNER_API_TOKEN and the Object Storage credentials.",
+      "refresh": "Refresh",
+      "partial": "Some data may not have loaded",
+      "generatedAt": "Data as of {date} · net costs (EUR)",
+      "monthCost": "Current month cost (est.)",
+      "split": "Servers {compute} · Storage {storage}",
+      "burnNow": "Burn rate now",
+      "serversNow": "Servers now",
+      "pctServers": "Servers {pct}%",
+      "pctStorage": "Storage {pct}%",
+      "serversSummary": "{running}/{count} servers active · {size} of data",
+      "kpiServers": "Servers",
+      "kpiServersSub": "{n} running",
+      "kpiActive": "Active",
+      "kpiHourly": "Cost / h",
+      "kpiHourlySub": "running servers",
+      "kpiMonthly": "Cost / month",
+      "kpiMonthlySub": "cap of active servers",
+      "kpiAccrued": "Accrued",
+      "kpiAccruedSub": "since creation (est.)",
+      "kpiStorage": "Storage / month",
+      "noData": "no data",
+      "serversTitle": "Hetzner Cloud servers",
+      "noServers": "No servers running — zero compute cost.",
+      "colName": "Name",
+      "colStatus": "Status",
+      "colType": "Type",
+      "colLocation": "Location",
+      "colCreated": "Created",
+      "colAccrued": "Accrued",
+      "monthlyTitle": "Server cost by month",
+      "monthlySub": "server lifetime × type rate · net estimate",
+      "noHistory": "No job history to price.",
+      "colsMonth": "Month",
+      "colsJobs": "Jobs",
+      "colsServerTime": "Server time",
+      "colsCost": "Cost",
+      "total": "Total",
+      "noStorage": "No storage data (check the S3 credentials).",
+      "objects": "{count} objects · {size}",
+      "truncated": "(count truncated — more data)",
+      "usage": "Usage",
+      "objectsLabel": "Objects",
+      "storageMonthly": "Cost / month (est.)",
+      "perTb": "{price} / started TB",
+      "byPrefix": "Breakdown by prefix",
+      "objectsShort": "{count} objects"
+    },
+    "analytics": {
+      "revenue": "Revenue",
+      "unpaid": "Due",
+      "done": "Completed",
+      "avgValue": "Avg. value",
+      "computeTime": "Compute time",
+      "cellsTotal": "Cells total",
+      "revenueByMonth": "Revenue by month (PLN)",
+      "jobsAndTime": "Job count and compute time by month",
+      "statusSplit": "Status breakdown",
+      "topClients": "Top clients (revenue)",
+      "noDone": "No completed jobs.",
+      "revenueSeries": "Revenue",
+      "noData": "No data to analyse.",
+      "jobs": "Jobs",
+      "serverType": "Compute server type",
+      "colEmail": "Email"
+    },
+    "drawer": {
+      "job": "Job",
+      "jobAria": "Job {caseId}",
+      "close": "Close",
+      "client": "Client",
+      "name": "Name",
+      "file": "File",
+      "cells": "Cells",
+      "created": "Created",
+      "completed": "Completed",
+      "billing": "Settlement",
+      "clientPrice": "Client price",
+      "ownCost": "Our cost",
+      "server": "Server",
+      "storage": "Storage",
+      "margin": "Margin",
+      "markup": "{x}× cost",
+      "ofPrice": "{pct}% of price",
+      "costNote": "Cost = server lifetime × Hetzner rate + result size in storage (storage + egress).",
+      "fxNote": " Converted at {rate} PLN/€.",
+      "edit": "Edit",
+      "cancelWarning": "Saving cancels the job and stops the Hetzner server (if running).",
+      "price": "Price (PLN)",
+      "hours": "Time (h)",
+      "serverType": "Server type",
+      "saving": "Saving…",
+      "saved": "Saved ✓",
+      "save": "Save changes",
+      "open": "Open",
+      "deleting": "Deleting…",
+      "delete": "Delete job"
+    }
+  },
+  "symDetail": {
+    "back": "CFD Cloud",
+    "notFound": {
+      "title": "Job not found",
+      "body": "Job {caseId} does not exist or you do not have access to it.",
+      "hint": "Check the job number in your confirmation email.",
+      "history": "Simulation history",
+      "newJob": "New job"
+    },
+    "conn": {
+      "title": "Connection error",
+      "body": "Try refreshing the page.",
+      "back": "← Back to simulations"
+    },
+    "status": {
+      "pending": {
+        "label": "Accepted",
+        "desc": "Job saved, starting the compute server…"
+      },
+      "dispatched": {
+        "label": "Server starting",
+        "desc": "The compute machine is booting and FDS is being installed…"
+      },
+      "running": {
+        "label": "Computation in progress",
+        "desc": "FDS is running on the cloud server."
+      },
+      "done": {
+        "label": "Ready",
+        "desc": "Computation finished. Results are available below."
+      },
+      "failed": {
+        "label": "Error",
+        "desc": "The computation ended with an error. Please get in touch."
+      },
+      "cancelled": {
+        "label": "Cancelled",
+        "desc": "The computation was cancelled by the user."
+      }
+    },
+    "card": {
+      "sinceAccepted": "Time since accepted:",
+      "fdsSince": "FDS running for:",
+      "estimated": "estimated:",
+      "totalTime": "Total time:",
+      "machine": "Selected machine:",
+      "machineNote": "(server in the European Union)"
+    },
+    "actions": {
+      "stop": "Stop the computation",
+      "stopping": "Stopping…",
+      "confirmStopQ": "Stop the computation now? Results computed so far will be saved.",
+      "yesStop": "Yes, stop it",
+      "no": "No",
+      "confirmDeleteActive": "Delete a running simulation?",
+      "confirmDelete": "Delete this job?",
+      "deleteActiveBody": "The compute server will be stopped and the job, input file and all results permanently deleted. This cannot be undone.",
+      "deleteBody": "The job, input file and results will be permanently deleted. This cannot be undone.",
+      "deleting": "Deleting…",
+      "yesStopDelete": "Yes, stop and delete",
+      "yesDelete": "Yes, delete",
+      "cancel": "Cancel",
+      "stopAndDelete": "Stop and delete",
+      "deleteJob": "Delete job",
+      "annStopBold": "Stop the computation",
+      "annStop": "ends the simulation at the current step. Results computed so far are saved and remain available to download. You are charged only for the server time actually used.",
+      "annDelete": "permanently removes the job, the input file and the results; this cannot be undone.",
+      "annDeleteActive": "Warning: the simulation is running — deleting it stops the paid server and discards the work in progress without saving results.",
+      "softStopTitle": "Stopping on request…",
+      "softStopBody": "FDS is finishing the current time step and writing results. The job will switch to “Ready” shortly, with files to download."
+    },
+    "timeline": {
+      "title": "Progress",
+      "accepted": "Job accepted",
+      "serverUp": "Server started",
+      "fds": "FDS computation",
+      "resultsReady": "Results ready"
+    },
+    "tiles": {
+      "machine": "Machine",
+      "cells": "Cells",
+      "simTime": "Simulated time",
+      "vcpuHours": "core-hours",
+      "netPrice": "Net price",
+      "thousands": "k",
+      "file": "File"
+    },
+    "progress": {
+      "title": "Computation progress",
+      "refresh": "refreshed every 5 s",
+      "basic": "Basic",
+      "advanced": "Advanced",
+      "duration": "Duration",
+      "simProgress": "Simulation progress",
+      "fdsInit": "FDS initialising…",
+      "doneLabel": "Done",
+      "doneEst": "Done (est.)",
+      "remaining": "Remaining",
+      "finished": "finished",
+      "estProgress": "estimated progress",
+      "waitingFirst": "Waiting for the first data from the server… (it appears ~15 s after FDS starts)",
+      "waitingData": "Waiting for data from the server…",
+      "lastEvents": "Latest events",
+      "fdsVersion": "FDS version",
+      "chid": "CHID",
+      "timestep": "Time step no.",
+      "dtStep": "Step Δt",
+      "predTime": "Predicted time",
+      "mpiMeshes": "MPI meshes",
+      "cells": "Cells",
+      "fdsStart": "FDS start"
+    },
+    "results": {
+      "title": "Result files",
+      "downloadSelected": "Download selected",
+      "zipAll": "Download all",
+      "thFile": "File",
+      "thType": "Type",
+      "thCreated": "Created",
+      "thSize": "Size",
+      "totalSizeHint": "Total size of all result files (that is how large the whole ZIP is)",
+      "download": "Download",
+      "zipError": "The zipped files could not be downloaded. Try downloading them one by one with the “Download” button next to each file.",
+      "downloadingSeq": "Downloading file {i} of {n}…",
+      "downloadedSeq": "Requested {n, plural, one {# file} other {# files}} — check your browser's download folder.",
+      "savingToFolder": "Saving file {i} of {n} to the “{name}” folder…",
+      "savedToFolder": "Saved {n, plural, one {# file} other {# files}} in the “{name}” folder.",
+      "preparingZip": "Preparing the ZIP — the download will start shortly…",
+      "zipTitle": "Prefer a single archive? Pack the results into a ZIP",
+      "zipLead": "The archive is built in your browser and the files come straight from storage — we only ask where to save it. It unpacks into the “{name}” folder, so the files will not scatter across your disk. In browsers without streaming saves (today: anything other than Chrome and Edge) the server builds the archive instead, and it downloads slower.",
+      "zippingLocal": "Packing file {i} of {n} — keep this tab open…",
+      "zippedLocal": "Saved the “{name}” archive.",
+      "zipLocalFailed": "Zipping in the browser failed — building the archive on the server instead.",
+      "splitSize": "Part size:",
+      "partLabel": "Part {i} of {n}",
+      "partMeta": "{files, plural, one {# file} other {# files}} · {size}",
+      "perFileFolder": "The browser will ask you to pick a folder — files land in the “{name}” subfolder, straight from storage. Keep the tab open until the save completes.",
+      "perFileLoose": "This browser cannot ask for a folder (Chrome or Edge required) — files will land loose in your download folder. To get a folder, download the ZIP instead.",
+      "folderFailed": "Saving to the chosen folder failed — downloading the classic way, to your download folder.",
+      "zipUnavailable": "The ZIP could not be prepared — downloading the files individually.",
+      "range": "Items {from}–{to} of {total}",
+      "prev": "Previous",
+      "next": "Next",
+      "selectAll": "Select all",
+      "partialTitle": "Incomplete results — the run was cut short by an error",
+      "partialBody": "Below are the files computed up to the point of interruption. They cover a shorter run than the requested simulation time, and binary files may be truncated at the last written step. Check the time range in the data before using these results.",
+      "noneTitle": "No result files",
+      "noneBody": "The run failed before anything reached storage. Check the log above — this usually means an error in the input file caught right after start."
+    },
+    "partial": {
+      "title": "Partial results",
+      "lead": "Download what has been computed so far without stopping the simulation — the run continues.",
+      "downloadAll": "Download results so far",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "loading": "Checking storage…",
+      "empty": "The first snapshot appears after a few minutes of computation.",
+      "coverage": "Results cover the run up to t = {t} s out of {tEnd} s ({pct}% of the simulation)",
+      "coverageUnknown": "We could not determine how far into the simulation this snapshot reaches.",
+      "snapAt": "Snapshot from {time}",
+      "filesCount": "{n, plural, one {# file} other {# files}}",
+      "showFiles": "Show the file list ({n})",
+      "note": "The snapshot refreshes roughly every 2 minutes. Binary files may be cut off at the last record — once the run finishes they are replaced with complete ones."
+    },
+    "fileType": {
+      "smv": "Smokeview scene",
+      "csv": "Device data",
+      "log": "Solver log",
+      "s3d": "3D smoke",
+      "q": "3D data",
+      "sf": "Slice",
+      "bf": "Boundary",
+      "prt5": "Particles",
+      "fds": "FDS file",
+      "other": "File"
+    },
+    "warn": {
+      "title": "Warning: errors detected in the FDS log",
+      "body": "The computation closed, but FDS reported the errors below — the results may be incomplete or unreliable. Verify them before use."
+    },
+    "payment": {
+      "verifying": "Verifying the payment, this takes a moment…",
+      "cancelledMsg": "The payment was cancelled. You can try again.",
+      "done": "Payment completed",
+      "amount": "Amount:",
+      "net": "net",
+      "awaiting": "Awaiting payment",
+      "toPay": "Due:",
+      "gross": "gross",
+      "note": "The amount is charged from the server time and result storage actually used.",
+      "pay": "Pay {amount}",
+      "redirecting": "Redirecting…"
+    },
+    "cancelled": {
+      "title": "Computation cancelled.",
+      "body": "The compute server has been stopped. You can submit a new job with the same file."
+    },
+    "failed": {
+      "kind": {
+        "launch": {
+          "title": "The computation could not be started.",
+          "body": "The compute server did not start correctly (machine boot, FDS installation or file download). FDS never began running."
+        },
+        "fdsError": {
+          "title": "FDS stopped the computation and reported an error.",
+          "body": "The solver halted on its own and printed an error message. Below is an explanation and the relevant part of the FDS console log."
+        },
+        "watchdog": {
+          "title": "A time limit stopped the computation — not an FDS error.",
+          "body": "There is not a single error in the log — FDS was computing correctly the whole way. The run was stopped by our runtime watchdog: it took {elapsed} h against a {limit} h limit, three times the {estimated} h estimate. For this model the estimate turned out to be too low."
+        },
+        "interrupted": {
+          "title": "The computation stopped without any error message.",
+          "body": "The log contains no FDS error, and the machine stopped responding before the simulation finished. This usually means a compute-machine failure on the infrastructure side."
+        }
+      },
+      "reached": "The run reached t = {t} s of {tEnd} s ({pct}% of the requested simulation time)",
+      "reachedNote": "The files computed up to that point are in the “Result files” section.",
+      "serverFinishing": "The server is shutting down — the status will change to “Error” shortly.",
+      "exitCode": "Exit code: {code}.",
+      "whatMeans": "What does this error mean?",
+      "howToFix": "How to fix it:",
+      "rawConsole": "Raw lines from the FDS console",
+      "noCharge": "You will not be charged for a failed job. If you have questions, quote the job number:"
+    },
+    "errorCode": "ERROR",
+    "live": {
+      "title": "Live results",
+      "refresh": "refreshed every 3 s",
+      "waiting": "Waiting for the first results from the server. The HRR chart appears for every simulation once FDS writes its first time steps; DEVC charts appear when the model defines measurement devices (detectors, BEAM, thermocouples…).",
+      "diag": "diag: received HRR {hrr} chars, DEVC {devc} chars — but could not parse them as CSV",
+      "hrrTitle": "HRR — heat release rate",
+      "devcTitle": "DEVC devices ({count})",
+      "toggleHint": "click to show/hide a series",
+      "unit": "unit: {unit}",
+      "activations": "DEVC activations (thresholds)",
+      "threshold": "threshold",
+      "timeAxis": "time [s]"
+    },
+    "slice": {
+      "title": "Slice preview",
+      "titleWith": "Slice preview — {label}",
+      "empty": "The colour slice map appears once the model contains at least one &SLCF slice (e.g. temperature or visibility at a given height) and FDS writes its first time steps.",
+      "planeInfo": "{plane} slice · {axis} = {pos} {unit}",
+      "planeH": "horizontal (top view)",
+      "planeV": "vertical ({ax}{ay})",
+      "planeShortH": "horiz.",
+      "planeShortV": "vert.",
+      "unit": "unit: {unit}",
+      "refresh": "refreshed every ~10 s",
+      "slicePick": "Slice:",
+      "crisp": "Crisp cells",
+      "smooth": "Smooth",
+      "fullAnim": "Full animation (.sf)",
+      "loading": "Loading…",
+      "closeAnim": "Close the animation",
+      "animError": "The full animation could not be loaded from the .sf file.",
+      "blackMark": "in black: {lo}–{hi} {unit}",
+      "steppedBack": "stepped back in time",
+      "clearSel": "clear selection",
+      "play": "▶ Play",
+      "pause": "❚❚ Pause",
+      "backToLive": "⏭ back to the latest (live)",
+      "dragHint": "Drag to mark a value range in black",
+      "footAnim": "Animation from the .sf file ({total} steps, sampled {shown}).",
+      "footLive": "The time slider steps back through frames collected during this run. Once it finishes, the full animation from the .sf file becomes available.",
+      "footDone": "Click “Full animation (.sf)” to scrub through every time step.",
+      "footTail": "Drag the slider on the legend to mark a value range in black. Full resolution lives in the .sf files (Smokeview).",
+      "quantity": {
+        "TEMPERATURE": "Temperature",
+        "VISIBILITY": "Visibility",
+        "SOOTVIS": "Visibility",
+        "SOOTDENS": "Smoke concentration",
+        "HRRPUV": "HRRPUV (power density)",
+        "VELOCITY": "Flow velocity",
+        "PRESSURE": "Pressure",
+        "LAYER": "Smoke layer height"
+      }
+    },
+    "console": {
+      "caseId": "JOB",
+      "chart": "READINGS",
+      "progress": "PROGRESS",
+      "simAt": "T = {cur} / {end} s of simulated fire",
+      "pctEstimate": "estimated from run time — waiting for the first FDS step",
+      "beforeStart": "computation has not started yet",
+      "remaining": "REMAINING",
+      "etaAt": "finishes around {time}",
+      "estWall": "estimated computation time: {v}",
+      "totalTime": "TOTAL TIME",
+      "finishedAt": "finished at {time}",
+      "cost": "ESTIMATED COST",
+      "costNote": "net · billed by actual computation time",
+      "cellsNote": "{v} cells",
+      "meshesNote": "{n} meshes",
+      "stepNote": "{v} step",
+      "readings": "MODEL READINGS",
+      "max": "max",
+      "min": "min",
+      "log": "SOLVER LOG",
+      "live": "LIVE",
+      "noLog": "The log appears once FDS starts.",
+      "noChart": "Charts appear once FDS writes the first DEVC/HRR data."
+    },
+    "sec": {
+      "inputKicker": "INPUT FILE",
+      "inputTitle": "Model and quote",
+      "inputHint": "Data read from the .fds file before the run. The price is an estimate from the cell count and simulated duration — the final settlement follows the server time actually used.",
+      "meshes": "{n} computational meshes",
+      "simTimeHint": "The duration of the modelled fire (T_END), not the compute time.",
+      "priceHint": "Net amount, estimated before the start.",
+      "machineKicker": "INFRASTRUCTURE",
+      "machineTitle": "Selected machine",
+      "machineHint": "The machine is matched to the model size and the selected compute mode. It is dedicated to this job and disappears once the run finishes.",
+      "provider": "Dedicated server · European Union",
+      "cores": "Cores",
+      "coresHint": "The model has {n} meshes — that many MPI processes.",
+      "vcpuHint": "Billing basis: core-hours.",
+      "estWall": "Estimated compute time",
+      "estWallHint": "From the CFL condition and a throughput of ~240k cell-timesteps/s per core.",
+      "progressKicker": "RUN",
+      "progressHint": "The summary shows the solver state in brief; the full log is raw FDS output, useful when diagnosing errors.",
+      "chartsKicker": "READINGS",
+      "chartsTitle": "Charts and slice preview",
+      "chartsHint": "Every series FDS writes: HRR plus DEVC devices grouped by unit. Each unit has its own scale — hence separate tabs rather than one shared axis.",
+      "resultsKicker": "FILES",
+      "resultsHint": "Files stay available for 60 days after the run finishes. Selection and downloading work across the whole set, regardless of the page shown.",
+      "resultsHintFailed": "Files computed up to the point the run was interrupted — available for 60 days. Selection and downloading work across the whole set, regardless of the page shown.",
+      "coresSplitHint": "{procs} parallel processes, {meshes} meshes each"
+    }
+  },
+  "legal": {
+    "courtesy": "This is a courtesy translation. In case of any discrepancy, the Polish version of this document is the legally binding one.",
+    "regulamin": {
+      "intro": "These terms of service set out the general conditions, rules and manner of using the Fire Protection Solutions website. This document is the one referred to in Art. 8 of the Polish Act of 18 July 2002 on the provision of services by electronic means.",
+      "footer": "These terms enter into force on the day of publication. Last updated: {date}",
+      "sections": [
+        {
+          "h": "§ 1. General provisions",
+          "ordered": true,
+          "items": [
+            "The owner and administrator of the website is Fire Protection Solutions Jakub Baran, registered address: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
+            "The company is entered in the Polish CEIDG business register, VAT ID (NIP): 6182094888, statistical number (REGON): 528892780.",
+            "You can contact the service provider by email at biuro@fp-solutions.pl or by phone at +48 790 782 993."
+          ]
+        },
+        {
+          "h": "§ 2. Definitions",
+          "items": [
+            "Website – the site available at the fp-solutions.pl domain (or another relevant main domain).",
+            "Service provider – Fire Protection Solutions Jakub Baran.",
+            "User – any natural person, legal person or organisational unit using the Website.",
+            "Electronic services – services provided electronically by the service provider to the User through the Website (e.g. the contact form)."
+          ]
+        },
+        {
+          "h": "§ 3. Type and scope of services",
+          "ordered": true,
+          "items": [
+            "The Website is primarily informational. It presents the service provider's offering in fire safety engineering (including fire safety manuals, CFD simulations and audits).",
+            "Through the Website the service provider offers free electronic services, consisting of allowing Users to send messages via interactive email links and (where applicable) contact forms."
+          ]
+        },
+        {
+          "h": "§ 4. Technical requirements and rules of use",
+          "ordered": true,
+          "items": [
+            "Using the Website requires an end device with internet access and a standard web browser (e.g. Chrome, Firefox, Safari, Edge).",
+            "The User undertakes to use the Website lawfully and in good faith, respecting personal rights as well as the copyright and intellectual property of the service provider and third parties.",
+            "The User must not supply content of an unlawful nature."
+          ]
+        },
+        {
+          "h": "§ 5. Intellectual property",
+          "lead": "All rights to the Website, including economic copyright and intellectual property rights to its name, domain, templates, forms, logos and photographs published on it (except materials under third-party licences), belong to the service provider. They may be used only in the manner set out in and consistent with these terms, or with the express written consent of the service provider."
+        },
+        {
+          "h": "§ 6. Liability",
+          "ordered": true,
+          "items": [
+            "Information on the Website is general in nature and does not constitute a binding commercial offer within the meaning of the Polish Civil Code; it is an invitation to negotiate.",
+            "The service provider is not liable for decisions made by the User on the basis of materials and information presented on the Website without prior direct consultation and a proper contract for engineering services."
+          ]
+        },
+        {
+          "h": "§ 7. Complaints procedure",
+          "ordered": true,
+          "items": [
+            "The User may submit a complaint regarding the operation of the Website and the services provided electronically.",
+            "Complaints should be sent by email to biuro@fp-solutions.pl.",
+            "The service provider handles complaints without undue delay, no later than 14 days from receipt, informing the User of the outcome at the email address the complaint was sent from."
+          ]
+        },
+        {
+          "h": "§ 8. Final provisions",
+          "ordered": true,
+          "items": [
+            "Matters not covered by these terms are governed by generally applicable Polish law.",
+            "The service provider reserves the right to amend these terms for valid reasons (e.g. changes in the law or in how services are delivered). Users will be informed of changes through publication of the new text on the Website.",
+            "Personal data processing and cookies are covered in detail in separate documents: the Privacy Policy and the Cookie Policy."
+          ]
+        }
+      ]
+    },
+    "cookies": {
+      "intro": "This Cookie Policy sets out the rules for storing and accessing data on the devices of Users of the Fire Protection Solutions website, for the purpose of providing services electronically.",
+      "footer": "Document last updated: {date}",
+      "sections": [
+        {
+          "h": "§ 1. General information",
+          "ordered": true,
+          "items": [
+            "The administrator of the website and the entity placing cookies on the User's end device is Fire Protection Solutions Jakub Baran, registered address: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland (VAT ID: 6182094888).",
+            "The Website automatically collects only the information contained in cookies. It does not automatically collect any other information about Users."
+          ]
+        },
+        {
+          "h": "§ 2. What are cookies?",
+          "lead": "Cookies are computer data, in particular small text files, stored on the User's end device (computer, smartphone, tablet) and intended for use with the Website. Cookies usually contain the name of the site they come from, how long they are stored on the device, and a unique number."
+        },
+        {
+          "h": "§ 3. Types of cookies used",
+          "lead": "The Website uses the following types of cookies:",
+          "items": [
+            "Essential (technical) cookies: strictly necessary for the site to work correctly. They provide basic security and availability functions.",
+            "Analytical / performance cookies: allow information to be collected about how the site is used, which helps us improve its structure and content (e.g. Google Analytics).",
+            "Functional cookies: allow the User's chosen settings to be remembered and the interface personalised (e.g. the selected light/dark mode)."
+          ]
+        },
+        {
+          "h": "§ 4. Managing cookies",
+          "ordered": true,
+          "items": [
+            "Most web browsers allow cookies to be stored on the User's end device by default.",
+            "The User may change their cookie settings at any time. Settings can be changed to block automatic handling of cookies in the browser settings, or to notify the User each time a cookie is placed on the device.",
+            "Detailed information about handling cookies is available in the settings of your software (web browser), e.g. Google Chrome, Mozilla Firefox, Safari, Microsoft Edge.",
+            "Restricting the use of cookies may affect some functionality available on the Website (e.g. dark mode preference will not be remembered)."
+          ]
+        },
+        {
+          "h": "§ 5. Final provisions and contact",
+          "ordered": true,
+          "items": [
+            "More information about how your personal data is processed can be found in our Privacy Policy.",
+            "If you have questions about this cookie policy, please write to biuro@fp-solutions.pl."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "intro": "This Privacy Policy provides general information about the processing of personal data of website visitors and clients using the services of Fire Protection Solutions. It has been prepared on the basis of Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (GDPR).",
+      "footer": "Document last updated: {date}",
+      "sections": [
+        {
+          "h": "§ 1. Data controller",
+          "ordered": true,
+          "items": [
+            "The controller of your personal data is Fire Protection Solutions Jakub Baran, registered address: ul. Grzybowa 7A lok. 2, 05-825 Grodzisk Mazowiecki, Poland.",
+            "The company is entered in the Polish Central Register and Information on Economic Activity (CEIDG), VAT ID (NIP): 6182094888, statistical number (REGON): 528892780.",
+            "For matters relating to personal data protection you can contact the controller by email at biuro@fp-solutions.pl."
+          ]
+        },
+        {
+          "h": "§ 2. Purposes, legal bases and retention periods",
+          "lead": "The controller processes personal data for the following purposes:",
+          "ordered": true,
+          "items": [
+            "Contact and handling enquiries – under Art. 6(1)(f) GDPR (the controller's legitimate interest). Data (e.g. name, surname, email, phone number) is processed in order to answer enquiries sent through the form or by email. It is kept for as long as handling the enquiry requires.",
+            "Delivery of fire safety engineering services (including fire safety manuals, CFD simulations, audits and fire protection reports) – under Art. 6(1)(b) GDPR (necessary for performance of a contract). Data is processed for the duration of the contract and until claims arising from it become time-barred.",
+            "Compliance with legal obligations (accounting, tax) – under Art. 6(1)(c) GDPR. Data is kept for the period required by generally applicable law (usually 5 years from the end of the calendar year in which the tax payment deadline fell)."
+          ]
+        },
+        {
+          "h": "§ 3. Recipients of personal data",
+          "lead": "To operate the site and deliver fire safety services, the controller uses external providers. Data may be shared with:",
+          "items": [
+            "the accounting office serving the controller;",
+            "hosting and email service providers;",
+            "providers of business and engineering project management software;",
+            "state authorities (e.g. the tax office) where required by applicable law."
+          ],
+          "note": "The controller entrusts data only to entities that guarantee the appropriate data protection and security measures required by law."
+        },
+        {
+          "h": "§ 4. Rights of data subjects",
+          "lead": "Under the GDPR every User has:",
+          "items": [
+            "the right to access their data and obtain a copy of it;",
+            "the right to rectify (correct) their data;",
+            "the right to erasure (where there is no basis for continued processing);",
+            "the right to restrict processing;",
+            "the right to data portability;",
+            "the right to object to processing based on the controller's legitimate interest."
+          ],
+          "note": "Users also have the right to lodge a complaint with the supervisory authority — the President of the Polish Personal Data Protection Office (PUODO) — if they believe their data is being processed unlawfully."
+        },
+        {
+          "h": "§ 5. Data security",
+          "lead": "The controller applies appropriate technical and organisational measures to protect the personal data processed, proportionate to the risks and the categories of data concerned. In particular, data is protected against disclosure to unauthorised persons, removal by an unauthorised person, processing in breach of applicable law, and alteration, loss, damage or destruction (including through the use of SSL certificates on the site)."
+        },
+        {
+          "h": "§ 6. Cookies and tracking technologies",
+          "lead": "The website automatically collects only the information contained in cookies. They serve the correct operation of the site as well as statistical and analytical purposes. Detailed rules on the use and management of cookies are described in a separate document: the Cookie Policy."
+        },
+        {
+          "h": "§ 7. Final provisions",
+          "lead": "The controller reserves the right to amend this Privacy Policy. Changes may follow from developments in web technology, changes in generally applicable law, and the evolution of the fire safety engineering services provided. Users will be informed of any changes in a visible and comprehensible manner on this page."
+        }
+      ]
+    }
+  }
+}

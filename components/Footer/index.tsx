@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { FaPhone } from "react-icons/fa6";
 import { IoIosMail } from "react-icons/io";
@@ -17,6 +17,7 @@ const Footer = () => {
   const tn = useTranslations("nav");
   const tcn = useTranslations("cloudNav");
   const tcf = useTranslations("cloudFooter");
+  const locale = useLocale();
   const pathname = usePathname();
   const year = new Date().getFullYear();
 
@@ -53,6 +54,7 @@ const Footer = () => {
         links: [
           { href: "/funkcje", label: tcn("features") },
           { href: "/cennik", label: tcn("pricing") },
+          { href: "/baza-wiedzy", label: tcn("kb") },
           { href: "/symulacje/nowa", label: tcn("run") },
         ],
       },
@@ -94,7 +96,16 @@ const Footer = () => {
       },
       {
         heading: tcf("legal"),
-        links: legalLinks.map(({ href, label }) => ({ href: `${MARKETING_SITE}${href}`, label })),
+        // PL: dokument wiążący mieszka na fp-solutions.pl. EN: kurtuazyjne
+        // tłumaczenie serwuje chmura pod /en/* (patrz LEGAL_PATHS w middleware),
+        // więc link zostaje względny — wyjście na polską domenę pokazałoby
+        // klientowi EN polski tekst.
+        // Prefiks /en dopisujemy ręcznie: kolumny zewnętrzne renderuje zwykłe
+        // <a>, które (w odróżnieniu od Link z i18n/navigation) języka nie zna.
+        links: legalLinks.map(({ href, label }) => ({
+          href: locale === "en" ? `/en${href}` : `${MARKETING_SITE}${href}`,
+          label,
+        })),
       },
     ];
 

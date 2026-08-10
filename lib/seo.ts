@@ -24,14 +24,26 @@ export interface SeoUrls {
   languages: Record<string, string>;
 }
 
-// Serwis jest wyłącznie polski (patrz i18n/routing) — canonical bez wariantu /en
-// i bez hreflang. `locale` zostaje w sygnaturze dla zgodności z wywołaniami.
-function build(site: string, _locale: string, path: string): SeoUrls {
+// Witryna usługowa jest wyłącznie polska — jeden adres, bez wariantu /en.
+function buildPlOnly(site: string, path: string): SeoUrls {
   const clean = path === "/" ? "" : `/${path.replace(/^\/|\/$/g, "")}`;
   const url = `${site}${clean}`;
   return {
     canonical: url,
     languages: { pl: url, "x-default": url },
+  };
+}
+
+// Serwis chmurowy jest dwujęzyczny: PL pod adresem bez prefiksu, EN pod /en
+// (localePrefix „as-needed"). Canonical wskazuje wersję OGLĄDANĄ, a hreflang
+// wymienia obie — x-default idzie na polską, bo to język domyślny serwisu.
+function buildBilingual(site: string, locale: string, path: string): SeoUrls {
+  const clean = path === "/" ? "" : `/${path.replace(/^\/|\/$/g, "")}`;
+  const pl = `${site}${clean}`;
+  const en = `${site}/en${clean}`;
+  return {
+    canonical: locale === "en" ? en : pl,
+    languages: { pl, en, "x-default": pl },
   };
 }
 
@@ -42,8 +54,8 @@ function build(site: string, _locale: string, path: string): SeoUrls {
  * @param locale aktywny język ("pl" | "en")
  * @param path   ścieżka bez prefiksu języka, np. "/cfd" lub "/" dla strony głównej
  */
-export function seoUrls(locale: string, path: string): SeoUrls {
-  return build(MARKETING_SITE, locale, path);
+export function seoUrls(_locale: string, path: string): SeoUrls {
+  return buildPlOnly(MARKETING_SITE, path);
 }
 
 /**
@@ -54,5 +66,5 @@ export function seoUrls(locale: string, path: string): SeoUrls {
  * @param path   ścieżka bez prefiksu języka, np. "/symulacje/nowa"
  */
 export function cloudSeoUrls(locale: string, path: string): SeoUrls {
-  return build(CLOUD_SITE, locale, path);
+  return buildBilingual(CLOUD_SITE, locale, path);
 }

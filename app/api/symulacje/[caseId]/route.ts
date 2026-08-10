@@ -41,10 +41,14 @@ async function handleGet(caseId: string) {
     return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
   }
 
-  // Jeśli done — wygeneruj signed URLs dla plików wynikowych z Hetzner Object Storage.
+  // Signed URLs dla plików wynikowych z Hetzner Object Storage.
+  // Także dla "failed": maszyna licząca wrzuca migawki co ~2 min i robi finalny
+  // upload PRZED ustaleniem statusu (patrz lib/hetzner/cloud-init.ts), więc po
+  // błędzie w połowie obliczeń policzone pliki są w magazynie. Bez tego użytkownik
+  // widział wyłącznie komunikat o błędzie, mimo że wyniki czekały gotowe.
   // Awaria storage NIE może blokować całej strony — degraduj do braku listy plików.
   let results: Array<{ name: string; url: string }> | null = null;
-  if (data.status === "done") {
+  if (data.status === "done" || data.status === "failed") {
     try {
       // Pomijamy pliki służbowe (manifest migawki) — to nie są wyniki użytkownika.
       const files = (await listResults(caseId))
@@ -70,6 +74,7 @@ async function handleGet(caseId: string) {
     fileName: data.file_name,
     totalCells: data.total_cells,
     meshCount: data.mesh_count ?? null,
+    mpiProcs: data.mpi_procs ?? null,
     tEnd: data.t_end,
     complexity: data.complexity,
     vcpuHours: data.vcpu_hours,

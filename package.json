@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.106.0",
     "@vercel/analytics": "^2.0.1",
     "archiver": "^7.0.1",
+    "client-zip": "^2.5.0",
     "docx": "^9.6.1",
     "eslint": "8.33.0",
     "eslint-config-next": "13.1.6",

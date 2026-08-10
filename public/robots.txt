@@ -1,6 +1,18 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /signin
+Disallow: /pl/signin
+Disallow: /signup
+Disallow: /pl/signup
+Disallow: /auth
+Disallow: /pl/auth
+Disallow: /narzedzia/admin
+Disallow: /pl/narzedzia/admin
+Disallow: /narzedzia/profil
+Disallow: /pl/narzedzia/profil
+Disallow: /narzedzia/raporty
+Disallow: /pl/narzedzia/raporty
 
 # Host
 Host: https://fp-solutions.pl

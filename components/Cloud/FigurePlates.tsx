@@ -49,7 +49,7 @@ export default function FigurePlates() {
               {[[70, 70], [128, 70], [128, 128], [70, 128]].map(([x, y]) => (
                 <rect key={`${x}-${y}`} x={x} y={y} width="2" height="2" className="fill-signal" />
               ))}
-              <text x="77" y="104" fontFamily="monospace" fontSize="11" className="fill-muted">EPYC_VM</text>
+              <text x="77" y="104" fontFamily="monospace" fontSize="11" className="fill-muted">CLOUD_VM</text>
               <text x="20" y="18" fontFamily="monospace" fontSize="11" className="fill-muted">RANK_0</text>
               <text x="140" y="18" fontFamily="monospace" fontSize="11" className="fill-muted">RANK_1</text>
             </svg>

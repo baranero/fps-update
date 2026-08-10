@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import ThemeToggler from "./ThemeToggler";
+import LocaleToggler from "./LocaleToggler";
 import menuData from "./menuData";
 import { createClient } from "@/lib/supabase/client";
 import { cloudHomePath, cloudUrl, resolveIsCloud } from "@/lib/cloud";
@@ -206,19 +207,25 @@ const Header = () => {
                     </li>
                   ))}
 
-                  {/* Nawigacja chmury (FDSRun) — Funkcje / Cennik */}
-                  {isCloud && (["/funkcje", "/cennik"] as const).map((href) => (
+                  {/* Nawigacja chmury (FDSRun) — Funkcje / Cennik / Baza wiedzy.
+                      Baza wiedzy ma podstrony (artykuły, kurs), więc pozycję
+                      podświetlamy też na nich — stąd dopasowanie po prefiksie. */}
+                  {isCloud && (["/funkcje", "/cennik", "/baza-wiedzy"] as const).map((href) => (
                     <li key={href} className="group relative">
                       <Link
                         href={href}
                         onClick={() => setNavbarOpen(false)}
                         className={`flex py-2 text-fr-body transition-colors lg:inline-flex lg:px-0 lg:py-6 ${
-                          pathname === href
+                          pathname === href || pathname.startsWith(`${href}/`)
                             ? "font-semibold text-primary lg:border-b-2 lg:border-primary"
                             : "text-muted hover:text-ink"
                         }`}
                       >
-                        {href === "/funkcje" ? tcn("features") : tcn("pricing")}
+                        {href === "/funkcje"
+                          ? tcn("features")
+                          : href === "/cennik"
+                          ? tcn("pricing")
+                          : tcn("kb")}
                       </Link>
                     </li>
                   ))}
@@ -324,6 +331,9 @@ const Header = () => {
                   </Link>
                 </>
               )}
+
+              {/* Przełącznik języka tylko w chmurze — fp-solutions.pl jest polska */}
+              {isCloud && <LocaleToggler />}
 
               <ThemeToggler />
 

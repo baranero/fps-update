@@ -7,12 +7,19 @@ import {
   normalizeSlices, type FdsSlice, type FdsSliceJson,
 } from "@/lib/fds/slice";
 import { parseSfFrames, type SfFrames } from "@/lib/fds/slice-parser";
+import { fetchResult, proxyResultUrl } from "@/lib/fds/result-fetch";
 
 interface SliceViewProps {
   slice: FdsSliceJson | null;
   running: boolean;
   caseId: string;
-  done: boolean;
+  /** Obliczenia się zakończyły (sukcesem LUB błędem) — pliki .sf są już w magazynie,
+   *  więc można doczytać pełną animację przekroju. Po błędzie animacja obejmuje
+   *  przebieg do momentu przerwania. */
+  finished: boolean;
+  /** Podpisany adres pliku wynikowego. Pliki .sf potrafią ważyć setki megabajtów,
+   *  więc czytamy je wprost z magazynu — proxy zostaje tylko jako zejście awaryjne. */
+  fileUrl?: (name: string) => string | undefined;
 }
 
 interface Frame { t: number; data: Uint8Array; w: number; h: number; vmin: number; vmax: number; }
@@ -39,9 +46,9 @@ const LEGEND_GRADIENT = `linear-gradient(to top, ${[0, 0.2, 0.4, 0.6, 0.8, 1]
   .map((s) => `${turboCss(s)} ${s * 100}%`)
   .join(", ")})`;
 
-async function fetchTotalSize(url: string): Promise<number | null> {
+async function fetchTotalSize(direct: string | undefined, proxy: string): Promise<number | null> {
   try {
-    const r = await fetch(url, { headers: { Range: "bytes=0-0" } });
+    const r = await fetchResult(direct, proxy, { headers: { Range: "bytes=0-0" } });
     const cr = r.headers.get("content-range");
     if (cr && cr.includes("/")) {
       const n = parseInt(cr.split("/")[1], 10);
@@ -55,7 +62,7 @@ async function fetchTotalSize(url: string): Promise<number | null> {
 
 const AUTO_ANIM_MAX_BYTES = 70 * 1024 * 1024;
 
-export default function SliceView({ slice, running, caseId, done }: SliceViewProps) {
+export default function SliceView({ slice, running, caseId, finished, fileUrl }: SliceViewProps) {
   const t = useTranslations("symDetail");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -240,7 +247,7 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
     setAnimLoading(true);
     setAnimError(null);
     try {
-      const res = await fetch(`/api/symulacje/${caseId}/download?file=${encodeURIComponent(id)}`);
+      const res = await fetchResult(fileUrl?.(id), proxyResultUrl(caseId, id));
       if (!res.ok) throw new Error("download");
       const buf = await res.arrayBuffer();
       if (buf.byteLength > 220 * 1024 * 1024) throw new Error("too-big");
@@ -258,16 +265,16 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
   };
 
   useEffect(() => {
-    if (!done || !sel?.id || anim || animLoading) return;
+    if (!finished || !sel?.id || anim || animLoading) return;
     const id = sel.id;
     if (autoTried.current.has(id)) return;
     autoTried.current.add(id);
     (async () => {
-      const total = await fetchTotalSize(`/api/symulacje/${caseId}/download?file=${encodeURIComponent(id)}`);
+      const total = await fetchTotalSize(fileUrl?.(id), proxyResultUrl(caseId, id));
       if (total === null || total <= AUTO_ANIM_MAX_BYTES) loadAnim(id);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, sel?.id, anim, animLoading]);
+  }, [finished, sel?.id, anim, animLoading]);
 
   if (!sel || !cur) {
     if (!running) return null;
@@ -337,7 +344,7 @@ export default function SliceView({ slice, running, caseId, done }: SliceViewPro
           <button onClick={() => setCrisp((c) => !c)} className="rounded-panel border border-hairline px-2.5 py-1 text-fr-sm font-medium text-muted hover:bg-panel-deep transition-colors">
             {crisp ? t("slice.smooth") : t("slice.crisp")}
           </button>
-          {done && !inAnim && !!sel.id && (
+          {finished && !inAnim && !!sel.id && (
             <button onClick={() => loadAnim(sel.id as string)} disabled={animLoading} className="rounded-panel border border-primary/40 bg-primary/5 px-2.5 py-1 text-fr-sm font-semibold text-primary hover:bg-primary/10 transition-colors disabled:opacity-60">
               {animLoading ? t("slice.loading") : t("slice.fullAnim")}
             </button>

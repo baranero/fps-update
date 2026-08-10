@@ -142,6 +142,95 @@ function generic(code: string | null, locale: ErrLocale): Loc {
   };
 }
 
+// ── Przyczyna przerwania zlecenia ────────────────────────────────────────────
+// Status "failed" ma kilka bardzo różnych przyczyn, a strona pokazywała jedną
+// treść dla wszystkich („FDS odrzucił plik wejściowy”) — myląc użytkownika, gdy
+// FDS liczył poprawnie do samego końca i to NASZ nadzorca ubił maszynę.
+//
+// Rozpoznajemy po tym, co faktycznie jest w logu i w czasach, bez dodatkowej
+// kolumny w bazie — dzięki temu działa też dla zleceń sprzed tej zmiany.
+
+export type FailureKind =
+  | "launch"       // maszyna nie wystartowała — FDS nigdy nie ruszył
+  | "fdsError"     // FDS zgłosił błąd (wejście, niestabilność, awaria procesu)
+  | "watchdog"     // nasz nadzorca ubił zlecenie po przekroczeniu limitu czasu
+  | "interrupted"; // obliczenia urwały się bez śladu błędu w logu
+
+export interface FdsFailureDiagnosis {
+  kind: FailureKind;
+  /** Do jakiego czasu symulacji doszły obliczenia (z logu FDS). */
+  progress: { t: number; tEnd: number; pct: number } | null;
+  /** Ile realnie trwały obliczenia i jaki był szacunek — tylko dla "watchdog". */
+  timing: { elapsedH: number; estimatedH: number; limitH: number } | null;
+  errors: FdsErrorInfo[];
+}
+
+// Nadzorca (app/api/cron/cleanup/route.ts) ubija zlecenie po przekroczeniu
+// max(HUNG_RUNNING_MIN_H, wall_hours × HUNG_RUNNING_MULT). Trzymamy te progi
+// zgodne z cronem — inaczej strona tłumaczyłaby przerwanie inną regułą, niż ta,
+// która je faktycznie wywołała.
+const WATCHDOG_MIN_H = 6;
+const WATCHDOG_MULT = 3;
+
+export function watchdogLimitH(wallHours: number | null): number {
+  return Math.max(WATCHDOG_MIN_H, (wallHours ?? 1) * WATCHDOG_MULT);
+}
+
+export function lastSimulationTime(log: string | null): number | null {
+  if (!log) return null;
+  const m = Array.from(log.matchAll(/Simulation Time:\s*([\d.E+-]+)\s*s/g));
+  if (!m.length) return null;
+  const t = parseFloat(m[m.length - 1][1]);
+  return Number.isFinite(t) ? t : null;
+}
+
+export function diagnoseFailure(
+  input: {
+    log: string | null;
+    startedAt: string | null;
+    completedAt: string | null;
+    wallHours: number | null;
+    tEnd: number;
+  },
+  locale: ErrLocale = "pl"
+): FdsFailureDiagnosis {
+  const errors = explainFdsErrors(input.log, locale);
+
+  const t = lastSimulationTime(input.log);
+  const progress =
+    t != null && input.tEnd > 0
+      ? { t, tEnd: input.tEnd, pct: Math.min(100, (t / input.tEnd) * 100) }
+      : null;
+
+  // FDS nigdy nie ruszył — awaria startu maszyny, instalacji albo pobrania pliku.
+  if (!input.startedAt) {
+    return { kind: "launch", progress, timing: null, errors };
+  }
+
+  // FDS sam zgłosił problem — konkretne wyjaśnienia niosą karty błędów.
+  if (errors.length > 0) {
+    return { kind: "fdsError", progress, timing: null, errors };
+  }
+
+  // Log bez śladu błędu: sprawdź, czy zlecenie po prostu przekroczyło limit czasu.
+  if (input.completedAt) {
+    const elapsedH =
+      (new Date(input.completedAt).getTime() - new Date(input.startedAt).getTime()) / 3_600_000;
+    const limitH = watchdogLimitH(input.wallHours);
+    // Margines 2% — cron budzi się cyklicznie, więc ubija chwilę PO przekroczeniu progu.
+    if (Number.isFinite(elapsedH) && elapsedH >= limitH * 0.98) {
+      return {
+        kind: "watchdog",
+        progress,
+        timing: { elapsedH, estimatedH: input.wallHours ?? 0, limitH },
+        errors,
+      };
+    }
+  }
+
+  return { kind: "interrupted", progress, timing: null, errors };
+}
+
 export function explainFdsErrors(log: string | null, locale: ErrLocale = "pl"): FdsErrorInfo[] {
   if (!log) return [];
 

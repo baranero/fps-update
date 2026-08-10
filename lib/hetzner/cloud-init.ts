@@ -2,7 +2,10 @@ export interface CloudInitParams {
   caseId: string;
   filePath: string;
   fileName: string;
-  ncores: number;        // = meshCount (liczba procesów MPI)
+  /** Liczba procesów MPI z planu — może być MNIEJSZA niż liczba siatek.
+   *  FDS rozdziela wtedy siatki między procesy sam (o ile plik nie ustawia
+   *  MPI_PROCESS), co pozwala policzyć duży model na mniejszej maszynie. */
+  ncores: number;
   ompThreads: number;    // = OMP_NUM_THREADS (wątki OpenMP na proces)
   supabaseUrl: string;
   supabaseServiceKey: string;

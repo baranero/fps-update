@@ -3,10 +3,25 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { signedResultUrl } from "@/lib/hetzner/storage";
 
-// Proxy pobierania plików wynikowych. Przeglądarka pobiera z NASZEGO origin, a
-// serwer po stronie backendu ciągnie plik z Hetzner Object Storage — dzięki temu
-// omijamy CORS magazynu, który blokuje bezpośredni fetch podpisanych URL-i
-// (potrzebny przy pakowaniu wielu plików do ZIP). Strumieniujemy bez buforowania.
+// Dostęp do plików wynikowych.
+//
+// DOMYŚLNIE oddaje przekierowanie do magazynu — bajty lecą wprost z Hetznera do
+// przeglądarki, z pominięciem naszych funkcji. Wcześniej ten route strumieniował
+// każdy plik przez siebie, więc ten sam bajt płaciliśmy dwa razy (transfer z
+// funkcji na brzeg sieci + z brzegu do klienta). Przy wynikach FDS liczonych w
+// gigabajtach była to najdroższa pozycja rachunku hostingu.
+//
+// Nazwę pliku i wymuszenie zapisu na dysk niesie sam podpis
+// (ResponseContentDisposition w `lib/hetzner/storage.ts`), więc przekierowanie
+// niczego nie psuje — także dla nazw z polskimi znakami.
+//
+// `?proxy=1` zostawia dawne zachowanie (strumień przez nasz origin). Potrzebne
+// wyłącznie jako zejście awaryjne dla żądań `fetch`, gdyby magazyn stracił
+// konfigurację CORS (`scripts/bucket-cors.mjs`) — wtedy przeglądarka nie
+// odczyta odpowiedzi wprost z magazynu. Ta ścieżka ma twardy limit rozmiaru,
+// żeby nigdy znowu nie stała się kurkiem na gigabajty.
+const PROXY_MAX_BYTES = 256 * 1024 * 1024;
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { caseId: string } }
@@ -22,7 +37,18 @@ export async function GET(
   const key = `results/${caseId}/${base}`;
   try {
     const url = await signedResultUrl(key, 300);
-    // Przekaż nagłówek Range dalej — pozwala kliientowi tanio sprawdzić rozmiar
+
+    // Podpis jest jednorazowy i krótkoterminowy, więc przekierowanie nie może
+    // trafić do żadnego cache'u po drodze.
+    const redirect = () => {
+      const res = NextResponse.redirect(url, 302);
+      res.headers.set("Cache-Control", "private, no-store");
+      return res;
+    };
+
+    if (!req.nextUrl.searchParams.get("proxy")) return redirect();
+
+    // Przekaż nagłówek Range dalej — pozwala klientowi tanio sprawdzić rozmiar
     // (Range: bytes=0-0 → Content-Range z całkowitym rozmiarem) przed pobraniem
     // całości do animacji.
     const range = req.headers.get("range");
@@ -31,11 +57,20 @@ export async function GET(
       return NextResponse.json({ error: "Nie znaleziono pliku." }, { status: 404 });
     }
 
+    // Duży plik nigdy nie przechodzi przez funkcję, nawet gdy ktoś o to poprosi.
+    // Przeglądarka bez CORS i tak nie odczyta odpowiedzi z magazynu, ale to
+    // świadomy wybór: utrata jednej funkcji podglądu zamiast rachunku za ruch.
+    const len = Number(upstream.headers.get("content-length") ?? 0);
+    if (!range && len > PROXY_MAX_BYTES) {
+      console.warn(`download proxy [${caseId}/${base}]: ${len} B > limit, przekierowuję`);
+      upstream.body.cancel().catch(() => { /* strumień i tak porzucamy */ });
+      return redirect();
+    }
+
     const headers = new Headers();
     headers.set("Content-Type", upstream.headers.get("content-type") ?? "application/octet-stream");
     headers.set("Accept-Ranges", "bytes");
-    const len = upstream.headers.get("content-length");
-    if (len) headers.set("Content-Length", len);
+    if (len) headers.set("Content-Length", String(len));
     const cr = upstream.headers.get("content-range");
     if (cr) headers.set("Content-Range", cr);
     // filename oraz filename* (RFC 5987) — poprawne polskie znaki w nazwie
@@ -47,7 +82,7 @@ export async function GET(
 
     return new Response(upstream.body, { status: upstream.status, headers });
   } catch (err) {
-    console.error(`download proxy [${caseId}/${base}]:`, err);
+    console.error(`download [${caseId}/${base}]:`, err);
     return NextResponse.json({ error: "Błąd pobierania pliku." }, { status: 500 });
   }
 }

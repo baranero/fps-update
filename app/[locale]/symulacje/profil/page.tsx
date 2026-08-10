@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cloudHomePath, marketingUrl } from "@/lib/cloud";
 import InvoiceDataForm from "@/components/InvoiceDataForm";
 import { ACTIVE_STATUSES } from "@/lib/status";
-import { fmtPrice } from "@/lib/format";
+import { useFormat } from "@/lib/format";
 import { TONE_SURFACE, TONE_TEXT } from "@/lib/tone";
 import {
   Btn, BtnLink, Chip, SectionLabel, Shell, Skeleton, cardCls, cardHoverCls, inputCls, labelCls,
@@ -70,6 +70,7 @@ const quickLinks = [
 
 function ProfilForm() {
   const t = useTranslations("profile");
+  const f = useFormat();
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -237,7 +238,7 @@ function ProfilForm() {
     { label: t("stats.simulations"), value: String(stats?.simsTotal ?? 0), href: "/symulacje/historia" },
     { label: t("stats.active"), value: String(stats?.simsActive ?? 0), href: "/symulacje/historia" },
     { label: t("stats.reports"), value: String(stats?.reports ?? 0), href: "/symulacje/raporty" },
-    { label: t("stats.spent"), value: fmtPrice(stats?.spentPaid ?? 0), href: "/symulacje/rozliczenia" },
+    { label: t("stats.spent"), value: f.fmtPrice(stats?.spentPaid ?? 0), href: "/symulacje/rozliczenia" },
   ];
 
   return (

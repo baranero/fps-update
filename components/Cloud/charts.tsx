@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -55,6 +56,8 @@ export function MonthlyBars({
   format: (v: number) => string;
 }) {
   const theme = chartTheme(useIsDark());
+  // Oś pieniężna: rozliczamy w PLN w obu językach, zmienia się tylko zapis symbolu.
+  const currency = useLocale() === "en" ? "PLN" : "zł";
   return (
     <div className={`${cardCls} p-5`}>
       <ResponsiveContainer width="100%" height={220}>
@@ -65,7 +68,7 @@ export function MonthlyBars({
             tick={{ fontSize: 12, fill: theme.axis }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(v) => (v === 0 ? "0" : `${v} zł`)}
+            tickFormatter={(v) => (v === 0 ? "0" : `${v} ${currency}`)}
           />
           <Tooltip
             cursor={{ fill: theme.grid }}
@@ -93,6 +96,7 @@ export function MonthlyVolume({
   countLabel: string;
 }) {
   const theme = chartTheme(useIsDark());
+  const tc = useTranslations("charts");
   return (
     <div className={`${cardCls} p-5`}>
       <ResponsiveContainer width="100%" height={220}>
@@ -127,8 +131,8 @@ export function MonthlyVolume({
       </ResponsiveContainer>
       <ChartLegend
         items={[
-          { color: SERIES_A, label: `${countLabel} (szt.)` },
-          { color: SERIES_B, label: "Czas obliczeń (h)" },
+          { color: SERIES_A, label: `${countLabel} (${tc("unitPcs")})` },
+          { color: SERIES_B, label: tc("hoursSeries") },
         ]}
       />
     </div>

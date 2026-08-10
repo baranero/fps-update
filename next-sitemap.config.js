@@ -15,8 +15,11 @@ const PRIVATE_PATHS = [
   '/narzedzia/raporty',
 ];
 
-// Serwis wyłącznie polski — bez wariantów /en.
-const withLocales = (paths) => paths;
+// Serwis wyłącznie polski — bez wariantów /en. next-sitemap czyta jednak
+// manifest tras Next, w którym ścieżki NIOSĄ prefiks języka (/pl/...), a reguły
+// niżej zapisujemy w formie kanonicznej (bez prefiksu). Każdą regułę rozwijamy
+// więc na obie postacie — bez tego żadne wykluczenie nie łapie.
+const withLocales = (paths) => paths.flatMap((p) => [p, `/pl${p}`]);
 
 module.exports = {
   siteUrl: 'https://fp-solutions.pl',
@@ -26,12 +29,25 @@ module.exports = {
   priority: 0.7,
   trailingSlash: false,
 
-  exclude: withLocales([
-    ...PRIVATE_PATHS,
-    ...PRIVATE_PATHS.map((p) => `${p}/*`),
-    '/symulacje',
-    '/symulacje/*',
-  ]),
+  exclude: [
+    // Wersja angielska istnieje WYŁĄCZNIE na fdsrun.com — na witrynie usługowej
+    // każdy adres /en/* odpowiada przekierowaniem na wariant polski, więc w tej
+    // mapie byłby wyłącznie zbiorem 301-ek do wyindeksowania.
+    '/en',
+    '/en/*',
+    ...withLocales([
+      ...PRIVATE_PATHS,
+      ...PRIVATE_PATHS.map((p) => `${p}/*`),
+      '/symulacje',
+      '/symulacje/*',
+      // Strony produktowe chmury — na fp-solutions.pl odpowiadają 301 na
+      // fdsrun.com, więc w mapie witryny usługowej nie mają czego szukać.
+      '/funkcje',
+      '/cennik',
+      '/baza-wiedzy',
+      '/baza-wiedzy/*',
+    ]),
+  ],
 
   robotsTxtOptions: {
     policies: [

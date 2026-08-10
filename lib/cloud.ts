@@ -55,7 +55,7 @@ export function cloudHomePath(): string {
 // chmury, żeby na fdsrun.com wykonały redirect zamiast wypaść 301 na
 // fp-solutions.pl, gdzie docelowe strony nie istnieją.
 const CLOUD_PATHS = [
-  "/chmura", "/funkcje", "/cennik",
+  "/chmura", "/funkcje", "/cennik", "/baza-wiedzy",
   "/symulacje", "/signin", "/signup", "/auth",
   "/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty",
 ];

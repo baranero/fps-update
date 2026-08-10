@@ -108,7 +108,7 @@ export default function ParserSection() {
             </div>
             <div className="text-right">
               <span className="block font-mono text-fr-micro uppercase text-muted">{t("panel.cost")}</span>
-              <span className="fr-num font-heading text-fr-h3 text-primary">87 zł</span>
+              <span className="fr-num font-heading text-fr-h3 text-primary">{t("panel.costValue")}</span>
             </div>
           </div>
         </div>

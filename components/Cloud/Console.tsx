@@ -76,34 +76,111 @@ export function ConsoleHead({ label, value, live }: { label: string; value: stri
   );
 }
 
-/* ── Odczyt telemetrii z opcjonalnym przebiegiem ─────────────────────────── */
+/* ── Odczyt telemetrii ───────────────────────────────────────────────────── */
+// `sub` to wiersz kontekstu pod liczbą — sama liczba rzadko wystarcza
+// („~41 min" znaczy co innego niż „~41 min, koniec ok. 14:32").
 export function ConsoleMetric({
   label,
   value,
   unit,
   tone = "text-ink",
-  spark,
+  sub,
 }: {
   label: string;
   value: string;
   unit?: string;
   tone?: string;
-  spark?: string;
+  sub?: string;
 }) {
   return (
     <div>
       <span className="mb-3 block border-b border-hairline-soft pb-2 text-fr-label uppercase text-muted">
         {label}
       </span>
-      <div className="mb-1 flex items-end justify-between gap-2">
+      <div className="flex items-end justify-between gap-2">
         <span className={`fr-num font-mono text-[20px] leading-none ${tone}`}>{value}</span>
         {unit && <span className="font-mono text-fr-label text-muted">{unit}</span>}
       </div>
-      {spark && (
-        <svg className="mt-2 h-8 w-full" viewBox="0 0 100 20" preserveAspectRatio="none">
-          <path d={spark} fill="none" strokeWidth="0.5" className="stroke-signal" opacity="0.7" />
-        </svg>
-      )}
+      {sub && <span className="mt-2 block font-mono text-fr-sm leading-snug text-muted">{sub}</span>}
+    </div>
+  );
+}
+
+/* ── Postęp ──────────────────────────────────────────────────────────────── */
+// Pierwsze pytanie każdego, kto czeka na wynik: „ile jeszcze?". Dlatego postęp
+// stoi na szczycie szyny, z paskiem — procent czyta się szybciej z długości niż
+// z cyfry. `pct === null` = jeszcze nie wiadomo (przed startem solvera).
+export function ConsoleProgress({
+  label,
+  pct,
+  sub,
+  done,
+}: {
+  label: string;
+  pct: number | null;
+  sub?: string;
+  done?: boolean;
+}) {
+  return (
+    <div>
+      <span className="mb-3 block border-b border-hairline-soft pb-2 text-fr-label uppercase text-muted">
+        {label}
+      </span>
+      <div className="mb-2.5 flex items-end justify-between gap-2">
+        <span className={`fr-num font-mono text-[28px] leading-none ${done ? "text-signal" : "text-ink"}`}>
+          {pct === null ? "—" : pct.toFixed(0)}
+        </span>
+        {pct !== null && <span className="font-mono text-fr-label text-muted">%</span>}
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-well">
+        <div
+          className={`h-full rounded-full transition-[width] duration-700 ${done ? "bg-signal" : "bg-primary"}`}
+          style={{ width: `${Math.max(0, Math.min(100, pct ?? 0))}%` }}
+        />
+      </div>
+      {sub && <span className="mt-2.5 block font-mono text-fr-sm leading-snug text-muted">{sub}</span>}
+    </div>
+  );
+}
+
+/* ── Stopka szyny — dane modelu drobnym drukiem ──────────────────────────── */
+export function ConsoleNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="border-t border-hairline-soft px-6 py-4 font-mono text-fr-sm leading-relaxed text-faint">
+      {children}
+    </div>
+  );
+}
+
+/* ── Odczyt z modelu (wartość skrajna serii DEVC/HRR) ────────────────────── */
+// Świadomie bez progu i bez oceny „spełnia / nie spełnia" — pokazujemy liczbę,
+// kryterium ocenia projektant.
+export function ConsoleReading({
+  label,
+  kind,
+  value,
+  unit,
+  at,
+}: {
+  label: string;
+  kind: string;
+  value: string;
+  unit: string;
+  at?: string;
+}) {
+  return (
+    <div className="rounded-tile border border-hairline-soft bg-panel px-3 py-2.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="truncate font-mono text-fr-label uppercase text-muted">{label}</span>
+        <span className="shrink-0 font-mono text-fr-sm">
+          <span className="fr-num font-semibold text-ink">{value}</span>
+          <span className="ml-1 text-muted">{unit}</span>
+        </span>
+      </div>
+      <div className="mt-1 flex items-baseline justify-between gap-2 font-mono text-fr-label uppercase text-faint">
+        <span>{kind}</span>
+        {at && <span className="shrink-0">{at}</span>}
+      </div>
     </div>
   );
 }

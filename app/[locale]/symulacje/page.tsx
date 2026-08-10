@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
-import { fmtCells, fmtPrice, fmtDate } from "@/lib/format";
+import { useFormat } from "@/lib/format";
 import {
   BtnLink, Chip, EmptyState, Meter, Notice, PageHead, SectionLabel, Shell, Skeleton,
   btnCls, cardCls, cardHoverCls,
@@ -35,6 +35,8 @@ function softProgress(item: Item, now: number): number | null {
 
 export default function PulpitPage() {
   const t = useTranslations("symDashboard");
+  const ts = useTranslations("status");
+  const f = useFormat();
   const tr = useTranslations("symulacje");
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
@@ -117,8 +119,8 @@ export default function PulpitPage() {
   const kpis = [
     { label: t("kpiTotal"), value: String(items.length), href: "/symulacje/historia", accent: false },
     { label: t("kpiActive"), value: String(active.length), href: "/symulacje/historia", accent: active.length > 0 },
-    { label: t("kpiSpent"), value: fmtPrice(spent), href: "/symulacje/statystyki", accent: false },
-    { label: t("kpiToPay"), value: fmtPrice(toPay), href: "/symulacje/rozliczenia", accent: toPay > 0 },
+    { label: t("kpiSpent"), value: f.fmtPrice(spent), href: "/symulacje/statystyki", accent: false },
+    { label: t("kpiToPay"), value: f.fmtPrice(toPay), href: "/symulacje/rozliczenia", accent: toPay > 0 },
   ];
 
   const ADD_ICON = "M12 4v16m8-8H4";
@@ -205,14 +207,14 @@ export default function PulpitPage() {
                 return (
                   <Link key={s.case_id} href={`/symulacje/${s.case_id}`} className={`${cardHoverCls} p-4`}>
                     <div className="flex items-center justify-between gap-3">
-                      <span className={st.cls}>{st.label}</span>
+                      <span className={st.cls}>{ts(st.key)}</span>
                       <span className="font-mono text-fr-sm text-muted">{s.case_id}</span>
                     </div>
                     <p className="mt-2 truncate text-fr-body font-semibold text-ink">{s.file_name}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
                       {s.server_type && <span className="uppercase">{s.server_type}</span>}
-                      <span>{fmtCells(s.total_cells)} {t("cellsWord")}</span>
-                      <span>{t("activeOrdered")} {fmtDate(s.created_at, { day: "numeric", month: "short" })}</span>
+                      <span>{f.fmtCells(s.total_cells)} {t("cellsWord")}</span>
+                      <span>{t("activeOrdered")} {f.fmtDate(s.created_at, { day: "numeric", month: "short" })}</span>
                     </div>
                     {pct != null && (
                       <div className="mt-3">
@@ -254,16 +256,16 @@ export default function PulpitPage() {
                     href={`/symulacje/${s.case_id}`}
                     className="group flex items-center gap-4 bg-panel px-4 py-3.5 transition-colors hover:bg-panel-deep"
                   >
-                    <span className={statusMeta(s.status).cls}>{statusMeta(s.status).label}</span>
+                    <span className={statusMeta(s.status).cls}>{ts(statusMeta(s.status).key)}</span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-fr-body font-medium text-ink">{s.file_name}</p>
                       <p className="font-mono text-fr-sm text-muted">
-                        {fmtDate(s.completed_at ?? s.created_at, { day: "numeric", month: "short", year: "numeric" })}
+                        {f.fmtDate(s.completed_at ?? s.created_at, { day: "numeric", month: "short", year: "numeric" })}
                         {s.server_type && <span className="ml-2 uppercase">{s.server_type}</span>}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="fr-num font-mono text-fr-sm text-ink">{fmtPrice(s.price)}</p>
+                      <p className="fr-num font-mono text-fr-sm text-ink">{f.fmtPrice(s.price)}</p>
                       <Chip tone={s.payment_status === "paid" ? "ok" : "warn"} className="mt-1">
                         {s.payment_status === "paid" ? t("paid") : t("toPay")}
                       </Chip>

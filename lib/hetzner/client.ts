@@ -28,17 +28,34 @@ interface HetznerDatacenter {
   server_types: { available: number[] };
 }
 
-// Używa GET /datacenters (pole server_types.available) jako pewnego źródła dostępności,
-// zamiast polegać na prices[] w /server_types, które bywa rozbieżne z faktyczną możliwością tworzenia.
-export async function selectServerType(
-  totalCores: number,
-  location = process.env.HETZNER_LOCATION ?? "nbg1"
-): Promise<{ type: string; cores: number; location: string }> {
-  const n = Math.max(1, totalCores);
+// Lokalizacje w Unii — kolejność decyduje o tym, gdzie szukamy najpierw.
+// Poza UE nie wychodzimy: lokalizacja unijna to argument RODO wobec klientów.
+function euLocations(preferred = process.env.HETZNER_LOCATION ?? "nbg1"): string[] {
+  return [preferred, "nbg1", "fsn1", "hel1"].filter((v, i, a) => a.indexOf(v) === i);
+}
 
-  const LOCATIONS = [location, "fsn1", "hel1", "nbg1"].filter(
-    (v, i, a) => a.indexOf(v) === i
-  );
+export interface LiveCatalog {
+  /** Typy, które faktycznie da się w tej chwili utworzyć, wraz z lokalizacją. */
+  locationByType: Record<string, string>;
+  /** Aktualne stawki netto €/h w lokalizacji, w której typ jest dostępny. */
+  priceByType: Record<string, number>;
+  fetchedAt: number;
+}
+
+let catalogCache: LiveCatalog | null = null;
+const CATALOG_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Żywy obraz oferty dostawcy: co jest dostępne i po ile.
+ *
+ * Dostępność bierzemy z GET /datacenters (pole server_types.available), bo
+ * prices[] w /server_types potrafi wymieniać typy, których i tak nie da się
+ * utworzyć. Cache 5 min — kreator odpytuje to przy każdej analizie pliku.
+ */
+export async function fetchLiveCatalog(force = false): Promise<LiveCatalog> {
+  if (!force && catalogCache && Date.now() - catalogCache.fetchedAt < CATALOG_TTL_MS) {
+    return catalogCache;
+  }
 
   const [stRes, dcRes] = await Promise.all([
     fetch(`${API}/server_types?per_page=100`, { headers: headers() }),
@@ -50,34 +67,44 @@ export async function selectServerType(
   const { server_types }: { server_types: HetznerServerTypeRaw[] } = await stRes.json();
   const { datacenters }: { datacenters: HetznerDatacenter[] } = await dcRes.json();
 
-  for (const loc of LOCATIONS) {
+  const locationByType: Record<string, string> = {};
+  const priceByType: Record<string, number> = {};
+
+  for (const loc of euLocations()) {
     const availableIds = new Set<number>(
-      datacenters
-        .filter((dc) => dc.location.name === loc)
-        .flatMap((dc) => dc.server_types.available)
+      datacenters.filter((dc) => dc.location.name === loc).flatMap((dc) => dc.server_types.available)
     );
 
-    const candidates = server_types
-      .filter(
-        (t) =>
-          !t.deprecated &&
-          t.architecture === "x86" &&
-          t.cpu_type === "shared" &&
-          t.cores >= n &&
-          availableIds.has(t.id)
-      )
-      .sort((a, b) => {
-        const price = (t: HetznerServerTypeRaw) =>
-          parseFloat(t.prices.find((p) => p.location === loc)?.price_hourly.net ?? "999");
-        return price(a) - price(b) || a.cores - b.cores;
-      });
+    for (const t of server_types) {
+      // Binarka FDS jest zbudowana na x86_64 — ARM odpada niezależnie od ceny.
+      if (t.deprecated || t.architecture !== "x86" || !availableIds.has(t.id)) continue;
+      if (locationByType[t.name]) continue; // pierwsza lokalizacja z listy wygrywa
 
-    if (candidates.length > 0) {
-      return { type: candidates[0].name, cores: candidates[0].cores, location: loc };
+      const price = t.prices.find((p) => p.location === loc)?.price_hourly.net;
+      if (!price) continue;
+      locationByType[t.name] = loc;
+      priceByType[t.name] = parseFloat(price);
     }
   }
 
-  throw new Error(`Brak dostępnego serwera dla ${n} rdzeni w lokalizacjach: ${LOCATIONS.join(", ")}`);
+  catalogCache = { locationByType, priceByType, fetchedAt: Date.now() };
+  return catalogCache;
+}
+
+/**
+ * Sprawdza, czy wybrany typ maszyny da się teraz utworzyć, i zwraca lokalizację.
+ * Dobór typu robi planer (lib/fds/planner.ts) — tutaj zostaje samo potwierdzenie
+ * dostępności tuż przed utworzeniem maszyny.
+ */
+export async function resolveServerLocation(serverType: string): Promise<string> {
+  const catalog = await fetchLiveCatalog();
+  const location = catalog.locationByType[serverType];
+  if (!location) {
+    throw new Error(
+      `Maszyna ${serverType} jest chwilowo niedostępna w lokalizacjach: ${euLocations().join(", ")}`
+    );
+  }
+  return location;
 }
 
 export async function createServer(

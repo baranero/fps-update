@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ADMIN_STATUS_KEYS, statusMeta } from "@/lib/status";
-import { fmtDateTime, fmtEur, fmtHours, fmtPrice } from "@/lib/format";
+import { useTranslations } from "next-intl";
+import { useFormat } from "@/lib/format";
 import { Btn, BtnLink, SectionLabel, cardCls, iconBtnCls, inputSmCls, labelCls } from "@/components/Cloud/ui";
 
 export type Sim = {
@@ -49,6 +50,10 @@ export default function SimDrawer({
   onSaved: (patch: Partial<Sim>) => void;
   onDeleted?: (caseId: string) => void;
 }) {
+  const t = useTranslations("admin.drawer");
+  const ta = useTranslations("admin");
+  const ts = useTranslations("status");
+  const f = useFormat();
   const [status, setStatus] = useState(sim.status);
   const [price, setPrice] = useState(sim.price == null ? "" : String(sim.price));
   const [server, setServer] = useState(sim.server_type ?? "");
@@ -73,7 +78,7 @@ export default function SimDrawer({
   }, [sim.case_id]);
 
   const del = async () => {
-    if (!window.confirm(`Usunąć zlecenie ${sim.case_id}?\n\nOperacja nieodwracalna — skasuje serwer (jeśli aktywny), plik wejściowy i wyniki z magazynu.`)) return;
+    if (!window.confirm(ta("deleteConfirm", { caseId: sim.case_id }))) return;
     setDeleting(true);
     const res = await fetch(`/api/admin/symulacje/${sim.case_id}`, { method: "DELETE" });
     setDeleting(false);
@@ -81,7 +86,7 @@ export default function SimDrawer({
       onDeleted?.(sim.case_id);
       onClose();
     } else {
-      window.alert("Nie udało się usunąć zlecenia. Spróbuj ponownie.");
+      window.alert(ta("deleteFailed"));
     }
   };
 
@@ -130,7 +135,7 @@ export default function SimDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={`Zlecenie ${sim.case_id}`}>
+    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={t("jobAria", { caseId: sim.case_id })}>
       {/* Backdrop */}
       <div className="absolute inset-0 bg-canvas/70 backdrop-blur-[1px]" onClick={onClose} />
 
@@ -141,10 +146,10 @@ export default function SimDrawer({
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-hairline bg-panel px-5 py-4">
           <div className="min-w-0">
-            <p className="font-mono text-fr-micro uppercase text-muted">Zlecenie</p>
+            <p className="font-mono text-fr-micro uppercase text-muted">{t("job")}</p>
             <p className="truncate font-mono text-fr-body text-ink">{sim.case_id}</p>
           </div>
-          <button onClick={onClose} aria-label="Zamknij" className={iconBtnCls()}>
+          <button onClick={onClose} aria-label={t("close")} className={iconBtnCls()}>
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -153,67 +158,67 @@ export default function SimDrawer({
 
           {/* Read-only info */}
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Klient"><span className="truncate block">{sim.email}</span></Field>
-            <Field label="Nazwa">{sim.name || "—"}</Field>
-            <Field label="Plik"><span className="break-all font-mono text-fr-sm">{sim.file_name}</span></Field>
-            <Field label="Komórki">{sim.total_cells != null ? sim.total_cells.toLocaleString("pl-PL") : "—"}</Field>
-            <Field label="Utworzono">{fmtDateTime(sim.created_at)}</Field>
-            <Field label="Ukończono">{fmtDateTime(sim.completed_at)}</Field>
+            <Field label={t("client")}><span className="truncate block">{sim.email}</span></Field>
+            <Field label={t("name")}>{sim.name || "—"}</Field>
+            <Field label={t("file")}><span className="break-all font-mono text-fr-sm">{sim.file_name}</span></Field>
+            <Field label={t("cells")}>{f.fmtInt(sim.total_cells)}</Field>
+            <Field label={t("created")}>{f.fmtDateTime(sim.created_at)}</Field>
+            <Field label={t("completed")}>{f.fmtDateTime(sim.completed_at)}</Field>
           </div>
 
           {/* Rozliczenie — ile płaci klient vs. ile realnie kosztuje nas przebieg */}
           <div className={`${cardCls} overflow-hidden`}>
             <div className="border-b border-hairline bg-panel-deep px-4 py-2.5">
-              <SectionLabel>Rozliczenie</SectionLabel>
+              <SectionLabel>{t("billing")}</SectionLabel>
             </div>
             <div className="space-y-3 p-4">
 
               <div className="flex items-baseline justify-between gap-3">
-                <span className="font-mono text-fr-micro uppercase text-muted">Cena dla klienta</span>
-                <span className="fr-num font-heading text-fr-h3 text-ink">{fmtPrice(sim.price)}</span>
+                <span className="font-mono text-fr-micro uppercase text-muted">{t("clientPrice")}</span>
+                <span className="fr-num font-heading text-fr-h3 text-ink">{f.fmtPrice(sim.price)}</span>
               </div>
 
               <div className="space-y-1.5 rounded-panel border border-hairline-soft bg-panel-deep px-3 py-2.5">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-mono text-fr-micro uppercase text-muted">Koszt własny</span>
+                  <span className="font-mono text-fr-micro uppercase text-muted">{t("ownCost")}</span>
                   <span className="fr-num font-mono text-fr-body text-warn">
-                    {costPln != null ? fmtPrice(costPln, { decimals: true }) : costLoading ? "…" : "—"}
+                    {costPln != null ? f.fmtPrice(costPln, { decimals: true }) : costLoading ? "…" : "—"}
                     {cost?.costEur != null && (
-                      <span className="ml-1 text-fr-sm font-normal text-faint">({fmtEur(cost.costEur)})</span>
+                      <span className="ml-1 text-fr-sm font-normal text-faint">({f.fmtEur(cost.costEur)})</span>
                     )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between font-mono text-fr-sm text-muted">
-                  <span>Serwer{cost?.runtimeH != null ? ` · ${fmtHours(cost.runtimeH)}` : ""}</span>
-                  <span className="fr-num">{fmtEur(cost?.serverEur)}</span>
+                  <span>{t("server")}{cost?.runtimeH != null ? ` · ${f.fmtHours(cost.runtimeH)}` : ""}</span>
+                  <span className="fr-num">{f.fmtEur(cost?.serverEur)}</span>
                 </div>
                 <div className="flex items-center justify-between font-mono text-fr-sm text-muted">
-                  <span>Magazyn{cost?.storageGb != null ? ` · ${cost.storageGb.toFixed(2)} GB` : ""}</span>
-                  <span className="fr-num">{fmtEur(cost?.storageEur)}</span>
+                  <span>{t("storage")}{cost?.storageGb != null ? ` · ${cost.storageGb.toFixed(2)} GB` : ""}</span>
+                  <span className="fr-num">{f.fmtEur(cost?.storageEur)}</span>
                 </div>
               </div>
 
               <div className="flex items-baseline justify-between gap-3 border-t border-hairline-soft pt-3">
-                <span className="font-mono text-fr-micro uppercase text-muted">Marża</span>
+                <span className="font-mono text-fr-micro uppercase text-muted">{t("margin")}</span>
                 <span className="text-right">
                   <span className={`fr-num font-heading text-fr-h3 ${
                     marginPln == null ? "text-faint" : marginPln >= 0 ? "text-ok" : "text-primary"
                   }`}>
-                    {marginPln != null ? fmtPrice(marginPln, { decimals: true }) : costLoading ? "…" : "—"}
+                    {marginPln != null ? f.fmtPrice(marginPln, { decimals: true }) : costLoading ? "…" : "—"}
                   </span>
                   {(markup != null || marginPct != null) && (
                     <span className="fr-num block font-mono text-fr-sm text-faint">
-                      {markup != null ? `${markup.toFixed(1)}× kosztu` : ""}
+                      {markup != null ? t("markup", { x: markup.toFixed(1) }) : ""}
                       {markup != null && marginPct != null ? " · " : ""}
-                      {marginPct != null ? `${marginPct.toFixed(0)}% ceny` : ""}
+                      {marginPct != null ? t("ofPrice", { pct: marginPct.toFixed(0) }) : ""}
                     </span>
                   )}
                 </span>
               </div>
 
               <p className="text-fr-sm text-faint">
-                Koszt = czas życia serwera × stawka Hetzner + rozmiar wyników w magazynie (storage + egress).
-                {cost?.eurPln != null ? ` Przeliczenie po kursie ${cost.eurPln} zł/€.` : ""}
+                {t("costNote")}
+                {cost?.eurPln != null ? t("fxNote", { rate: cost.eurPln }) : ""}
               </p>
             </div>
           </div>
@@ -227,40 +232,40 @@ export default function SimDrawer({
             <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Pobierz plik .fds
+            {ta("downloadFds")}
           </a>
 
           <div className="border-t border-hairline-soft" />
 
           {/* Editable */}
           <div className="space-y-4">
-            <SectionLabel>Edycja</SectionLabel>
+            <SectionLabel>{t("edit")}</SectionLabel>
 
             <label className="block">
-              <span className={labelCls}>Status</span>
+              <span className={labelCls}>{ta("cols.status")}</span>
               <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputSmCls}>
-                {ADMIN_STATUS_KEYS.map((k) => <option key={k} value={k}>{statusMeta(k).label}</option>)}
+                {ADMIN_STATUS_KEYS.map((k) => <option key={k} value={k}>{ts(statusMeta(k).key)}</option>)}
               </select>
               {status === "cancelled" && sim.status !== "cancelled" && (
-                <span className="mt-1.5 block text-fr-sm text-warn">Zapis anuluje zlecenie i zatrzyma serwer Hetzner (jeśli aktywny).</span>
+                <span className="mt-1.5 block text-fr-sm text-warn">{t("cancelWarning")}</span>
               )}
             </label>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className={labelCls}>Cena (zł)</span>
+                <span className={labelCls}>{t("price")}</span>
                 <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal"
                   className={`${inputSmCls} fr-num font-mono`} />
               </label>
               <label className="block">
-                <span className={labelCls}>Czas (h)</span>
+                <span className={labelCls}>{t("hours")}</span>
                 <input value={hours} onChange={(e) => setHours(e.target.value)} inputMode="decimal"
                   className={`${inputSmCls} fr-num font-mono`} />
               </label>
             </div>
 
             <label className="block">
-              <span className={labelCls}>Typ serwera</span>
+              <span className={labelCls}>{t("serverType")}</span>
               <input value={server} onChange={(e) => setServer(e.target.value)} placeholder="np. cpx41"
                 className={`${inputSmCls} font-mono`} />
             </label>
@@ -269,10 +274,10 @@ export default function SimDrawer({
           {/* Actions */}
           <div className="flex items-center gap-2 pt-1">
             <Btn onClick={save} disabled={!dirty || saving} className="flex-1">
-              {saving ? "Zapisywanie…" : saved ? "Zapisano ✓" : "Zapisz zmiany"}
+              {saving ? t("saving") : saved ? t("saved") : t("save")}
             </Btn>
             <BtnLink href={`/symulacje/${sim.case_id}`} variant="secondary">
-              Otwórz
+              {t("open")}
             </BtnLink>
           </div>
 
@@ -282,7 +287,7 @@ export default function SimDrawer({
               <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              {deleting ? "Usuwanie…" : "Usuń zlecenie"}
+              {deleting ? t("deleting") : t("delete")}
             </Btn>
           </div>
 

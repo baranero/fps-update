@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ACTIVE_STATUSES, isFailed, statusChart } from "@/lib/status";
 import { useIsDark } from "@/components/Cloud/chartTheme";
 import { MonthlyBars, MonthlyVolume, ServerShare, StatusDonut } from "@/components/Cloud/charts";
-import { fmtCells, fmtHours, fmtPrice } from "@/lib/format";
+import { useTranslations } from "next-intl";
+import { useFormat } from "@/lib/format";
 import {
   Kpi, SectionLabel, Skeleton, cardCls, tableCls, tdNumCls, thCls, theadRowCls, trCls,
 } from "@/components/Cloud/ui";
@@ -22,13 +23,13 @@ type Row = {
   payment_status: "paid" | "pending" | null;
 };
 
-function buildMonthly(rows: Row[]) {
+function buildMonthly(rows: Row[], locale: string) {
   const map = new Map<string, { month: string; przychod: number; szt: number; godziny: number }>();
   const now = new Date();
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("pl-PL", { month: "short", year: "2-digit" });
+    const label = d.toLocaleDateString(locale === "en" ? "en-GB" : "pl-PL", { month: "short", year: "2-digit" });
     map.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), przychod: 0, szt: 0, godziny: 0 });
   }
   for (const r of rows) {
@@ -44,17 +45,17 @@ function buildMonthly(rows: Row[]) {
   return Array.from(map.values());
 }
 
-function buildStatus(rows: Row[], dark: boolean) {
+function buildStatus(rows: Row[], dark: boolean, ts: (k: string) => string) {
   const palette   = statusChart(dark);
   const done      = rows.filter((s) => s.status === "done").length;
   const active    = rows.filter((s) => ACTIVE_STATUSES.has(s.status)).length;
   const failed    = rows.filter((s) => isFailed(s.status)).length;
   const cancelled = rows.filter((s) => s.status === "cancelled").length;
   return [
-    { name: "Zakończone", value: done,      color: palette.done },
-    { name: "W toku",     value: active,    color: palette.active },
-    { name: "Błędy",      value: failed,    color: palette.failed },
-    { name: "Anulowane",  value: cancelled, color: palette.cancelled },
+    { name: ts("done"),      value: done,      color: palette.done },
+    { name: ts("running"),   value: active,    color: palette.active },
+    { name: ts("failed"),    value: failed,    color: palette.failed },
+    { name: ts("cancelled"), value: cancelled, color: palette.cancelled },
   ].filter((d) => d.value > 0);
 }
 
@@ -85,6 +86,9 @@ function buildTopUsers(rows: Row[]) {
 }
 
 export default function AdminAnalytics() {
+  const t = useTranslations("admin.analytics");
+  const ts = useTranslations("status");
+  const f = useFormat();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const dark = useIsDark();
@@ -96,8 +100,8 @@ export default function AdminAnalytics() {
       .catch(() => setLoading(false));
   }, []);
 
-  const monthly  = useMemo(() => buildMonthly(rows), [rows]);
-  const statuses = useMemo(() => buildStatus(rows, dark), [rows, dark]);
+  const monthly  = useMemo(() => buildMonthly(rows, f.locale), [rows, f.locale]);
+  const statuses = useMemo(() => buildStatus(rows, dark, ts), [rows, dark, ts]);
   const servers  = useMemo(() => buildServers(rows), [rows]);
   const topUsers = useMemo(() => buildTopUsers(rows), [rows]);
 
@@ -117,7 +121,7 @@ export default function AdminAnalytics() {
   }
 
   if (rows.length === 0) {
-    return <p className="py-10 text-center text-fr-sm text-muted">Brak danych do analizy.</p>;
+    return <p className="py-10 text-center text-fr-sm text-muted">{t("noData")}</p>;
   }
 
   return (
@@ -125,24 +129,24 @@ export default function AdminAnalytics() {
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <Kpi label="Przychód" value={fmtPrice(revenue)} tone="primary" />
-        <Kpi label="Do zapłaty" value={fmtPrice(unpaid)} tone={unpaid > 0 ? "warn" : "ink"} />
-        <Kpi label="Zakończone" value={String(done.length)} />
-        <Kpi label="Śr. wartość" value={avg > 0 ? fmtPrice(Math.round(avg)) : "—"} />
-        <Kpi label="Czas obliczeń" value={fmtHours(hours)} />
-        <Kpi label="Komórki łącznie" value={fmtCells(cells)} />
+        <Kpi label={t("revenue")} value={f.fmtPrice(revenue)} tone="primary" />
+        <Kpi label={t("unpaid")} value={f.fmtPrice(unpaid)} tone={unpaid > 0 ? "warn" : "ink"} />
+        <Kpi label={t("done")} value={String(done.length)} />
+        <Kpi label={t("avgValue")} value={avg > 0 ? f.fmtPrice(Math.round(avg)) : "—"} />
+        <Kpi label={t("computeTime")} value={f.fmtHours(hours)} />
+        <Kpi label={t("cellsTotal")} value={f.fmtCells(cells)} />
       </div>
 
       {/* Przychód po miesiącach */}
       <div>
-        <SectionLabel className="mb-3 block">Przychód po miesiącach (zł)</SectionLabel>
-        <MonthlyBars data={monthly} dataKey="przychod" tipLabel="Przychód" format={fmtPrice} />
+        <SectionLabel className="mb-3 block">{t("revenueByMonth")}</SectionLabel>
+        <MonthlyBars data={monthly} dataKey="przychod" tipLabel={t("revenueSeries")} format={f.fmtPrice} />
       </div>
 
       {/* Wolumen + godziny */}
       <div>
-        <SectionLabel className="mb-3 block">Liczba zleceń i czas obliczeń po miesiącach</SectionLabel>
-        <MonthlyVolume data={monthly} gradientId="admin" countLabel="Zlecenia" />
+        <SectionLabel className="mb-3 block">{t("jobsAndTime")}</SectionLabel>
+        <MonthlyVolume data={monthly} gradientId="admin" countLabel={t("jobs")} />
       </div>
 
       {/* Dolny rząd */}
@@ -150,25 +154,25 @@ export default function AdminAnalytics() {
 
         {/* Statusy donut */}
         <div>
-          <SectionLabel className="mb-3 block">Rozkład statusów</SectionLabel>
+          <SectionLabel className="mb-3 block">{t("statusSplit")}</SectionLabel>
           <StatusDonut data={statuses} total={rows.length} />
         </div>
 
         {/* Serwery */}
         <div>
-          <SectionLabel className="mb-3 block">Typ serwera obliczeniowego</SectionLabel>
+          <SectionLabel className="mb-3 block">{t("serverType")}</SectionLabel>
           <ServerShare data={servers} total={rows.length} />
         </div>
       </div>
 
       {/* Top klienci */}
       <div>
-        <SectionLabel className="mb-3 block">Najlepsi klienci (przychód)</SectionLabel>
+        <SectionLabel className="mb-3 block">{t("topClients")}</SectionLabel>
         <div className={`${cardCls} overflow-hidden`}>
           <table className={tableCls}>
             <thead>
               <tr className={theadRowCls}>
-                {["#", "Email", "Zakończone", "Przychód"].map((h) => (
+                {["#", t("colEmail"), t("done"), t("revenue")].map((h) => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
               </tr>
@@ -179,11 +183,11 @@ export default function AdminAnalytics() {
                   <td className={tdNumCls}>{i + 1}</td>
                   <td className="max-w-[220px] truncate px-3 py-2.5 font-mono text-ink">{u.email}</td>
                   <td className={tdNumCls}>{u.count}</td>
-                  <td className={`${tdNumCls} text-primary`}>{fmtPrice(u.revenue)}</td>
+                  <td className={`${tdNumCls} text-primary`}>{f.fmtPrice(u.revenue)}</td>
                 </tr>
               ))}
               {topUsers.length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-8 text-center text-fr-sm text-muted">Brak zakończonych zleceń.</td></tr>
+                <tr><td colSpan={4} className="px-3 py-8 text-center text-fr-sm text-muted">{t("noDone")}</td></tr>
               )}
             </tbody>
           </table>

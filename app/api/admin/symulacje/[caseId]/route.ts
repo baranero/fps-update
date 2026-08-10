@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/utils/adminCheck";
 import { deleteServer, getServerTypePriceMap, hetznerRunCostEur } from "@/lib/hetzner/client";
 import { deleteResults, listResults } from "@/lib/hetzner/storage";
 import { EUR_PLN, STORAGE_EUR_PER_GB } from "@/lib/fds/parser";
+import { caseModelPaths } from "@/lib/fds/runFile";
 
 // Rozliczenie pojedynczej symulacji: ile płaci klient vs. ile realnie kosztuje nas
 // przebieg (serwer Hetzner wg cennika + Object Storage wg faktycznego rozmiaru
@@ -185,9 +186,10 @@ export async function DELETE(
     });
   }
 
-  // Plik wejściowy .fds z Supabase Storage
-  if (submission.file_path) {
-    await admin.storage.from("fds-files").remove([submission.file_path]);
+  // Plik wejściowy .fds z Supabase Storage — razem z kopią uruchomieniową
+  const modelPaths = caseModelPaths(submission.file_path);
+  if (modelPaths.length) {
+    await admin.storage.from("fds-files").remove(modelPaths);
   }
 
   // Wyniki z Hetzner Object Storage (jeśli są)

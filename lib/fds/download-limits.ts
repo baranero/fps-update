@@ -1,10 +1,14 @@
-// Reguły dzielenia wyników na paczki do pobrania.
+// Reguły dzielenia wyników na paczki ZIP.
 //
-// Paczka ZIP jest pakowana strumieniowo przez funkcję serwerową (magazyn →
-// funkcja → przeglądarka), więc musi zmieścić się w jej maxDuration. Im większa
-// paczka, tym dłużej trwa jedno pobranie i tym więcej traci się przy zerwaniu
-// połączenia — dlatego użytkownik może zejść z rozmiarem, gdy pobieranie się
-// wykłada. Pliki pojedynczo idą WPROST z magazynu i tych limitów nie mają.
+// ZIP to jedyna ścieżka pobierania, która przechodzi przez funkcję serwerową
+// (magazyn → funkcja → przeglądarka), więc płaci się za nią podwójnym transferem.
+// Dlatego jest wyborem drugorzędnym: domyślnie pliki lecą WPROST z magazynu,
+// pojedynczo albo do wskazanego folderu, i żadnych z tych limitów nie mają.
+//
+// Górną granicę wyznacza maxDuration funkcji: paczka musi zdążyć się spakować i
+// przesłać w oknie 300 s, a strumień idzie w tempie łącza odbiorcy. Przy wolnym
+// łączu 5 GB w to okno nie wejdzie — dlatego użytkownik może zejść z rozmiarem,
+// gdy pobieranie się urywa.
 //
 // Współdzielone przez klienta i route — dlatego moduł bez zależności serwerowych
 // (import lib/hetzner/storage w komponencie wciągnąłby AWS SDK do bundla).

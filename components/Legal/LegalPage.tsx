@@ -12,6 +12,7 @@ type Section = {
 // treść z namespace `legal.<doc>`. Data aktualizacji generowana lokalnie.
 export default function LegalPage({ doc }: { doc: string }) {
   const t = useTranslations(`legal.${doc}`);
+  const tl = useTranslations("legal");
   const locale = useLocale();
   const sections = t.raw("sections") as Section[];
   const today = new Date().toLocaleDateString(locale === "en" ? "en-GB" : "pl-PL");
@@ -22,6 +23,15 @@ export default function LegalPage({ doc }: { doc: string }) {
   return (
     <main className="container pb-20 pt-14 md:pt-16">
       <div className="mx-auto max-w-[800px]">
+        {/* Wersja angielska jest tłumaczeniem kurtuazyjnym — wiążąca pozostaje
+            polska. Bez tej informacji dokument EN sprawiałby wrażenie
+            samodzielnego źródła zobowiązań. */}
+        {locale === "en" && (
+          <p className="mb-8 rounded-xl border border-amber-300/40 bg-amber-50 p-4 text-[14px] leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            {tl("courtesy")}
+          </p>
+        )}
+
         <p className="text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
           {t("intro")}
         </p>

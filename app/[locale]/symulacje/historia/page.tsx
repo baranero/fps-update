@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
-import { fmtCells, fmtHours } from "@/lib/format";
+import { useFormat } from "@/lib/format";
 import { Btn, Chip, EmptyState, FilterTabs, PageHead, Shell, cardCls, inputSmCls } from "@/components/Cloud/ui";
 
 type Submission = {
@@ -33,6 +33,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function HistoriaSymulacjiPage() {
   const t = useTranslations("symHistory");
+  const f = useFormat();
   const locale = useLocale();
   const dateLocale = locale === "en" ? "en-GB" : "pl-PL";
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -217,15 +218,15 @@ export default function HistoriaSymulacjiPage() {
                               <span>{s.case_id}</span>
                               {s.server_type && <span className="uppercase">{s.server_type}</span>}
                               <span>
-                                {t("meshes", { count: s.mesh_count })} · {fmtCells(s.total_cells)} {t("cellsWord")}
+                                {t("meshes", { count: s.mesh_count })} · {f.fmtCells(s.total_cells)} {t("cellsWord")}
                               </span>
-                              <span>{t("est", { time: fmtHours(s.wall_hours) })}</span>
+                              <span>{t("est", { time: f.fmtHours(s.wall_hours) })}</span>
                             </div>
                           </div>
 
                           <div className="shrink-0 text-right">
                             <p className="fr-num font-mono text-fr-sm text-ink">
-                              {s.price.toLocaleString(dateLocale)} zł
+                              {f.fmtPrice(s.price)}
                             </p>
                             <p className="font-mono text-fr-sm text-muted">
                               {new Date(s.created_at).toLocaleDateString(dateLocale, {

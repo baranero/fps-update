@@ -2,11 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useFormat } from "@/lib/format";
 import { Link, useRouter } from "@/i18n/navigation";
-import { parseFds, estimateCost, FdsParseResult, FdsEstimate } from "@/lib/fds/parser";
+import { parseFds, estimateCost, toPlanInput, FdsParseResult, FdsEstimate } from "@/lib/fds/parser";
+import type { RunPlan } from "@/lib/fds/planner";
 import { createClient } from "@/lib/supabase/client";
 import CloudMarketing from "@/components/Cloud/CloudMarketing";
+import ServerPicker from "@/components/Cloud/ServerPicker";
 import { CHIP_SHAPE, TONE_CHIP } from "@/lib/tone";
+
+type PlanResponse = {
+  plans: RunPlan[];
+  tiers: { eco: string | null; balanced: string | null; fast: string | null };
+  dtEstimate: number;
+  cellDimSource: "file" | "assumed";
+  blocked: string | null;
+};
 
 type Submission = {
   case_id: string;
@@ -62,6 +73,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function SymulacjePage() {
   const t = useTranslations("symulacje");
+  const f = useFormat();
   const [step, setStep] = useState<Step>("upload");
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -69,6 +81,11 @@ export default function SymulacjePage() {
   const [estimate, setEstimate] = useState<FdsEstimate | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  // Warianty sprzętowe dobiera serwer (zna dostępność maszyn i kalibrację
+  // z historii). Do czasu odpowiedzi kreator pokazuje wycenę policzoną lokalnie.
+  const [plan, setPlan] = useState<PlanResponse | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [serverType, setServerType] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", notes: "" });
   const [caseId, setCaseId] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -136,6 +153,27 @@ export default function SymulacjePage() {
     if (f) handleFile(f);
   };
 
+  // Warianty sprzętowe z serwera. Gdy zapytanie padnie, zostaje wycena lokalna —
+  // kreator ma działać także wtedy, gdy dostawca chwilowo nie odpowiada.
+  const loadPlans = useCallback(async (result: FdsParseResult) => {
+    setPlanLoading(true);
+    try {
+      const res = await fetch("/api/symulacje/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toPlanInput(result)),
+      });
+      if (!res.ok) return;
+      const data: PlanResponse = await res.json();
+      setPlan(data);
+      setServerType(data.tiers.balanced ?? data.plans[0]?.serverType ?? null);
+    } catch {
+      /* zostaje wycena policzona lokalnie */
+    } finally {
+      setPlanLoading(false);
+    }
+  }, []);
+
   const analyze = () => {
     if (!file) return;
     setAnalyzing(true);
@@ -147,8 +185,11 @@ export default function SymulacjePage() {
       if (result.valid) {
         setEstimate(estimateCost(result));
         setStep("review");
+        void loadPlans(result);
       } else {
-        setParseError(result.error ?? t("upload.readError"));
+        // Parser zwraca KOD błędu (działa też serwerowo, bez kontekstu i18n) —
+        // tekst dobieramy tutaj, w języku strony.
+        setParseError(result.error ? t(`parseErrors.${result.error}`) : t("upload.readError"));
       }
       setAnalyzing(false);
     };
@@ -167,11 +208,15 @@ export default function SymulacjePage() {
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("name", form.name.trim() || form.email.split("@")[0] || "Użytkownik");
+      body.append("name", form.name.trim() || form.email.split("@")[0] || t("form.fallbackName"));
+    // Język zlecenia — serwer zapisze go przy rekordzie i wyśle w nim maile.
+    body.append("locale", f.locale);
       body.append("email", form.email.trim());
       body.append("notes", form.notes.trim());
       body.append("parsed", JSON.stringify(parseResult));
       body.append("estimate", JSON.stringify(estimate));
+      // Wskazówka, nie wiążąca decyzja — serwer i tak przelicza plan od zera.
+      if (serverType) body.append("serverType", serverType);
 
       const res = await fetch("/api/symulacje/submit", { method: "POST", body });
       const data = await res.json();
@@ -199,8 +244,14 @@ export default function SymulacjePage() {
     setParseError(null);
     setSubmitError(null);
     setAnalyzing(false);
+    setPlan(null);
+    setPlanLoading(false);
+    setServerType(null);
     setForm({ name: "", email: "", notes: "" });
   };
+
+  // Wariant zaznaczony przez klienta; zanim serwer odpowie — wycena lokalna.
+  const activePlan = plan?.plans.find((p) => p.serverType === serverType) ?? null;
 
   const canSubmit = /\S+@\S+\.\S+/.test(form.email);
 
@@ -423,13 +474,13 @@ export default function SymulacjePage() {
                         <p className="text-fr-sm font-mono font-semibold text-muted">{s.case_id}</p>
                         <p className="text-fr-body font-medium text-ink truncate">{s.file_name}</p>
                         <p className="text-fr-sm text-muted mt-0.5">
-                          {new Date(s.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                          {f.fmtDate(s.created_at, { day: "numeric", month: "short", year: "numeric" })}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <StatusBadge status={s.status} />
                         <span className="font-mono text-fr-micro uppercase text-faint">
-                          {s.price.toLocaleString()} zł
+                          {f.fmtPrice(s.price)}
                         </span>
                         <svg className="h-4 w-4 text-faint group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
@@ -522,6 +573,20 @@ export default function SymulacjePage() {
                 )}
               </div>
 
+              {/* Tryb obliczeń — wybór między krótszym czasem a niższym kosztem.
+                  Warianty liczy serwer, bo tylko on zna aktualną dostępność
+                  maszyn i kalibrację z zakończonych zleceń. */}
+              {(planLoading || (plan?.plans.length ?? 0) > 0) && (
+                <ServerPicker
+                  plans={plan?.plans ?? []}
+                  tiers={plan?.tiers ?? { eco: null, balanced: null, fast: null }}
+                  selected={serverType}
+                  onSelect={setServerType}
+                  loading={planLoading}
+                  meshCount={parseResult.meshCount}
+                />
+              )}
+
               {/* Wycena — kluczowy odczyt kreatora, więc dostaje traktowanie
                   ramki analitycznej ze strony głównej: ciemniejszy panel z
                   teksturą, etykiety w mono, liczby w Manrope, kwota w kolorze
@@ -540,14 +605,31 @@ export default function SymulacjePage() {
                   <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
                     <div>
                       <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.server")}</p>
-                      <p className="font-heading text-fr-h3 uppercase text-ink">{estimate.serverType}</p>
+                      <p className="fr-num font-heading text-fr-h3 text-ink">
+                        {t("estimate.coresValue", { cores: activePlan?.cores ?? estimate.serverCores })}
+                      </p>
                       <p className="mt-1 font-mono text-fr-sm text-muted">
-                        {t("estimate.serverSub", { cores: estimate.serverCores })}
+                        {activePlan
+                          ? t("estimate.serverSub", {
+                              procs: activePlan.mpiProcs,
+                              ram: activePlan.ramGb,
+                            })
+                          : t("estimate.serverSubPending")}
                       </p>
                     </div>
                     <div>
                       <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.estTime")}</p>
-                      <p className="fr-num font-heading text-fr-h3 text-ink">{formatHours(estimate.wallHours)}</p>
+                      <p className="fr-num font-heading text-fr-h3 text-ink">
+                        {formatHours(activePlan?.wallHours ?? estimate.wallHours)}
+                      </p>
+                      {activePlan && (
+                        <p className="mt-1 font-mono text-fr-sm text-muted">
+                          {t("estimate.timeRange", {
+                            lo: formatHours(activePlan.wallLoHours),
+                            hi: formatHours(activePlan.wallHiHours),
+                          })}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.dt")}</p>
@@ -565,7 +647,7 @@ export default function SymulacjePage() {
                     <div>
                       <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.costLabel")}</p>
                       <p className="fr-num font-heading text-fr-h2 text-primary">
-                        ~{estimate.price.toLocaleString()} zł
+                        ~{f.fmtPrice(activePlan?.price ?? estimate.price)}
                       </p>
                       <p className="mt-1 font-mono text-fr-sm text-muted">{t("estimate.costSub")}</p>
                     </div>

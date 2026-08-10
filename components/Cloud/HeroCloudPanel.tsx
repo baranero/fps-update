@@ -15,7 +15,7 @@ const DEMO = {
   server: "cpx41",
   progress: 67,
   remaining: "~1h 47min",
-  price: "87 zł",
+
 };
 
 export default function HeroCloudPanel() {
@@ -97,7 +97,7 @@ export default function HeroCloudPanel() {
         <div className="flex items-center justify-between border-t border-slate-700/40 pt-3">
           <span className="text-fr-sm text-slate-500">{t("cost")}</span>
           <span className="font-mono text-[22px] font-extrabold tabular-nums text-primary">
-            {DEMO.price}
+            {t("priceValue")}
           </span>
         </div>
       </div>

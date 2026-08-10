@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { marketingUrl } from "@/lib/cloud";
+import { useFormat } from "@/lib/format";
 import { chipCls, type Tone } from "@/lib/tone";
 import { PageHead, Shell, cardCls } from "@/components/Cloud/ui";
 
@@ -81,6 +83,8 @@ function InlineEdit({
 }
 
 export default function RaportyPage() {
+  const t = useTranslations("reportsHistory");
+  const f = useFormat();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -109,24 +113,24 @@ export default function RaportyPage() {
       <div className="space-y-8">
 
       <PageHead
-        kicker="FDSRUN // RAPORTY PDF"
-        title="Historia raportów"
-        lead="Kliknij projekt, aby wrócić do kalkulatora z danymi."
-        back={{ href: "/symulacje", label: "Pulpit" }}
+        kicker={t("kicker")}
+        title={t("title")}
+        lead={t("lead")}
+        back={{ href: "/symulacje", label: t("back") }}
       />
 
       {loading ? (
-        <p className="text-fr-sm text-muted">Ładowanie…</p>
+        <p className="text-fr-sm text-muted">{t("loading")}</p>
       ) : reports.length === 0 ? (
         // Kalkulatory żyją na fp-solutions.pl, więc to zwykły <a> — `EmptyState`
         // przyjmuje wyłącznie ścieżki wewnętrzne routera chmury.
         <div className="rounded-card border border-dashed border-hairline px-6 py-10 text-center">
-          <p className="text-fr-sm text-muted">Brak zapisanych raportów.</p>
+          <p className="text-fr-sm text-muted">{t("empty")}</p>
           <a
             href={marketingUrl("/narzedzia/kalkulatory")}
             className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-primary transition-opacity hover:opacity-80"
           >
-            Przejdź do kalkulatorów <span aria-hidden>↗</span>
+            {t("toCalculators")} <span aria-hidden>↗</span>
           </a>
         </div>
       ) : (
@@ -156,7 +160,7 @@ export default function RaportyPage() {
                       href={r.share_url ?? calculatorHref(r.calculator)}
                       className="block truncate text-fr-body font-medium text-ink transition-colors hover:text-primary"
                     >
-                      {r.project_name ?? <span className="font-normal italic text-faint">Brak nazwy</span>}
+                      {r.project_name ?? <span className="font-normal italic text-faint">{t("noName")}</span>}
                     </a>
                   )}
                   <p className="mt-0.5 truncate font-mono text-fr-sm text-muted">
@@ -166,17 +170,14 @@ export default function RaportyPage() {
 
                 {/* date */}
                 <p className="shrink-0 font-mono text-fr-sm text-muted">
-                  {new Date(r.created_at).toLocaleDateString("pl-PL", {
-                    day: "numeric", month: "short", year: "numeric",
-                    hour: "2-digit", minute: "2-digit",
-                  })}
+                  {f.fmtDateTime(r.created_at)}
                 </p>
 
                 {/* edit name */}
                 <button
                   onClick={() => setEditingId(r.id)}
                   className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-ink group-hover:opacity-100"
-                  title="Zmień nazwę"
+                  title={t("rename")}
                 >
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -188,7 +189,7 @@ export default function RaportyPage() {
                 <button
                   onClick={() => handleDelete(r.id)}
                   className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-primary group-hover:opacity-100"
-                  title="Usuń"
+                  title={t("delete")}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
