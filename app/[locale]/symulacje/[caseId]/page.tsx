@@ -344,8 +344,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   // Podział wyników na paczki — ratunek, gdy jedno duże pobranie się urywa.
   const [pkgTarget, setPkgTarget] = useState<number>(DEFAULT_PACKAGE_BYTES);
   const [pkgOpen, setPkgOpen] = useState(false);
-  // Wsparcie dla wyboru folderu ustalamy po hydratacji — serwer nie zna przeglądarki.
+  // Wsparcie przeglądarki ustalamy po hydratacji — serwer nie wie, w czym
+  // strona się otworzy. `canZipLocally` decyduje, czy paczkę da się złożyć na
+  // miejscu; bez tego pakowanie musiałoby pójść przez funkcję serwerową.
   const [canPickFolder, setCanPickFolder] = useState(false);
+  const [canZipLocally, setCanZipLocally] = useState(false);
   const [logMode, setLogMode] = useState<"basic" | "advanced">("basic");
   const termRef = useRef<HTMLDivElement>(null);
   const termScrolledUpRef = useRef(false);
@@ -362,7 +365,10 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   // Do jakiego czasu symulacji sięga migawka (manifest zapisany przez maszynę liczącą).
   const [snapshot, setSnapshot] = useState<{ t: number; at: string | null } | null>(null);
 
-  useEffect(() => { setCanPickFolder(directoryPicker() !== null); }, []);
+  useEffect(() => {
+    setCanPickFolder(directoryPicker() !== null);
+    setCanZipLocally(saveFilePicker() !== null);
+  }, []);
 
   const loadPartial = async () => {
     setPartialLoading(true);
@@ -703,13 +709,18 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     void downloadPackage(files, part, parts);
   };
 
-  // Pobranie zestawu plików. Domyślnie WPROST z magazynu: zapis do wskazanego
-  // folderu, a gdy przeglądarka tego nie umie — seria pobrań. ZIP przechodzi
-  // przez funkcję serwerową i kosztuje podwójny transfer, więc został świadomym
-  // wyborem z osobnego panelu, a nie domyślną ścieżką.
+  // Pobranie zestawu plików — jedno archiwum ze wszystkim.
+  //
+  // Paczkę składa przeglądarka, a pliki lecą wprost z magazynu, więc nic nas to
+  // nie kosztuje i nie ma powodu, żeby użytkownik dostawał kilkaset osobnych
+  // pobrań. Tam, gdzie zapisu strumieniowego nie ma, pakowanie musiałoby pójść
+  // przez funkcję serwerową — wtedy lepiej oddać pliki wprost z magazynu, bez
+  // paczki, niż zapłacić za wygodę podwójnym transferem.
   const downloadMany = (files: Array<{ name: string; url?: string; size: number | null }>) => {
     if (files.length === 0) return;
     if (files.length === 1) { downloadFile(files[0]); return; }
+    // saveFilePicker() musi zostać wywołany w geście użytkownika — stąd bez await.
+    if (saveFilePicker()) { void downloadPackage(files); return; }
     void downloadEach(files);
   };
 
@@ -1432,10 +1443,14 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 </div>
               </div>
 
-              {/* Gdzie wylądują pliki — wcześniej ta informacja siedziała w panelu
-                  paczek, a dotyczy ścieżki domyślnej. */}
+              {/* Co się stanie po kliknięciu — zależy od tego, czy przeglądarka
+                  umie złożyć paczkę na miejscu. */}
               <p className="mb-4 text-fr-sm leading-relaxed text-muted">
-                {canPickFolder ? t("results.perFileFolder", { name: caseId }) : t("results.perFileLoose")}
+                {canZipLocally
+                  ? t("results.zipHint", { name: caseId })
+                  : canPickFolder
+                  ? t("results.perFileFolder", { name: caseId })
+                  : t("results.perFileLoose")}
               </p>
 
               {dlMsg && <p className="mb-1.5 text-fr-sm text-muted">{dlMsg}</p>}
@@ -1452,11 +1467,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                   <svg className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  {t("results.zipTitle")}
+                  {t("results.splitTitle")}
                 </summary>
 
                 <p className="mt-2 text-fr-sm leading-relaxed text-muted">
-                  {t("results.zipLead", { name: caseId })}
+                  {t("results.splitLead", { name: caseId })}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
