@@ -5,13 +5,13 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { deleteResults } from "@/lib/hetzner/storage";
 import { caseModelPaths } from "@/lib/fds/runFile";
 import { getServer, deleteServer } from "@/lib/hetzner/client";
+import { DISPATCH_TIMEOUT_H, STALL_HOURS, hasAdvanced, progressMark } from "@/lib/fds/watchdog";
 
 const RETENTION_DAYS = 60;
 
-// Jak długo job może siedzieć w danym statusie zanim uznamy go za zawisły
-const HUNG_DISPATCHED_H = 2;   // 2h bez przejścia w "running" = coś poszło nie tak
-const HUNG_RUNNING_MULT = 3;   // 3x szacowany wall_hours = zawis (np. 10h job = max 30h)
-const HUNG_RUNNING_MIN_H = 6;  // minimum 6h od started_at zanim uznamy za zawisły
+// Progi zawisu żyją w lib/fds/watchdog.ts — korzysta z nich także strona
+// zlecenia, żeby tłumaczyć przerwanie tą samą regułą, która je wywołała.
+const HUNG_DISPATCHED_H = DISPATCH_TIMEOUT_H;
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-cron-secret");
@@ -105,40 +105,68 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 2b. "running" ale trwa znacznie dłużej niż szacowany czas
-  const { data: hungRunning } = await supabase
+  // 2b. "running", które STANĘŁO W MIEJSCU
+  //
+  // Nie patrzymy, jak długo trwają obliczenia — wolna symulacja jest zdrowa,
+  // a za niski szacunek to nasz błąd wyceny, nie powód do kasowania cudzej
+  // pracy. Przy każdym przebiegu zapisujemy ślad postępu (czas symulacji z logu
+  // i długość logu). Dopiero gdy nic nie drgnie przez STALL_HOURS, zwalniamy
+  // maszynę — bo wtedy naprawdę nic już nie liczy.
+  const { data: hungRunning, error: runningErr } = await supabase
     .from("fds_submissions")
-    .select("case_id, server_id, wall_hours, started_at")
+    .select("case_id, server_id, started_at, fds_log, last_sim_time, last_log_bytes, last_progress_at")
     .eq("status", "running")
     .not("started_at", "is", null);
 
+  if (runningErr) {
+    // Najczęstsza przyczyna: nieuruchomiona supabase/migration_stall_watchdog.sql.
+    // Nie zgadujemy wtedy niczego z samego czasu trwania — brak nadzoru jest
+    // tańszy niż ubicie poprawnych obliczeń.
+    results.errors.push(
+      `hung running: ${runningErr.message} — sprawdź, czy wykonano supabase/migration_stall_watchdog.sql`
+    );
+  }
+
   for (const row of hungRunning ?? []) {
-    const startedAt = new Date(row.started_at);
-    const elapsedH = (now.getTime() - startedAt.getTime()) / 3600_000;
-    const expectedMax = Math.max(HUNG_RUNNING_MIN_H, (row.wall_hours ?? 1) * HUNG_RUNNING_MULT);
-
-    if (elapsedH < expectedMax) continue;
-
     try {
-      if (row.server_id) {
-        const server = await getServer(row.server_id);
-        if (!server) {
-          // VM już nie istnieje (crash, OOM) — oznacz jako failed
-          await supabase
-            .from("fds_submissions")
-            .update({ status: "failed", completed_at: now.toISOString() })
-            .eq("case_id", row.case_id);
-          results.hung_resolved++;
-        } else {
-          // VM żyje ale job zawisł — kill VM, oznacz jako failed
-          await deleteServer(row.server_id).catch(() => {});
-          await supabase
-            .from("fds_submissions")
-            .update({ status: "failed", completed_at: now.toISOString() })
-            .eq("case_id", row.case_id);
-          results.hung_resolved++;
-        }
+      const mark = progressMark(row.fds_log);
+      const advanced = hasAdvanced(
+        row.last_progress_at
+          ? { simTime: row.last_sim_time ?? null, logBytes: row.last_log_bytes ?? 0 }
+          : null,
+        mark
+      );
+
+      // Cokolwiek drgnęło — zapamiętaj nowy ślad i zostaw zlecenie w spokoju.
+      if (advanced) {
+        await supabase
+          .from("fds_submissions")
+          .update({
+            last_sim_time: mark.simTime,
+            last_log_bytes: mark.logBytes,
+            last_progress_at: now.toISOString(),
+          })
+          .eq("case_id", row.case_id);
+        continue;
       }
+
+      // Punktem odniesienia jest ostatni zaobserwowany postęp, a przy pierwszym
+      // przebiegu po wdrożeniu — start obliczeń.
+      const since = row.last_progress_at ?? row.started_at;
+      const stalledH = (now.getTime() - new Date(since).getTime()) / 3600_000;
+      if (!Number.isFinite(stalledH) || stalledH < STALL_HOURS) continue;
+
+      // Maszyna nie istnieje (crash, OOM, ręczne usunięcie) — nie ma czego ubijać.
+      const server = row.server_id ? await getServer(row.server_id) : null;
+      if (row.server_id && server) {
+        await deleteServer(row.server_id).catch(() => {});
+      }
+
+      await supabase
+        .from("fds_submissions")
+        .update({ status: "failed", completed_at: now.toISOString() })
+        .eq("case_id", row.case_id);
+      results.hung_resolved++;
     } catch (err) {
       results.errors.push(`hung running ${row.case_id}: ${String(err)}`);
     }

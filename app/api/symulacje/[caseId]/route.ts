@@ -90,6 +90,9 @@ async function handleGet(caseId: string) {
     hrrCsv: data.hrr_csv ?? null,
     sliceJson: data.slice_json ?? null,
     devcSetpoints: data.devc_setpoints ?? null,
+    // Ostatni zaobserwowany postęp — po tym strona poznaje, że zlecenie
+    // zwolnił nadzorca, bo obliczenia stanęły w miejscu.
+    lastProgressAt: data.last_progress_at ?? null,
     stopRequested: data.stop_requested === true,
     results,
     paymentStatus: data.payment_status ?? null,

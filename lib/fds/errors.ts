@@ -2,6 +2,8 @@
 // na czytelny opis (co oznacza + jak naprawić), po polsku lub angielsku.
 // Dla nierozpoznanych błędów zwraca opis generyczny z zachowanym kodem ERROR(NNN).
 
+import { STALL_HOURS, hoursSince, lastSimulationTime } from "./watchdog";
+
 export type ErrLocale = "pl" | "en";
 
 export interface FdsErrorInfo {
@@ -160,29 +162,27 @@ export interface FdsFailureDiagnosis {
   kind: FailureKind;
   /** Do jakiego czasu symulacji doszły obliczenia (z logu FDS). */
   progress: { t: number; tEnd: number; pct: number } | null;
-  /** Ile realnie trwały obliczenia i jaki był szacunek — tylko dla "watchdog". */
+  /** Jak długo obliczenia stały w miejscu — nowa reguła nadzorcy. */
+  stall: { stalledH: number } | null;
+  /** Ile trwały obliczenia i jaki był limit — TYLKO dla zleceń ubitych starą regułą. */
   timing: { elapsedH: number; estimatedH: number; limitH: number } | null;
   errors: FdsErrorInfo[];
 }
 
-// Nadzorca (app/api/cron/cleanup/route.ts) ubija zlecenie po przekroczeniu
-// max(HUNG_RUNNING_MIN_H, wall_hours × HUNG_RUNNING_MULT). Trzymamy te progi
-// zgodne z cronem — inaczej strona tłumaczyłaby przerwanie inną regułą, niż ta,
-// która je faktycznie wywołała.
-const WATCHDOG_MIN_H = 6;
-const WATCHDOG_MULT = 3;
+// Nadzorca zwalnia maszynę dopiero, gdy obliczenia stoją w miejscu — próg i
+// odczyt postępu siedzą w lib/fds/watchdog.ts, wspólnie z cronem.
+//
+// Poniższe stałe opisują REGUŁĘ HISTORYCZNĄ (limit = max(6 h, 3 × wall_hours)).
+// Zostają wyłącznie po to, żeby poprawnie wytłumaczyć zlecenia ubite, zanim
+// reguła się zmieniła — nowych zleceń już nie dotyczą.
+const LEGACY_WATCHDOG_MIN_H = 6;
+const LEGACY_WATCHDOG_MULT = 3;
 
 export function watchdogLimitH(wallHours: number | null): number {
-  return Math.max(WATCHDOG_MIN_H, (wallHours ?? 1) * WATCHDOG_MULT);
+  return Math.max(LEGACY_WATCHDOG_MIN_H, (wallHours ?? 1) * LEGACY_WATCHDOG_MULT);
 }
 
-export function lastSimulationTime(log: string | null): number | null {
-  if (!log) return null;
-  const m = Array.from(log.matchAll(/Simulation Time:\s*([\d.E+-]+)\s*s/g));
-  if (!m.length) return null;
-  const t = parseFloat(m[m.length - 1][1]);
-  return Number.isFinite(t) ? t : null;
-}
+export { lastSimulationTime };
 
 export function diagnoseFailure(
   input: {
@@ -191,6 +191,8 @@ export function diagnoseFailure(
     completedAt: string | null;
     wallHours: number | null;
     tEnd: number;
+    /** Ostatni zaobserwowany postęp — podstawa nowej reguły nadzorcy. */
+    lastProgressAt?: string | null;
   },
   locale: ErrLocale = "pl"
 ): FdsFailureDiagnosis {
@@ -204,31 +206,43 @@ export function diagnoseFailure(
 
   // FDS nigdy nie ruszył — awaria startu maszyny, instalacji albo pobrania pliku.
   if (!input.startedAt) {
-    return { kind: "launch", progress, timing: null, errors };
+    return { kind: "launch", progress, stall: null, timing: null, errors };
   }
 
   // FDS sam zgłosił problem — konkretne wyjaśnienia niosą karty błędów.
   if (errors.length > 0) {
-    return { kind: "fdsError", progress, timing: null, errors };
+    return { kind: "fdsError", progress, stall: null, timing: null, errors };
   }
 
-  // Log bez śladu błędu: sprawdź, czy zlecenie po prostu przekroczyło limit czasu.
   if (input.completedAt) {
-    const elapsedH =
-      (new Date(input.completedAt).getTime() - new Date(input.startedAt).getTime()) / 3_600_000;
-    const limitH = watchdogLimitH(input.wallHours);
-    // Margines 2% — cron budzi się cyklicznie, więc ubija chwilę PO przekroczeniu progu.
-    if (Number.isFinite(elapsedH) && elapsedH >= limitH * 0.98) {
-      return {
-        kind: "watchdog",
-        progress,
-        timing: { elapsedH, estimatedH: input.wallHours ?? 0, limitH },
-        errors,
-      };
+    const endMs = new Date(input.completedAt).getTime();
+
+    // Log bez śladu błędu, a obliczenia stały w miejscu aż do zamknięcia
+    // zlecenia — to nasz nadzorca zwolnił maszynę.
+    const stalledH = hoursSince(input.lastProgressAt, new Date(endMs));
+    if (stalledH !== null && stalledH >= STALL_HOURS * 0.98) {
+      return { kind: "watchdog", progress, stall: { stalledH }, timing: null, errors };
+    }
+
+    // Zlecenia sprzed zmiany reguły: rozpoznaj po dawnym limicie czasu, żeby
+    // historia nie tłumaczyła się nagle „urwaniem bez komunikatu".
+    if (input.lastProgressAt == null) {
+      const elapsedH = (endMs - new Date(input.startedAt).getTime()) / 3_600_000;
+      const limitH = watchdogLimitH(input.wallHours);
+      // Margines 2% — cron budzi się cyklicznie, więc ubijał chwilę PO progu.
+      if (Number.isFinite(elapsedH) && elapsedH >= limitH * 0.98) {
+        return {
+          kind: "watchdog",
+          progress,
+          stall: null,
+          timing: { elapsedH, estimatedH: input.wallHours ?? 0, limitH },
+          errors,
+        };
+      }
     }
   }
 
-  return { kind: "interrupted", progress, timing: null, errors };
+  return { kind: "interrupted", progress, stall: null, timing: null, errors };
 }
 
 export function explainFdsErrors(log: string | null, locale: ErrLocale = "pl"): FdsErrorInfo[] {

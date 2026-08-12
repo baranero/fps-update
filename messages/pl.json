@@ -2042,8 +2042,9 @@
           "body": "Solver zatrzymał się sam i wypisał komunikat o błędzie. Poniżej wyjaśnienie oraz fragment logu z konsoli FDS."
         },
         "watchdog": {
-          "title": "Obliczenia przerwał limit czasu, a nie błąd FDS.",
-          "body": "W logu nie ma ani jednego błędu — FDS liczył poprawnie do końca. Obliczenia zatrzymał nasz nadzorca czasu pracy: trwały {elapsed} h przy limicie {limit} h, czyli trzykrotności szacowanego czasu {estimated} h. Dla tego modelu szacunek okazał się za niski."
+          "title": "Obliczenia przerwał nasz nadzorca, a nie błąd FDS.",
+          "bodyStall": "W logu nie ma ani jednego błędu, ale obliczenia stanęły w miejscu: przez {stalled} h nie przybył ani jeden krok (ostatni czas symulacji: {at} s). Zwolniliśmy maszynę, żeby nie naliczała kosztów za obliczenia, które i tak nie postępowały. Pliki policzone do tej chwili znajdziesz niżej.",
+          "body": "W logu nie ma ani jednego błędu — FDS liczył poprawnie do końca. Obliczenia zatrzymał nasz ówczesny nadzorca czasu pracy: trwały {elapsed} h przy limicie {limit} h, czyli trzykrotności szacowanego czasu {estimated} h. Dziś taka symulacja nie zostałaby przerwana — nadzorca reaguje wyłącznie na brak postępu."
         },
         "interrupted": {
           "title": "Obliczenia urwały się bez komunikatu błędu.",

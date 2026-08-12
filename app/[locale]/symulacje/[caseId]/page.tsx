@@ -43,6 +43,7 @@ interface JobData {
   hrrCsv: string | null;
   sliceJson: FdsSliceJson | null;
   devcSetpoints: FdsDevc[] | null;
+  lastProgressAt: string | null;
   stopRequested: boolean;
   results: Array<{ name: string; url: string; size: number | null; createdAt: string | null }> | null;
   paymentStatus: "paid" | "pending" | null;
@@ -1656,6 +1657,7 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 completedAt: job.completedAt,
                 wallHours: job.wallHours,
                 tEnd: job.tEnd,
+                lastProgressAt: job.lastProgressAt,
               },
               errLocale
             );
@@ -1668,7 +1670,12 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                     {t(`failed.kind.${diag.kind}.title`)}
                   </p>
                   <p className="text-fr-sm text-muted mt-1">
-                    {diag.kind === "watchdog" && diag.timing
+                    {diag.kind === "watchdog" && diag.stall
+                      ? t("failed.kind.watchdog.bodyStall", {
+                          stalled: diag.stall.stalledH.toFixed(1),
+                          at: diag.progress ? diag.progress.t.toFixed(1) : "—",
+                        })
+                      : diag.kind === "watchdog" && diag.timing
                       ? t("failed.kind.watchdog.body", {
                           elapsed: diag.timing.elapsedH.toFixed(1),
                           limit: diag.timing.limitH.toFixed(1),

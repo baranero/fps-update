@@ -16,9 +16,9 @@ import { MAIL_FROM, caseUrl, formatHours, formatMoney, mailCopy, mailLocale, typ
 
 const BUCKET = "fds-files";
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB — twardy limit rozmiaru pliku .fds
-const MAX_PER_HOUR = 5;                   // maks. zleceń na użytkownika w ciągu godziny
-// Liczby równoległych zleceń nie ograniczamy — każde zlecenie dostaje własną
-// maszynę, więc symulacje nie konkurują ze sobą o zasoby.
+// Ani liczby równoległych zleceń, ani ich liczby na godzinę nie ograniczamy:
+// każde zlecenie dostaje własną maszynę, więc symulacje nie konkurują ze sobą
+// o zasoby, a dostęp do uruchamiania i tak przechodzi przez `isSimAllowed`.
 
 function sanitizeFileName(name: string): string {
   return name
@@ -272,15 +272,6 @@ export async function POST(req: NextRequest) {
     const email = (form.get("email") as string | null)?.trim() || user.email || "";
 
     const supabase = createAdminClient();
-
-    // Rate-limit per użytkownik — chroni przed lawiną zleceń i niekontrolowanymi kosztami
-    const sinceHour = new Date(Date.now() - 3_600_000).toISOString();
-    const { count: recentCount } = await supabase
-      .from("fds_submissions").select("*", { count: "exact", head: true })
-      .eq("user_id", userId).gte("created_at", sinceHour);
-    if ((recentCount ?? 0) >= MAX_PER_HOUR) {
-      return NextResponse.json({ error: "Przekroczono limit zleceń na godzinę. Spróbuj ponownie później." }, { status: 429 });
-    }
 
     // Źródło prawdy: plik parsujemy i wyceniamy po stronie serwera.
     // Dane z klienta służą wyłącznie jako podgląd i nie są tu przyjmowane.

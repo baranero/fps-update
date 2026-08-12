@@ -1257,8 +1257,9 @@
           "body": "The solver halted on its own and printed an error message. Below is an explanation and the relevant part of the FDS console log."
         },
         "watchdog": {
-          "title": "A time limit stopped the computation — not an FDS error.",
-          "body": "There is not a single error in the log — FDS was computing correctly the whole way. The run was stopped by our runtime watchdog: it took {elapsed} h against a {limit} h limit, three times the {estimated} h estimate. For this model the estimate turned out to be too low."
+          "title": "Our watchdog stopped the computation — not an FDS error.",
+          "bodyStall": "There is not a single error in the log, but the computation stopped moving: for {stalled} h not one step was added (last simulation time: {at} s). We released the machine so it would not keep billing for a run that was making no progress. The files computed up to that point are below.",
+          "body": "There is not a single error in the log — FDS was computing correctly the whole way. The run was stopped by the runtime watchdog we used back then: it took {elapsed} h against a {limit} h limit, three times the {estimated} h estimate. Today that simulation would not be stopped — the watchdog only reacts to a lack of progress."
         },
         "interrupted": {
           "title": "The computation stopped without any error message.",
