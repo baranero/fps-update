@@ -87,15 +87,58 @@ maybe_stop() {
   esac
 }
 
+# ── Log przyrostowy ───────────────────────────────────────────────────────────
+# Wysyłamy WYŁĄCZNIE to, co dopisało się od poprzedniej próbki. Wcześniej każda
+# próbka niosła cały ogon logu (do 1 MB), czyli te same setki kilobajtów co
+# kilka sekund — przy kilkunastu maszynach naraz to gigabajty ruchu dziennie za
+# treść, którą serwer już ma.
+#
+# Offset trzymamy w PLIKU, nie w zmiennej: pętla podglądu chodzi w tle jako
+# osobny proces, a send_log wołamy też z głównego skryptu (koniec pracy, trap
+# na błędzie). Zmienna nie przeżyłaby tej granicy i log poleciałby drugi raz.
+LOG_FILE=/var/log/fds-runner.log
+LOG_OFFSET_FILE=/tmp/fds-log-offset
+LOG_CHUNK_FILE=/tmp/fds-log-chunk
+
+# Wypisuje base64 przyrostu (pusto = nic nowego) i zostawia surowy fragment na
+# dysku, żeby commit_log_offset mógł policzyć realnie odczytane bajty. Liczymy
+# je z pliku, a nie z rozmiaru logu — log rośnie w trakcie odczytu.
+log_chunk_b64() {
+  local off size
+  [ -f "$LOG_FILE" ] || return 0
+  off=$(cat "$LOG_OFFSET_FILE" 2>/dev/null || echo 0)
+  size=$(stat -c %s "$LOG_FILE" 2>/dev/null || echo 0)
+  # Log obrócony albo skrócony — czytamy od początku, zamiast wysyłać śmieci
+  [ "$size" -lt "$off" ] && off=0
+  [ "$size" -le "$off" ] && return 0
+  tail -c +$((off + 1)) "$LOG_FILE" > "$LOG_CHUNK_FILE" 2>/dev/null || return 0
+  echo "$off" > "$LOG_CHUNK_FILE.off"
+  base64 -w0 "$LOG_CHUNK_FILE" 2>/dev/null || true
+}
+
+# Offset przesuwamy DOPIERO po udanej wysyłce — nieudana próba powtórzy ten sam
+# fragment, zamiast zostawić dziurę w logu.
+commit_log_offset() {
+  local off n
+  off=$(cat "$LOG_CHUNK_FILE.off" 2>/dev/null || echo 0)
+  n=$(stat -c %s "$LOG_CHUNK_FILE" 2>/dev/null || echo 0)
+  echo $((off + n)) > "$LOG_OFFSET_FILE"
+}
+
 send_log() {
-  local msg resp
-  msg=$(tail -c 1000000 /var/log/fds-runner.log 2>/dev/null | base64 -w0 || true)
-  [ -z "$msg" ] && return 0
+  local chunk resp
+  chunk=$(log_chunk_b64)
+  [ -z "$chunk" ] && return 0
+  resp=""
   # Body przez stdin (printf to builtin) — omija limit ARG_MAX na argument curl
-  resp=$(printf '{"status":"running","log":"%s"}' "$msg" | curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
+  if resp=$(printf '{"status":"running","logChunk":"%s"}' "$chunk" | curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    --data-binary @- 2>/dev/null || true)
+    --data-binary @- 2>/dev/null); then
+    commit_log_offset
+  else
+    resp=""
+  fi
   maybe_stop "$resp"
 }
 
@@ -114,7 +157,7 @@ downsample() {
 
 # Wyślij bieżące wyniki DEVC/HRR + partię nowych klatek przekroju (podgląd na żywo)
 send_data() {
-  local devc_file hrr_file devc hrr slice
+  local devc_file hrr_file devc hrr slice chunk resp
   devc_file=$(ls -1 *_devc.csv 2>/dev/null | head -1 || true)
   hrr_file=$(ls -1 *_hrr.csv 2>/dev/null | head -1 || true)
   devc=""
@@ -132,17 +175,26 @@ send_data() {
   if [ -z "$slice" ] && [ -s /tmp/slice_err.log ]; then
     log "podglad-diag: $(head -c 200 /tmp/slice_err.log | tr '\\n' ' ')"
   fi
-  if [ -z "$devc" ] && [ -z "$hrr" ] && [ -z "$slice" ]; then
+  # Log jedzie TYM SAMYM żądaniem co dane — dwa osobne POST-y co próbkę
+  # podwajały liczbę wywołań funkcji, nie wnosząc nic ponad to jedno.
+  chunk=$(log_chunk_b64)
+  if [ -z "$chunk" ] && [ -z "$devc" ] && [ -z "$hrr" ] && [ -z "$slice" ]; then
     log "podglad: brak danych DEVC/HRR/przekroju (FDS jeszcze nie zapisał *_devc.csv / *_hrr.csv / *.sf)"
     return 0
   fi
-  log "podglad: wysylam DEVC=\${#devc}B HRR=\${#hrr}B SLICE=\${#slice}B"
+  log "podglad: wysylam LOG=\${#chunk}B DEVC=\${#devc}B HRR=\${#hrr}B SLICE=\${#slice}B"
+  resp=""
   # Body przez stdin (printf to builtin) — omija limit ARG_MAX na argument curl
-  printf '{"status":"running","devcCsv":"%s","hrrCsv":"%s","sliceJson":"%s"}' "$devc" "$hrr" "$slice" | \\
+  if resp=$(printf '{"status":"running","logChunk":"%s","devcCsv":"%s","hrrCsv":"%s","sliceJson":"%s"}' "$chunk" "$devc" "$hrr" "$slice" | \\
     curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
     -H "x-webhook-secret: $WEBHOOK_SECRET" \\
-    --data-binary @- -o /dev/null || true
+    --data-binary @- 2>/dev/null); then
+    [ -n "$chunk" ] && commit_log_offset
+  else
+    resp=""
+  fi
+  maybe_stop "$resp"
 }
 
 log "=== FDS Runner start: $CASE_ID (MPI=\${NCORES} x OMP=\${OMP_THREADS}) ==="
@@ -581,13 +633,17 @@ snapshot_results() {
 notify '{"status":"running"}'
 log "Starting FDS: $NCORES MPI processes..."
 
-# Podgląd na żywo co 5s: log + wyniki DEVC/HRR + partia klatek przekroju.
-# send_data dosyła klatki przyrostowo (od ostatnio wysłanej), więc przekrój płynie
-# klatka po klatce zamiast przeskakiwać do najnowszej.
+# Podgląd na żywo co 30 s: przyrost logu + wyniki DEVC/HRR + partia klatek
+# przekroju, wszystko JEDNYM żądaniem. send_data dosyła klatki przyrostowo (od
+# ostatnio wysłanej), więc przekrój płynie klatka po klatce zamiast przeskakiwać
+# do najnowszej.
+#
+# 30 s zamiast 5 s: wykres rosnący godzinami nie zyskuje nic na sześciokrotnie
+# gęstszym odpytywaniu, a każda próbka to wywołanie funkcji z każdej pracującej
+# maszyny naraz.
 (
   while true; do
-    sleep 5
-    send_log
+    sleep 30
     send_data
   done
 ) &

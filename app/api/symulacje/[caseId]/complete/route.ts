@@ -135,10 +135,11 @@ export async function POST(
 
   const { caseId } = params;
   const body = await req.json().catch(() => ({}));
-  const { status, exitCode, log, devcCsv, hrrCsv, sliceJson } = body as {
+  const { status, exitCode, log, logChunk, devcCsv, hrrCsv, sliceJson } = body as {
     status?: string;
     exitCode?: number;
     log?: string;
+    logChunk?: string;
     devcCsv?: string;
     hrrCsv?: string;
     sliceJson?: string;
@@ -147,8 +148,22 @@ export async function POST(
   const supabase = createAdminClient();
   const updates: Record<string, unknown> = {};
 
-  // Zawsze zapisuj log jeśli przyszedł
-  if (log) {
+  // Log przychodzi PRZYROSTOWO: maszyna dosyła tylko to, co dopisała od
+  // poprzedniej próbki, a baza skleja fragmenty atomowo (append_fds_log).
+  // Wcześniej każda próbka niosła cały log — te same setki kilobajtów co kilka
+  // sekund, z każdej pracującej maszyny naraz.
+  //
+  // Pole `log` (cała treść) zostaje dla maszyn uruchomionych przed tą zmianą:
+  // cloud-init jest zamrażany przy starcie VM, więc trwające zlecenia nadal
+  // wysyłają po staremu i muszą działać.
+  if (logChunk) {
+    try {
+      const chunk = Buffer.from(logChunk, "base64").toString("utf8");
+      if (chunk) {
+        await supabase.rpc("append_fds_log", { p_case_id: caseId, p_chunk: chunk });
+      }
+    } catch { /* ignore */ }
+  } else if (log) {
     try {
       updates.fds_log = Buffer.from(log, "base64").toString("utf8");
     } catch { /* ignore */ }
