@@ -363,6 +363,8 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
   // Wyniki częściowe — migawka plików z magazynu dostępna W TRAKCIE obliczeń.
   const [partial, setPartial] = useState<Array<{ name: string; url: string; size: number | null; createdAt: string | null }>>([]);
   const [partialLoading, setPartialLoading] = useState(false);
+  // Kiedy ostatnio pobrano listę plików częściowych (null = jeszcze nigdy).
+  const [partialAt, setPartialAt] = useState<Date | null>(null);
   // Do jakiego czasu symulacji sięga migawka (manifest zapisany przez maszynę liczącą).
   const [snapshot, setSnapshot] = useState<{ t: number; at: string | null } | null>(null);
 
@@ -379,6 +381,10 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
       if (Array.isArray(d.results)) {
         setPartial(d.results);
         setSnapshot(d.snapshot ?? null);
+        // Bez automatycznego odświeżania użytkownik musi wiedzieć, jak świeża
+        // jest ta lista — inaczej nie odróżni „nic nie przybyło" od „patrzysz
+        // na stan sprzed godziny".
+        setPartialAt(new Date());
       }
     } catch {
       /* brak listy — pokażemy pusty stan */
@@ -467,15 +473,11 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
     return () => clearInterval(id);
   }, []);
 
-  // Lista wyników częściowych — odpytywana rzadko (co 60 s), niezależnie od
-  // pollingu statusu co 3 s, bo każde wywołanie robi LIST po magazynie.
-  useEffect(() => {
-    if (job?.status !== "running" && job?.status !== "dispatched") return;
-    loadPartial();
-    const id = setInterval(loadPartial, 60_000);
-    return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [job?.status, caseId]);
+  // Lista wyników częściowych powstaje WYŁĄCZNIE na żądanie (przycisk
+  // „Synchronizuj"). Wcześniej odpytywaliśmy magazyn co 60 s przez cały czas
+  // trwania obliczeń, choć plików przybywa co ~2 minuty i prawie nikt na tę
+  // listę nie patrzy — każde wywołanie to pełny LIST po katalogu z setkami
+  // plików. Kto chce zobaczyć, co już jest, klika i dostaje aktualny stan.
 
   useEffect(() => {
     if (logMode === "advanced" && termRef.current && !termScrolledUpRef.current) {
@@ -981,9 +983,22 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                 {job.status === "running" && job.startedAt && (
                   <span className="ml-3">· {t("card.fdsSince")} <span className="font-bold text-ink">{elapsed(job.startedAt)}</span></span>
                 )}
-                {job.wallHours > 0 && (
+                {/* Gdy obliczenia przekroczyły wycenę, pokazywanie jej dalej jako
+                    obowiązującej wprowadza w błąd — zlecenie liczące 31 h przy
+                    wycenie 18 h wygląda wtedy, jakby coś było zepsute. Prognoza
+                    z realnego tempa jest wiarygodna, a wycena zostaje obok,
+                    wyraźnie opisana jako wycena. */}
+                {cRemSec !== null && cElapsedSec !== null ? (
+                  <span className="ml-3">
+                    · {t("card.predicted")}{" "}
+                    <span className="font-bold text-ink">{formatDuration(cElapsedSec + cRemSec)}</span>
+                    {job.wallHours > 0 && (
+                      <span className="ml-1.5 text-faint">{t("card.vsQuote", { v: mins(job.wallHours) })}</span>
+                    )}
+                  </span>
+                ) : job.wallHours > 0 ? (
                   <span className="ml-2 text-muted">/ {t("card.estimated")} {mins(job.wallHours)}</span>
-                )}
+                ) : null}
               </p>
             )}
             {job.status === "done" && job.completedAt && job.dispatchedAt && (
@@ -1301,14 +1316,25 @@ export default function JobStatusPage({ params }: { params: { caseId: string } }
                       <svg className={`h-3.5 w-3.5 ${partialLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
-                      {partialLoading ? t("partial.refreshing") : t("partial.refresh")}
+                      {partialLoading ? t("partial.syncing") : t("partial.sync")}
                     </button>
+                    {partialAt && (
+                      <span className="font-mono text-fr-sm text-faint">
+                        {t("partial.syncedAt", {
+                          time: partialAt.toLocaleTimeString(numLocale, { hour: "2-digit", minute: "2-digit" }),
+                        })}
+                      </span>
+                    )}
                   </div>
 
                   {/* Zakres: do jakiego czasu symulacji sięgają te wyniki */}
                   {partial.length === 0 ? (
                     <p className="py-2 text-fr-sm text-muted">
-                      {partialLoading ? t("partial.loading") : t("partial.empty")}
+                      {partialLoading
+                        ? t("partial.loading")
+                        : partialAt
+                        ? t("partial.empty")
+                        : t("partial.notSynced")}
                     </p>
                   ) : (
                     <div className="rounded-panel border border-hairline-soft bg-canvas px-4 py-3">

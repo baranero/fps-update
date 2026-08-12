@@ -1727,6 +1727,9 @@
     "loginCta": "Zaloguj się →",
     "empty": "Brak zleconych symulacji.",
     "emptyCta": "Wyślij pierwsze zlecenie →",
+    "today": "Dziś",
+    "yesterday": "Wczoraj",
+    "dayCount": "{n, plural, one {# zlecenie} few {# zlecenia} many {# zleceń} other {# zlecenia}}",
     "tabAll": "Wszystkie",
     "tabActive": "W toku",
     "tabDone": "Zakończone",
@@ -1879,6 +1882,8 @@
       "estimated": "szacowany:",
       "totalTime": "Czas całkowity:",
       "machine": "Dobrana maszyna:",
+      "predicted": "prognoza z tempa:",
+      "vsQuote": "(wycena: {v})",
       "machineNote": "(serwer w Unii Europejskiej)"
     },
     "actions": {
@@ -1987,8 +1992,10 @@
       "title": "Wyniki częściowe",
       "lead": "Pobierz dotychczasowe wyniki bez zatrzymywania symulacji — obliczenia lecą dalej.",
       "downloadAll": "Pobierz dotychczasowe wyniki",
-      "refresh": "Odśwież",
-      "refreshing": "Odświeżanie…",
+      "sync": "Synchronizuj",
+      "syncing": "Synchronizuję…",
+      "syncedAt": "zsynchronizowano o {time}",
+      "notSynced": "Naciśnij „Synchronizuj”, żeby zobaczyć pliki policzone do tej pory.",
       "loading": "Sprawdzam magazyn…",
       "empty": "Pierwsza migawka pojawi się po kilku minutach obliczeń.",
       "coverage": "Wyniki obejmują przebieg do t = {t} s z {tEnd} s ({pct}% symulacji)",
@@ -1996,7 +2003,7 @@
       "snapAt": "Migawka z {time}",
       "filesCount": "{n, plural, one {# plik} few {# pliki} many {# plików} other {# pliku}}",
       "showFiles": "Pokaż listę plików ({n})",
-      "note": "Migawka odświeżana co ok. 2 min. Pliki binarne mogą być ucięte na ostatnim rekordzie — po zakończeniu zostaną zastąpione kompletnymi."
+      "note": "Maszyna wgrywa migawkę co ok. 2 min, ale lista nie odświeża się sama — naciśnij „Synchronizuj”, żeby pobrać aktualny stan. Pliki binarne mogą być ucięte na ostatnim rekordzie; po zakończeniu zostaną zastąpione kompletnymi."
     },
     "fileType": {
       "smv": "Scena Smokeview",

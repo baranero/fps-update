@@ -505,6 +505,9 @@
     "loginCta": "Sign in →",
     "empty": "No simulations ordered yet.",
     "emptyCta": "Submit your first job →",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "dayCount": "{n, plural, one {# job} other {# jobs}}",
     "tabAll": "All",
     "tabActive": "Running",
     "tabDone": "Completed",
@@ -1094,6 +1097,8 @@
       "estimated": "estimated:",
       "totalTime": "Total time:",
       "machine": "Selected machine:",
+      "predicted": "projected from pace:",
+      "vsQuote": "(quoted: {v})",
       "machineNote": "(server in the European Union)"
     },
     "actions": {
@@ -1202,8 +1207,10 @@
       "title": "Partial results",
       "lead": "Download what has been computed so far without stopping the simulation — the run continues.",
       "downloadAll": "Download results so far",
-      "refresh": "Refresh",
-      "refreshing": "Refreshing…",
+      "sync": "Synchronise",
+      "syncing": "Synchronising…",
+      "syncedAt": "synchronised at {time}",
+      "notSynced": "Press “Synchronise” to see the files computed so far.",
       "loading": "Checking storage…",
       "empty": "The first snapshot appears after a few minutes of computation.",
       "coverage": "Results cover the run up to t = {t} s out of {tEnd} s ({pct}% of the simulation)",
@@ -1211,7 +1218,7 @@
       "snapAt": "Snapshot from {time}",
       "filesCount": "{n, plural, one {# file} other {# files}}",
       "showFiles": "Show the file list ({n})",
-      "note": "The snapshot refreshes roughly every 2 minutes. Binary files may be cut off at the last record — once the run finishes they are replaced with complete ones."
+      "note": "The machine uploads a snapshot roughly every 2 minutes, but this list does not refresh on its own — press “Synchronise” to fetch the current state. Binary files may be cut off at the last record; once the run finishes they are replaced with complete ones."
     },
     "fileType": {
       "smv": "Smokeview scene",

@@ -110,6 +110,39 @@ export default function HistoriaSymulacjiPage() {
     return true;
   });
 
+  // Zlecenia idą seriami: jednego dnia wrzuca się kilka wariantów tego samego
+  // modelu. Płaska lista kilkudziesięciu pozycji zlewa się w jedno, a data przy
+  // każdym wierszu powtarza tę samą informację — dlatego dzielimy na dni.
+  //
+  // Dzień liczymy LOKALNIE (nie z ISO), inaczej zlecenie z 23:30 wpadałoby do
+  // następnej doby.
+  const dayKey = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
+  const todayKey = dayKey(new Date().toISOString());
+  const yesterdayKey = dayKey(new Date(Date.now() - 86_400_000).toISOString());
+
+  const days = Array.from(
+    filtered.reduce((acc, s) => {
+      const k = dayKey(s.created_at);
+      (acc.get(k) ?? acc.set(k, []).get(k))!.push(s);
+      return acc;
+    }, new Map<string, Submission[]>())
+  )
+    .sort(([a], [b]) => (a < b ? 1 : -1))
+    .map(([key, items]) => ({
+      key,
+      items,
+      label:
+        key === todayKey ? t("today")
+        : key === yesterdayKey ? t("yesterday")
+        : new Date(items[0].created_at).toLocaleDateString(dateLocale, {
+            weekday: "long", day: "numeric", month: "long", year: "numeric",
+          }),
+    }));
+
   const TABS: Array<{ id: FilterTab; label: string; count: number }> = (
     [
       { id: "all",       label: t("tabAll"),       count: submissions.length },
@@ -176,9 +209,18 @@ export default function HistoriaSymulacjiPage() {
             {filtered.length === 0 ? (
               <p className="py-8 text-center text-fr-sm text-muted">{t("noFilterResults")}</p>
             ) : (
-            <div className={`${cardCls} overflow-hidden`}>
-              <div className="divide-y divide-hairline-soft">
-                {filtered.map((s) => (
+            <div className="space-y-6">
+              {days.map((day) => (
+              <section key={day.key}>
+                <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
+                  <h2 className="font-mono text-fr-label uppercase tracking-wider text-muted">{day.label}</h2>
+                  <span className="font-mono text-fr-label text-faint">
+                    {t("dayCount", { n: day.items.length })}
+                  </span>
+                </div>
+                <div className={`${cardCls} overflow-hidden`}>
+                  <div className="divide-y divide-hairline-soft">
+                {day.items.map((s) => (
                   <div key={s.case_id} className="bg-panel">
                     {confirmDelete === s.case_id ? (
                       <div className="flex items-center gap-3 px-4 py-4">
@@ -228,9 +270,11 @@ export default function HistoriaSymulacjiPage() {
                             <p className="fr-num font-mono text-fr-sm text-ink">
                               {f.fmtPrice(s.price)}
                             </p>
+                            {/* Dzień niesie już nagłówek grupy — w wierszu
+                                zostaje godzina, która porządkuje serię zleceń. */}
                             <p className="font-mono text-fr-sm text-muted">
-                              {new Date(s.created_at).toLocaleDateString(dateLocale, {
-                                day: "numeric", month: "short", year: "numeric",
+                              {new Date(s.created_at).toLocaleTimeString(dateLocale, {
+                                hour: "2-digit", minute: "2-digit",
                               })}
                             </p>
                           </div>
@@ -253,7 +297,10 @@ export default function HistoriaSymulacjiPage() {
                     )}
                   </div>
                 ))}
-              </div>
+                  </div>
+                </div>
+              </section>
+              ))}
             </div>
             )}
             </>
