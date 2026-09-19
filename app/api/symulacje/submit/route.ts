@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Zlecenie uruchamia płatny serwer w chmurze → wymagane logowanie
-    const userClient = createClient();
+    const userClient = await createClient();
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Wymagane logowanie." }, { status: 401 });

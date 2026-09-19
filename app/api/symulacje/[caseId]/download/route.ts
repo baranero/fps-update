@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { signedResultUrl } from "@/lib/hetzner/storage";
+import { requireCaseAccess } from "@/lib/utils/caseAccess";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
 // Dostęp do plików wynikowych.
 //
@@ -22,11 +24,18 @@ import { signedResultUrl } from "@/lib/hetzner/storage";
 // żeby nigdy znowu nie stała się kurkiem na gigabajty.
 const PROXY_MAX_BYTES = 256 * 1024 * 1024;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const { caseId } = params;
+
+  const limited = rateLimit(req, { scope: "case-download", ...LIMITS.storage });
+  if (limited) return limited;
+
+  // Podpisany odnośnik do pliku wynikowego dostaje wyłącznie właściciel
+  // zlecenia — sam podpis nie pyta już o nic, więc to tutaj jest jedyna bramka.
+  const access = await requireCaseAccess(caseId, "case_id");
+  if (!access.ok) return access.response;
+
   const raw = req.nextUrl.searchParams.get("file") ?? "";
   // Tylko sama nazwa pliku — zero path traversal
   const base = raw.split("/").pop()?.split("\\").pop() ?? "";

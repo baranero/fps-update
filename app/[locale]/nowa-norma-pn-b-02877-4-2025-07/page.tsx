@@ -3,11 +3,17 @@ import { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { seoUrls } from "@/lib/seo";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const { canonical, languages } = seoUrls(locale, "/nowa-norma-pn-b-02877-4-2025-07");
   return {
     title: "Analiza nowej normy PN-B-02877-4:2025-07 | Fire Protection Solutions",
@@ -23,11 +29,17 @@ export async function generateMetadata({
   };
 }
 
-export default function ArticleNormaPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function ArticleNormaPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   return (
     <ArticlePage slug="nowa-norma-pn-b-02877-4-2025-07" image="/images/blog/blog2.jpg" />

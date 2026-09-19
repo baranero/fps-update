@@ -5,7 +5,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/client";
 
 export async function POST(req: NextRequest) {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user) return NextResponse.json({ error: "Nieautoryzowany." }, { status: 401 });
 

@@ -694,7 +694,7 @@
         "time": "Time",
         "cost": "Estimated cost"
       },
-      "paretoNote": "The list only shows options that nothing else beats on both time and cost at once. Time is an estimate — billing follows actual compute time."
+      "allNote": "The list includes every available machine that fits this model — not just the recommended picks above. Time is an estimate — billing follows actual compute time."
     }
   },
   "profile": {

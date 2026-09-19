@@ -4,11 +4,17 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { cloudSeoUrls } from "@/lib/seo";
 import { fdsCourse, kbContent, kbPosts, publishedLessons } from "@/lib/content/kb";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const t = await getTranslations({ locale, namespace: "kb.metadata" });
   const { canonical, languages } = cloudSeoUrls(locale, "/baza-wiedzy");
   return {
@@ -19,11 +25,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function BazaWiedzyPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function BazaWiedzyPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   const t = await getTranslations("kb");
   const posts = kbPosts(locale);

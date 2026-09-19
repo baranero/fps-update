@@ -49,11 +49,17 @@ const soon = [
   { key: "s3", norm: "Garaże / drogi ewakuacyjne" },
 ];
 
-export default async function CalculatorsPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function CalculatorsPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   const t = await getTranslations("calculatorsPage");
 

@@ -5,7 +5,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/utils/adminCheck";
 
 export async function GET() {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

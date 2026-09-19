@@ -7,11 +7,17 @@ import { cloudSeoUrls, seoUrls } from "@/lib/seo";
 // Dokument prawny istnieje w dwóch wariantach: polski (wiążący) na
 // fp-solutions.pl i angielski (kurtuazyjny) na fdsrun.com — tam trafia klient
 // chmury. Dlatego adres kanoniczny zależy od języka, a nie od jednej domeny.
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const t = await getTranslations({ locale, namespace: "headers.regulamin" });
   const { canonical, languages } =
     locale === "en" ? cloudSeoUrls(locale, "/regulamin") : seoUrls(locale, "/regulamin");
@@ -22,11 +28,17 @@ export async function generateMetadata({
   };
 }
 
-export default function RegulaminPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function RegulaminPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   return (
     <>

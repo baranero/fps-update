@@ -19,11 +19,17 @@ import { SITE_MODE } from "@/lib/cloud";
 //  • marketing → strona usług ppoż.
 // (Dev: SITE_MODE=null → strona usług; landing chmury pod /chmura.)
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   if (SITE_MODE === "cloud") {
     const t = await getTranslations({ locale, namespace: "cloudLanding.metadata" });
     const { canonical, languages } = cloudSeoUrls(locale, "/");
@@ -44,11 +50,17 @@ export async function generateMetadata({
   };
 }
 
-export default function Home({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function Home(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
 
   if (SITE_MODE === "cloud") {

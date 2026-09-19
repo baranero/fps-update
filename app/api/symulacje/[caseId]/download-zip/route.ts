@@ -9,6 +9,8 @@ import { PassThrough, Readable } from "stream";
 import archiverDefault, { type Archiver } from "archiver";
 import { listResults, signedResultUrl, isInternalResult } from "@/lib/hetzner/storage";
 import { PACKAGE_MAX_BYTES } from "@/lib/fds/download-limits";
+import { requireCaseAccess } from "@/lib/utils/caseAccess";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
 // @types/archiver typuje tylko klasy; runtime eksportuje fabrykę archiver("zip", …).
 const archiver = archiverDefault as unknown as (format: string, options?: Record<string, unknown>) => Archiver;
@@ -18,8 +20,19 @@ const archiver = archiverDefault as unknown as (format: string, options?: Record
 // jest buforowane w całości, więc pamięć jest stała niezależnie od rozmiaru.
 // Parametry: ?files=nazwa1.csv,nazwa2.smv (nazwy bez ścieżki),
 //            ?part=2&parts=4 (numeracja paczki w nazwie pliku).
-export async function GET(req: NextRequest, { params }: { params: { caseId: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const { caseId } = params;
+
+  // Pakowanie potrafi zająć całe okno funkcji (maxDuration 300 s), więc limit
+  // jest najostrzejszy z całego modułu — kilka równoległych paczek od jednego
+  // klienta zjadłoby budżet obliczeniowy wszystkim pozostałym.
+  const limited = rateLimit(req, { scope: "case-zip", ...LIMITS.archive });
+  if (limited) return limited;
+
+  const access = await requireCaseAccess(caseId, "case_id");
+  if (!access.ok) return access.response;
+
   const filesParam = req.nextUrl.searchParams.get("files");
   const wanted = filesParam
     ? new Set(filesParam.split(",").map((s) => s.trim()).filter(Boolean))

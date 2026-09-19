@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postbuild": "next-sitemap"
+    "postbuild": "next-sitemap",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.726.1",
@@ -23,13 +26,12 @@
     "archiver": "^7.0.1",
     "client-zip": "^2.5.0",
     "docx": "^9.6.1",
-    "eslint": "8.33.0",
-    "eslint-config-next": "13.1.6",
+    "eslint-config-next": "^15.5.25",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "jszip": "^3.10.1",
-    "next": "^13.5.6",
+    "next": "^15.5.25",
     "next-intl": "^3.26.5",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.2.1",
@@ -47,11 +49,13 @@
     "@types/node": "^20.8.9",
     "@types/react": "^18.2.33",
     "autoprefixer": "^10.4.16",
+    "eslint": "^8.57.1",
     "gh-pages": "^6.3.0",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.6",
     "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^2.1.9"
   }
 }

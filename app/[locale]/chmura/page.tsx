@@ -7,11 +7,17 @@ import { cloudSeoUrls } from "@/lib/seo";
 // (patrz app/[locale]/page.tsx), a /chmura middleware kanonizuje do „/". Trasa
 // zostaje dla dev (jeden origin) i jako jawny adres landingu.
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const t = await getTranslations({ locale, namespace: "cloudLanding.metadata" });
   const { canonical, languages } = cloudSeoUrls(locale, "/");
   return {
@@ -22,11 +28,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function ChmuraPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function ChmuraPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   return <CloudLanding />;
 }

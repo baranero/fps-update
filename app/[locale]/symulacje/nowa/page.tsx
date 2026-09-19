@@ -13,6 +13,7 @@ import { CHIP_SHAPE, TONE_CHIP } from "@/lib/tone";
 
 type PlanResponse = {
   plans: RunPlan[];
+  allPlans: RunPlan[];
   tiers: { eco: string | null; balanced: string | null; fast: string | null };
   dtEstimate: number;
   cellDimSource: "file" | "assumed";
@@ -251,7 +252,7 @@ export default function SymulacjePage() {
   };
 
   // Wariant zaznaczony przez klienta; zanim serwer odpowie — wycena lokalna.
-  const activePlan = plan?.plans.find((p) => p.serverType === serverType) ?? null;
+  const activePlan = plan?.allPlans.find((p) => p.serverType === serverType) ?? null;
 
   const canSubmit = /\S+@\S+\.\S+/.test(form.email);
 
@@ -576,9 +577,9 @@ export default function SymulacjePage() {
               {/* Tryb obliczeń — wybór między krótszym czasem a niższym kosztem.
                   Warianty liczy serwer, bo tylko on zna aktualną dostępność
                   maszyn i kalibrację z zakończonych zleceń. */}
-              {(planLoading || (plan?.plans.length ?? 0) > 0) && (
+              {(planLoading || (plan?.allPlans.length ?? 0) > 0) && (
                 <ServerPicker
-                  plans={plan?.plans ?? []}
+                  plans={plan?.allPlans ?? []}
                   tiers={plan?.tiers ?? { eco: null, balanced: null, fast: null }}
                   selected={serverType}
                   onSelect={setServerType}

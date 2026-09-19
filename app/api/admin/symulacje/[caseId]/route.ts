@@ -12,11 +12,9 @@ import { caseModelPaths } from "@/lib/fds/runFile";
 // przebieg (serwer Hetzner wg cennika + Object Storage wg faktycznego rozmiaru
 // wyników). Osobny GET, bo storage wymaga LIST po magazynie — za drogo, by liczyć
 // to dla każdego wiersza listy.
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
-  const userClient = createClient();
+export async function GET(_req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -93,11 +91,9 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
-  const userClient = createClient();
+export async function PATCH(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -157,11 +153,9 @@ export async function PATCH(
 
 // Trwałe usunięcie cudzego zlecenia przez admina: zatrzymuje serwer (jeśli aktywny),
 // czyści plik wejściowy i wyniki z magazynów, a na końcu kasuje rekord z bazy.
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
-  const userClient = createClient();
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

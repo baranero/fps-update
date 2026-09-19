@@ -3,11 +3,17 @@ import { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { cloudSeoUrls } from "@/lib/seo";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const t = await getTranslations({ locale, namespace: "cloudPricing.metadata" });
   const { canonical, languages } = cloudSeoUrls(locale, "/cennik");
   return {
@@ -24,11 +30,17 @@ const MODEL_ICONS: Record<string, string> = {
   m3: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1",
 };
 
-export default async function CennikPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function CennikPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   const t = await getTranslations("cloudPricing");
   const tn = await getTranslations("cloudNav");

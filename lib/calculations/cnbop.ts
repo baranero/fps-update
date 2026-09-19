@@ -103,7 +103,9 @@ export interface CalculationResults {
   };
 }
 
-export const toNum = (val: string | number): number => {
+// Pola opcjonalne formularza (np. drugie skrzydło drzwi) bywają nieustawione —
+// funkcja od początku zwracała dla nich 0, ale typ tego nie dopuszczał.
+export const toNum = (val: string | number | null | undefined): number => {
   if (val === "" || val === null || val === undefined) return 0;
   const parsed = Number(String(val).replace(",", "."));
   return isNaN(parsed) ? 0 : parsed;

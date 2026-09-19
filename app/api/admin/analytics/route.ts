@@ -7,7 +7,7 @@ import { isAdmin } from "@/lib/utils/adminCheck";
 // Zwraca surowe pola wszystkich zleceń potrzebne do wykresów analitycznych.
 // Dane zagregowane po stronie klienta (statusy, przychód, serwery, miesiące).
 export async function GET() {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -19,7 +19,8 @@ export function generateStaticParams() {
   );
 }
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<Params> }): Promise<Metadata> {
+  const params = await props.params;
   const post = getKbPost(params.slug);
   const c = post && kbContent(post, params.locale);
   if (!post || !c) return {};
@@ -46,7 +47,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function KbPostPage({ params }: { params: Params }) {
+export default async function KbPostPage(props: { params: Promise<Params> }) {
+  const params = await props.params;
   setRequestLocale(params.locale);
   const post = getKbPost(params.slug);
   const c = post && kbContent(post, params.locale);

@@ -169,7 +169,11 @@ export interface PlannerOptions {
 }
 
 export interface PlanResult {
+  /** Front Pareto — warianty, których nic nie bije jednocześnie na czasie i cenie. */
   plans: RunPlan[];
+  /** Każda maszyna dostępna u dostawcy i mieszcząca model, łącznie ze zdominowanymi
+   *  (klient może chcieć konkretny serwer, choć front Pareto go nie wybrałby). */
+  allPlans: RunPlan[];
   eco: RunPlan | null;
   balanced: RunPlan | null;
   fast: RunPlan | null;
@@ -329,7 +333,7 @@ export function planRuns(input: PlanInput, opts: PlannerOptions = {}): PlanResul
     if (plan) all.push(plan);
   }
 
-  const base: Omit<PlanResult, "plans" | "eco" | "balanced" | "fast"> = {
+  const base: Omit<PlanResult, "plans" | "allPlans" | "eco" | "balanced" | "fast"> = {
     dtEstimate,
     steps,
     vEff,
@@ -349,9 +353,12 @@ export function planRuns(input: PlanInput, opts: PlannerOptions = {}): PlanResul
       : ramNeeded > maxRam ? "ramTooSmall"
       : input.forcedProcs != null && input.forcedProcs * Math.max(1, input.ompThreads) > maxCores ? "forcedProcs"
       : "noServer";
-    return { ...base, plans: [], eco: null, balanced: null, fast: null, blocked };
+    return { ...base, plans: [], allPlans: [], eco: null, balanced: null, fast: null, blocked };
   }
 
+  // Ten sam obiekt trafia i na front Pareto, i do pełnej listy — oznaczenie
+  // kafla (eco/balanced/fast), nadane niżej, jest więc widoczne w obu.
+  const allPlans = [...all].sort((a, b) => a.price - b.price);
   const plans = paretoFront(all).sort((a, b) => a.price - b.price);
 
   // Kafle: najtańszy, najszybszy i najlepszy kompromis. Kompromis liczymy jako
@@ -374,7 +381,7 @@ export function planRuns(input: PlanInput, opts: PlannerOptions = {}): PlanResul
   // niech zostanie oznaczony jako kompromis — to on jest domyślnie zaznaczony.
   balanced.tier = "balanced";
 
-  return { ...base, plans, eco, balanced, fast, blocked: null };
+  return { ...base, plans, allPlans, eco, balanced, fast, blocked: null };
 }
 
 /** Wydajność jednego procesu MPI wg konkretnej kalibracji — używa panel admina. */
@@ -383,10 +390,12 @@ export function perProcThroughputFor(cal: Calibration, family: ServerFamily, pro
   return p.throughput / (1 + p.contention * Math.max(0, procs - 1));
 }
 
-/** Wariant po typie maszyny — do walidacji wyboru klienta po stronie serwera. */
+/** Wariant po typie maszyny — do walidacji wyboru klienta po stronie serwera.
+ *  Szuka w pełnej liście dostępnych maszyn, nie tylko na froncie Pareto: klient
+ *  mógł świadomie wybrać wariant zdominowany (np. konkretną maszynę z listy). */
 export function findPlan(result: PlanResult, serverType: string | null): RunPlan | null {
   if (!serverType) return null;
-  return result.plans.find((p) => p.serverType === serverType.toLowerCase()) ?? null;
+  return result.allPlans.find((p) => p.serverType === serverType.toLowerCase()) ?? null;
 }
 
 export { getSpec };

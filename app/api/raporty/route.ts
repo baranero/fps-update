@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user) return NextResponse.json([], { status: 200 });
 

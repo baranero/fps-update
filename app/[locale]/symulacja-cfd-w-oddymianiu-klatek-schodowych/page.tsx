@@ -3,11 +3,17 @@ import { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { seoUrls } from "@/lib/seo";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const { canonical, languages } = seoUrls(locale, "/symulacja-cfd-w-oddymianiu-klatek-schodowych");
   return {
     title: "Symulacja CFD w oddymianiu klatek schodowych | Blog FP Solutions",
@@ -23,11 +29,17 @@ export async function generateMetadata({
   };
 }
 
-export default function ArticleCfdPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function ArticleCfdPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   return (
     <ArticlePage

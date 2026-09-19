@@ -11,11 +11,9 @@ const BUCKET = "fds-files";
 // (patrz submit route). Service-role omija RLS. Zamiast proxować bajty przez nasz
 // origin, wystawiamy podpisany URL i przekierowujemy — plik leci wprost z Supabase
 // do przeglądarki (bez buforowania w RAM i bez Fast Origin Transfer na Vercelu).
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
-  const userClient = createClient();
+export async function GET(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

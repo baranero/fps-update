@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { planRuns, type PlanInput } from "@/lib/fds/planner";
 import { getCalibration } from "@/lib/fds/calibration";
 import { fetchLiveCatalog } from "@/lib/hetzner/client";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
 /** Górna granica na wejściu — chroni planer przed absurdalnymi liczbami. */
 const MAX_MESHES = 20_000;
@@ -52,6 +53,11 @@ function sanitize(body: unknown): PlanInput | null {
 }
 
 export async function POST(req: NextRequest) {
+  // Endpoint jest celowo publiczny (kreator wycenia model przed założeniem
+  // konta), więc limit liczy sam adres — to jedyny wyróżnik, jaki tu mamy.
+  const limited = rateLimit(req, { scope: "plan", ...LIMITS.publicPlan });
+  if (limited) return limited;
+
   try {
     const input = sanitize(await req.json().catch(() => null));
     if (!input) {
@@ -76,6 +82,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       plans: result.plans,
+      allPlans: result.allPlans,
       tiers: {
         eco: result.eco?.serverType ?? null,
         balanced: result.balanced?.serverType ?? null,

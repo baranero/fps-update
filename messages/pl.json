@@ -1712,7 +1712,7 @@
         "time": "Czas",
         "cost": "Koszt szacunkowy"
       },
-      "paretoNote": "Lista zawiera tylko warianty, których nic nie bije jednocześnie na czasie i na koszcie. Czas jest szacunkiem — rozliczamy rzeczywisty czas obliczeń."
+      "allNote": "Lista obejmuje każdą dostępną maszynę, która pomieści ten model — nie tylko polecane warianty powyżej. Czas jest szacunkiem — rozliczamy rzeczywisty czas obliczeń."
     }
   },
   "symHistory": {

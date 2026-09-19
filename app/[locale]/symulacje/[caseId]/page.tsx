@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -318,7 +318,8 @@ function splitDuration(sec: number): { value: string; unit: string } {
   return { value: (sec / 3600).toFixed(1), unit: "h" };
 }
 
-export default function JobStatusPage({ params }: { params: { caseId: string } }) {
+export default function JobStatusPage(props: { params: Promise<{ caseId: string }> }) {
+  const params = use(props.params);
   const { caseId } = params;
   const t = useTranslations("symDetail");
   const locale = useLocale();

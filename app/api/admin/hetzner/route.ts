@@ -12,7 +12,7 @@ const STORAGE_PRICE_PER_TB_EUR = parseFloat(process.env.HETZNER_STORAGE_PRICE_PE
 const TB = 1_000 ** 4;
 
 export async function GET() {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

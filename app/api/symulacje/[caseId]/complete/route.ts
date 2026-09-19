@@ -124,10 +124,8 @@ function emailFailed(
   };
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const secret = req.headers.get("x-webhook-secret");
   if (secret !== process.env.WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

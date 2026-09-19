@@ -3,9 +3,10 @@
 // ─── Wybór trybu obliczeń ────────────────────────────────────────────────────
 //
 // Trzy kafle (najtańszy / kompromis / najszybszy) i — pod nimi — pełna lista
-// wariantów dla tych, którzy chcą sami zdecydować. Lista zawiera wyłącznie
-// konfiguracje z frontu Pareto, więc każda pozycja jest w czymś najlepsza:
-// nie ma wariantu, który byłby jednocześnie wolniejszy i droższy od innego.
+// KAŻDEJ maszyny dostępnej u dostawcy i mieszczącej dany model, do wyboru dla
+// tych, którzy chcą sami zdecydować. Lista obejmuje też warianty zdominowane
+// (wolniejsze i droższe od innych) — klient może mieć powód sięgnąć po
+// konkretną maszynę, którego front Pareto nie widzi.
 //
 // Zgodnie z zasadami copy FDSRun nie pokazujemy tu symboli maszyn dostawcy —
 // klient widzi rdzenie, pamięć, czas i koszt szacunkowy.
@@ -196,7 +197,7 @@ export default function ServerPicker({
                   })}
                 </tbody>
               </table>
-              <p className="mt-3 font-mono text-fr-sm text-faint">{t("paretoNote")}</p>
+              <p className="mt-3 font-mono text-fr-sm text-faint">{t("allNote")}</p>
             </div>
           )}
         </>

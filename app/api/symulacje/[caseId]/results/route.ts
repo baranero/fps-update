@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { requireCaseAccess } from "@/lib/utils/caseAccess";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 import {
   listResults, signedResultUrl, getResultText,
   isInternalResult, SNAPSHOT_MANIFEST,
@@ -14,23 +15,20 @@ import {
 //
 // Osobny endpoint (a nie pole w GET /api/symulacje/[caseId]), bo tamten jest
 // odpytywany co 3 s i nie chcemy przy każdym pollingu robić LIST po magazynie.
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const { caseId } = params;
+
+  // Każde wywołanie to pełny LIST po katalogu z setkami plików plus podpis dla
+  // każdego z nich — najdroższa operacja w całym module, więc limit jest ostry.
+  const limited = rateLimit(req, { scope: "case-results", ...LIMITS.storage });
+  if (limited) return limited;
+
+  const access = await requireCaseAccess<{ status: string }>(caseId, "status");
+  if (!access.ok) return access.response;
+  const data = access.submission;
+
   try {
-    const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("fds_submissions")
-      .select("status")
-      .eq("case_id", caseId)
-      .single();
-
-    if (!data) {
-      return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
-    }
-
     const files = await listResults(caseId);
     const hasManifest = files.some((f) => (f.Key ?? "").endsWith(`/${SNAPSHOT_MANIFEST}`));
 

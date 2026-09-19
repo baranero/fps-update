@@ -1,22 +1,35 @@
+import { use } from "react";
 import { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const t = await getTranslations({ locale, namespace: "auth.confirmEmail" });
   return { title: t("metaTitle") };
 }
 
-export default function PotwierdzenieEmailPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default function PotwierdzenieEmailPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = use(props.params);
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   const t = useTranslations("auth.confirmEmail");
   return (

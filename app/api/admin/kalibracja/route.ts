@@ -13,7 +13,7 @@ import { getCalibrationDetail } from "@/lib/fds/calibration";
 import { effectiveVelocity, effectiveProcLoad, perProcThroughputFor } from "@/lib/fds/planner";
 
 export async function GET() {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!isAdmin(user?.email)) {
     return NextResponse.json({ error: "Brak uprawnień." }, { status: 403 });

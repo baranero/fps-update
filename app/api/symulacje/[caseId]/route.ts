@@ -1,15 +1,49 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { listResults, signedResultUrl, deleteResults, isInternalResult } from "@/lib/hetzner/storage";
 import { deleteServer } from "@/lib/hetzner/client";
+import { requireCaseAccess } from "@/lib/utils/caseAccess";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+// Kształt wiersza w zakresie, w jakim czyta go ta odpowiedź. Spisany wprost,
+// żeby zmiana nazwy kolumny w migracji zapaliła się na kontroli typów, a nie
+// dopiero jako `undefined` na stronie zlecenia.
+interface CaseRow {
+  case_id: string;
+  status: string;
+  file_name: string;
+  total_cells: number | null;
+  mesh_count: number | null;
+  mpi_procs: number | null;
+  t_end: number | null;
+  complexity: string | null;
+  vcpu_hours: number | null;
+  wall_hours: number | null;
+  price: number | null;
+  server_type: string | null;
+  dispatched_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  fds_log: string | null;
+  fds_exit_code: number | null;
+  devc_csv: string | null;
+  hrr_csv: string | null;
+  slice_json: unknown;
+  devc_setpoints: unknown;
+  last_progress_at: string | null;
+  stop_requested: boolean | null;
+  payment_status: string | null;
+  file_path: string | null;
+  server_id: number | null;
+}
+
+export async function GET(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const { caseId } = params;
+  const limited = rateLimit(req, { scope: "case-read", ...LIMITS.caseRead });
+  if (limited) return limited;
   try {
     return await handleGet(caseId);
   } catch (err) {
@@ -21,25 +55,11 @@ export async function GET(
 }
 
 async function handleGet(caseId: string) {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("fds_submissions")
-    .select("*, payment_status, stripe_session_id")
-    .eq("case_id", caseId)
-    .single();
-
-  if (error) {
-    // Brak wiersza => 404 (a nie ogólny "błąd połączenia"); realny błąd => 500
-    if (error.code === "PGRST116") {
-      return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
-    }
-    console.error(`GET /api/symulacje/${caseId} db error:`, error);
-    return NextResponse.json({ error: "Błąd bazy danych." }, { status: 500 });
-  }
-  if (!data) {
-    return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
-  }
+  // Wiersz wydaje wyłącznie bramka własności — ten endpoint oddaje e-mail
+  // i nazwisko klienta, cenę, cały log FDS oraz podpisane odnośniki do wyników.
+  const access = await requireCaseAccess<CaseRow>(caseId);
+  if (!access.ok) return access.response;
+  const data = access.submission;
 
   // Signed URLs dla plików wynikowych z Hetzner Object Storage.
   // Także dla "failed": maszyna licząca wrzuca migawki co ~2 min i robi finalny
@@ -99,39 +119,18 @@ async function handleGet(caseId: string) {
   });
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
+  const params = await props.params;
   const { caseId } = params;
 
-  // Weryfikuj zalogowanego użytkownika
-  const userClient = createClient();
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Nieautoryzowany." }, { status: 401 });
-  }
+  const access = await requireCaseAccess<Pick<CaseRow, "case_id" | "file_path" | "status" | "server_id">>(
+    caseId,
+    "case_id, file_path, status, server_id"
+  );
+  if (!access.ok) return access.response;
+  const submission = access.submission;
 
   const admin = createAdminClient();
-
-  // Pobierz rekord i sprawdź własność (user_id lub email)
-  const { data: submission } = await admin
-    .from("fds_submissions")
-    .select("case_id, file_path, status, server_id, user_id, email")
-    .eq("case_id", caseId)
-    .single();
-
-  if (!submission) {
-    return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
-  }
-
-  const owns =
-    submission.user_id === user.id ||
-    submission.email === user.email;
-
-  if (!owns) {
-    return NextResponse.json({ error: "Brak dostępu." }, { status: 403 });
-  }
 
   // Jeśli symulacja jest aktywna — najpierw zatrzymaj serwer Hetzner
   if (["dispatched", "running"].includes(submission.status) && submission.server_id) {

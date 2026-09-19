@@ -5,11 +5,17 @@ import { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { seoUrls } from "@/lib/seo";
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   const { canonical, languages } = seoUrls(locale, "/o-mnie");
   return {
     title: "O mnie | Inżynier Bezpieczeństwa Pożarowego – Jakub Baran",
@@ -25,11 +31,17 @@ export async function generateMetadata({
   };
 }
 
-export default function AboutPage({
-  params: { locale },
-}: {
-  params: { locale: string };
-}) {
+export default async function AboutPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
   setRequestLocale(locale);
   return (
     <>

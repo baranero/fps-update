@@ -1,0 +1,42 @@
+name: CI
+
+# Bramka przed wdrożeniem: testy logiki, kontrola typów i lint.
+# Build produkcyjny celowo pominięty — robi go Vercel przy każdym wdrożeniu,
+# a wymaga kompletu sekretów, których workflow nie ma i mieć nie powinien.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Nowy push na tę samą gałąź przerywa poprzedni przebieg — bez kolejki
+# nieaktualnych wyników.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalacja zależności
+        run: npm ci
+
+      - name: Testy
+        run: npm test
+
+      - name: Kontrola typów
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint

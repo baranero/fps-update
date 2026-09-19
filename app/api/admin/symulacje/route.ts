@@ -6,7 +6,7 @@ import { isAdmin } from "@/lib/utils/adminCheck";
 import { getServerTypePriceMap, hetznerRunCostEur, type ServerTypePrice } from "@/lib/hetzner/client";
 
 export async function GET(req: NextRequest) {
-  const userClient = createClient();
+  const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user || !isAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
