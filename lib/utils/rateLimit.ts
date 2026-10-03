@@ -102,4 +102,9 @@ export const LIMITS = {
   archive: { limit: 6, windowMs: 60_000 },
   /** Publiczny planer: bez sesji, więc twardziej. */
   publicPlan: { limit: 30, windowMs: 60_000 },
+  /**
+   * Prośba o dostęp do uruchamiania. Świadomie skąpo: to akcja wykonywana raz
+   * w życiu konta, a każda wysyła maila do właściciela.
+   */
+  accessRequest: { limit: 3, windowMs: 3_600_000 },
 } as const;

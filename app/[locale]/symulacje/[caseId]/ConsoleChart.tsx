@@ -91,7 +91,7 @@ export default function ConsoleChart({
                 onClick={() => setActiveId(tab.id)}
                 className={`rounded-chip border px-2.5 py-1 font-mono text-fr-sm uppercase transition-colors ${
                   on
-                    ? "border-primary/40 bg-primary/10 text-primary"
+                    ? "border-primary/40 bg-primary/10 text-accent"
                     : "border-hairline text-muted hover:text-ink"
                 }`}
               >

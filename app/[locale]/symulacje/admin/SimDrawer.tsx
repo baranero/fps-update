@@ -202,7 +202,7 @@ export default function SimDrawer({
                 <span className="font-mono text-fr-micro uppercase text-muted">{t("margin")}</span>
                 <span className="text-right">
                   <span className={`fr-num font-heading text-fr-h3 ${
-                    marginPln == null ? "text-faint" : marginPln >= 0 ? "text-ok" : "text-primary"
+                    marginPln == null ? "text-faint" : marginPln >= 0 ? "text-ok" : "text-accent"
                   }`}>
                     {marginPln != null ? f.fmtPrice(marginPln, { decimals: true }) : costLoading ? "…" : "—"}
                   </span>
@@ -227,7 +227,7 @@ export default function SimDrawer({
           <a
             href={`/api/admin/symulacje/${sim.case_id}/download-fds`}
             download
-            className="flex items-center justify-center gap-2 rounded-panel border border-hairline bg-panel px-4 py-2.5 text-fr-body font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary"
+            className="flex items-center justify-center gap-2 rounded-panel border border-hairline bg-panel px-4 py-2.5 text-fr-body font-semibold text-ink transition-colors hover:border-primary/40 hover:text-accent"
           >
             <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

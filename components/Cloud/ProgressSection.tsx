@@ -57,10 +57,10 @@ export default function ProgressSection() {
                       (preserveAspectRatio="none"), więc tekst w nim traciłby
                       proporcje. Pozycje w % wg układu 600×120. */}
                   <div className="pointer-events-none absolute inset-0">
-                    <span className="absolute left-[10%] top-[16%] whitespace-nowrap font-mono text-fr-sm text-primary">
+                    <span className="absolute left-[10%] top-[16%] whitespace-nowrap font-mono text-fr-sm text-accent">
                       {t("panel.evt1")}
                     </span>
-                    <span className="absolute left-[56%] top-[0%] whitespace-nowrap font-mono text-fr-sm text-primary">
+                    <span className="absolute left-[56%] top-[0%] whitespace-nowrap font-mono text-fr-sm text-accent">
                       {t("panel.evt2")}
                     </span>
                     <span className="absolute left-[22%] top-[58%] whitespace-nowrap font-mono text-fr-sm text-signal">
@@ -146,7 +146,7 @@ export default function ProgressSection() {
                   </div>
                   <span
                     className={`shrink-0 rounded-chip border px-2.5 py-1 font-mono text-fr-label uppercase tracking-widest ${
-                      primary ? "border-primary/40 text-primary" : "border-hairline text-muted"
+                      primary ? "border-primary/40 text-accent" : "border-hairline text-muted"
                     }`}
                   >
                     {action}

@@ -1,10 +1,12 @@
-"use client";
-import { useEffect, use } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { permanentRedirect } from "next/navigation";
+import { routing } from "@/i18n/routing";
 
-export default function CaseIdRedirect(props: { params: Promise<{ caseId: string }> }) {
-  const params = use(props.params);
-  const router = useRouter();
-  useEffect(() => { router.replace(`/symulacje/${params.caseId}`); }, [router, params.caseId]);
-  return null;
+// Stary adres szczegółu zlecenia — dziś /symulacje/<caseId>.
+// Numer zlecenia niesie e-mail wysłany przed przeprowadzką, więc adres musi żyć.
+export default async function LegacyCaseRedirect(props: {
+  params: Promise<{ locale: string; caseId: string }>;
+}) {
+  const { locale, caseId } = await props.params;
+  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+  permanentRedirect(`${prefix}/symulacje/${encodeURIComponent(caseId)}`);
 }

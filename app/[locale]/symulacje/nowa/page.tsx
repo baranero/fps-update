@@ -5,15 +5,21 @@ import { useTranslations } from "next-intl";
 import { useFormat } from "@/lib/format";
 import { Link, useRouter } from "@/i18n/navigation";
 import { parseFds, estimateCost, toPlanInput, FdsParseResult, FdsEstimate } from "@/lib/fds/parser";
-import type { RunPlan } from "@/lib/fds/planner";
+import type { PublicPlan } from "@/lib/fds/publicPlan";
 import { createClient } from "@/lib/supabase/client";
 import CloudMarketing from "@/components/Cloud/CloudMarketing";
 import ServerPicker from "@/components/Cloud/ServerPicker";
+import {
+  Btn, BtnLink, PageHead, PageStack, Shell, inputCls, labelCls,
+} from "@/components/Cloud/ui";
+import InvoiceGate from "@/components/InvoiceDataForm/InvoiceGate";
+import AccessGate from "@/components/Cloud/AccessGate";
+import { useAccess } from "@/components/Cloud/AccessProvider";
 import { CHIP_SHAPE, TONE_CHIP } from "@/lib/tone";
 
 type PlanResponse = {
-  plans: RunPlan[];
-  allPlans: RunPlan[];
+  plans: PublicPlan[];
+  allPlans: PublicPlan[];
   tiers: { eco: string | null; balanced: string | null; fast: string | null };
   dtEstimate: number;
   cellDimSource: "file" | "assumed";
@@ -86,14 +92,19 @@ export default function SymulacjePage() {
   // z historii). Do czasu odpowiedzi kreator pokazuje wycenę policzoną lokalnie.
   const [plan, setPlan] = useState<PlanResponse | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
-  const [serverType, setServerType] = useState<string | null>(null);
+  // Wybrany wariant obliczeń — nieprzezroczysty identyfikator z publicPlan.ts,
+  // nie symbol maszyny: przeglądarka nie ma prawa go poznać.
+  const [planChoice, setPlanChoice] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", notes: "" });
+  // Bez kompletu danych nabywcy zlecenia nie da się zafakturować — pytamy
+  // o nie tutaj, bo do profilu nikt nie zaglądał.
+  const [invoiceReady, setInvoiceReady] = useState(false);
   const [caseId, setCaseId] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [history, setHistory] = useState<Submission[]>([]);
-  // Dostęp do uruchamiania symulacji jest tymczasowo ograniczony (do czasu płatności).
-  // null = jeszcze sprawdzamy, false = obcy → panel „dostęp ograniczony", true = admin.
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  // Uprawnienia konta — jeden odczyt na całą przestrzeń chmury (AccessProvider
+  // w layoucie). null = jeszcze nie wiemy.
+  const { state: access } = useAccess();
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -101,11 +112,7 @@ export default function SymulacjePage() {
     async function loadUser() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setAllowed(false); return; }
-
-      const isAllowed = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-      setAllowed(isAllowed);
-      if (!isAllowed) return; // obcy nie ładuje danych kreatora
+      if (!user) return; // gość wycenia bez logowania — nie ma czego dociągać
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -167,7 +174,7 @@ export default function SymulacjePage() {
       if (!res.ok) return;
       const data: PlanResponse = await res.json();
       setPlan(data);
-      setServerType(data.tiers.balanced ?? data.plans[0]?.serverType ?? null);
+      setPlanChoice(data.tiers.balanced ?? data.plans[0]?.id ?? null);
     } catch {
       /* zostaje wycena policzona lokalnie */
     } finally {
@@ -217,7 +224,7 @@ export default function SymulacjePage() {
       body.append("parsed", JSON.stringify(parseResult));
       body.append("estimate", JSON.stringify(estimate));
       // Wskazówka, nie wiążąca decyzja — serwer i tak przelicza plan od zera.
-      if (serverType) body.append("serverType", serverType);
+      if (planChoice) body.append("planId", planChoice);
 
       const res = await fetch("/api/symulacje/submit", { method: "POST", body });
       const data = await res.json();
@@ -247,72 +254,52 @@ export default function SymulacjePage() {
     setAnalyzing(false);
     setPlan(null);
     setPlanLoading(false);
-    setServerType(null);
+    setPlanChoice(null);
     setForm({ name: "", email: "", notes: "" });
   };
 
   // Wariant zaznaczony przez klienta; zanim serwer odpowie — wycena lokalna.
-  const activePlan = plan?.allPlans.find((p) => p.serverType === serverType) ?? null;
+  const activePlan = plan?.allPlans.find((p) => p.id === planChoice) ?? null;
 
-  const canSubmit = /\S+@\S+\.\S+/.test(form.email);
+  const handleInvoiceReady = useCallback((ready: boolean) => setInvoiceReady(ready), []);
 
-  // Sprawdzamy uprawnienia — nie pokazujemy kreatora, zanim nie wiemy, kto to.
-  if (allowed === null) {
-    return (
-      <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-14">
-        <div className="mx-auto w-full max-w-[1100px]">
-          <div className="h-40 rounded-card bg-panel-deep animate-pulse" />
-        </div>
-      </section>
-    );
-  }
+  const canSubmit = /\S+@\S+\.\S+/.test(form.email) && invoiceReady;
 
   // Estymator jest publiczny — parsowanie i wycena dzieją się w przeglądarce
   // (zero kosztu serwera), więc każdy może wgrać plik i poznać koszt. Bramka
   // dostępu jest dopiero na przycisku „Uruchom" w kroku wyceny (patrz niżej).
   return (
-    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-14">
-      <div className="mx-auto w-full max-w-[1100px]">
+    <Shell width="xl">
+      <PageStack>
 
         {/* Hero — ten sam układ co na stronie głównej: kicker w mono, nagłówek
             Manrope, lead, a pod spodem pasek twardych parametrów oddzielony
             cienką kreską. Świadomie BEZ okrągłej „pigułki" z badge'em — landing
             takich nie ma, a to ona najbardziej odstawała od reszty. */}
-        <div className="mb-14">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="min-w-0">
-              <span className="mb-3 block font-mono text-fr-label uppercase text-muted">
-                FDSRUN // NOWE ZLECENIE
-              </span>
-              <h1 className="max-w-[720px] fr-balance font-heading text-fr-h1 text-ink">
-                {t("title")}
-              </h1>
-              <p className="mt-5 max-w-2xl text-fr-lead text-muted">
-                {t("lead")}
-              </p>
-            </div>
-            {history.length > 0 && (
-              <Link
-                href="/symulacje/historia"
-                className="inline-flex shrink-0 items-center gap-2 rounded-panel border border-hairline px-4 py-2.5 text-fr-body font-semibold text-muted transition-colors hover:border-primary/40 hover:text-primary"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <PageHead
+          kicker="FDSRUN // NOWE ZLECENIE"
+          title={t("title")}
+          lead={t("lead")}
+          actions={
+            history.length > 0 && (
+              <BtnLink href="/symulacje/historia" variant="secondary" size="sm">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {t("historyLink")}
-              </Link>
-            )}
-          </div>
+              </BtnLink>
+            )
+          }
+        />
 
-          {/* Pasek specyfikacji — 1:1 jak pod konsolą na stronie głównej */}
-          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 border-t border-hairline pt-6">
-            {[t("trust.vm"), t("trust.epyc"), t("trust.payg"), t("trust.retention")].map((tag) => (
-              <span key={tag} className="flex items-center gap-2.5 font-mono text-fr-sm text-ink">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                {tag}
-              </span>
-            ))}
-          </div>
+        {/* Pasek parametrów usługi — ten sam gest, co pod konsolą na landingu */}
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
+          {[t("trust.vm"), t("trust.epyc"), t("trust.payg"), t("trust.retention")].map((tag) => (
+            <span key={tag} className="flex items-center gap-2.5 font-mono text-fr-sm text-ink">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              {tag}
+            </span>
+          ))}
         </div>
 
         <div className="space-y-8">
@@ -346,7 +333,7 @@ export default function SymulacjePage() {
                   </div>
                   <span
                     className={`mb-1 font-mono text-fr-label uppercase ${
-                      active ? "text-primary" : done ? "text-signal" : "text-muted"
+                      active ? "text-accent" : done ? "text-signal" : "text-muted"
                     }`}
                   >
                     {done ? t("steps.stateDone") : active ? t("steps.stateActive") : `0${i + 1}`}
@@ -413,7 +400,7 @@ export default function SymulacjePage() {
 
               {parseError && (
                 <div role="alert" className="flex gap-3 rounded-panel border border-primary/40 bg-primary/[0.07] p-4">
-                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p className="text-fr-sm text-ink">{parseError}</p>
@@ -433,11 +420,7 @@ export default function SymulacjePage() {
                 </div>
               </div>
 
-              <button
-                onClick={analyze}
-                disabled={!file || analyzing}
-                className="flex items-center gap-2 rounded-panel bg-primary px-7 py-3.5 text-fr-body font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              >
+              <Btn onClick={analyze} disabled={!file || analyzing} size="lg">
                 {analyzing ? (
                   <>
                     <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -454,7 +437,7 @@ export default function SymulacjePage() {
                     </svg>
                   </>
                 )}
-              </button>
+              </Btn>
               </div>
             </div>
           )}
@@ -483,7 +466,7 @@ export default function SymulacjePage() {
                         <span className="font-mono text-fr-micro uppercase text-faint">
                           {f.fmtPrice(s.price)}
                         </span>
-                        <svg className="h-4 w-4 text-faint group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-4 w-4 text-faint group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -581,8 +564,8 @@ export default function SymulacjePage() {
                 <ServerPicker
                   plans={plan?.allPlans ?? []}
                   tiers={plan?.tiers ?? { eco: null, balanced: null, fast: null }}
-                  selected={serverType}
-                  onSelect={setServerType}
+                  selected={planChoice}
+                  onSelect={setPlanChoice}
                   loading={planLoading}
                   meshCount={parseResult.meshCount}
                 />
@@ -647,7 +630,7 @@ export default function SymulacjePage() {
                     </div>
                     <div>
                       <p className="mb-1.5 font-mono text-fr-label uppercase text-muted">{t("estimate.costLabel")}</p>
-                      <p className="fr-num font-heading text-fr-h2 text-primary">
+                      <p className="fr-num font-heading text-fr-h2 text-accent">
                         ~{f.fmtPrice(activePlan?.price ?? estimate.price)}
                       </p>
                       <p className="mt-1 font-mono text-fr-sm text-muted">{t("estimate.costSub")}</p>
@@ -660,111 +643,70 @@ export default function SymulacjePage() {
                 </div>
               </div>
 
-              {/* Zamówienie — tylko dla użytkowników z dostępem do uruchamiania.
-                  Estymator jest publiczny, więc reszta zna już koszt i widzi CTA „poproś o dostęp". */}
-              {allowed ? (
-              <div className="rounded-panel border border-hairline bg-panel p-6 space-y-4">
-                <div>
-                  <h2 className="text-fr-sm font-medium text-muted">{t("form.heading")}</h2>
-                  <p className="mt-1 text-fr-sm text-muted">
-                    {t("form.linkedInfo", { email: form.email ? ` (${form.email})` : "" })}
-                  </p>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-fr-sm font-bold text-muted">
-                    {t("form.messageLabel")}
-                  </label>
-                  <textarea
-                    value={form.notes}
-                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    rows={3}
-                    placeholder={t("form.messagePlaceholder")}
-                    className="w-full rounded-panel border border-hairline bg-canvas px-4 py-2.5 text-fr-body text-ink placeholder-faint focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                  />
-                </div>
-
-                {submitError && (
-                  <div role="alert" className="flex gap-3 rounded-panel border border-primary/40 bg-primary/[0.07] p-4">
-                    <svg className="mt-0.5 h-5 w-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-fr-sm text-ink">{submitError}</p>
+              {/* Bramka uruchamiania. Estymator wyżej jest PUBLICZNY — plik
+                  analizuje przeglądarka, więc każdy poznaje cenę bez konta.
+                  Dopiero tutaj rozstrzyga się, czy klient może uruchomić
+                  obliczenia, a o tym mówi serwer (GET /api/dostep). Gość
+                  dostaje ścieżkę do konta, zalogowany — prośbę o dostęp. */}
+              <AccessGate state={access}>
+                <div className="rounded-panel border border-hairline bg-panel p-6 space-y-4">
+                  <div>
+                    <h2 className="text-fr-sm font-medium text-muted">{t("form.heading")}</h2>
+                    <p className="mt-1 text-fr-sm text-muted">
+                      {t("form.linkedInfo", { email: form.email ? ` (${form.email})` : "" })}
+                    </p>
                   </div>
-                )}
+                  <InvoiceGate onReady={handleInvoiceReady} />
 
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={submit}
-                    disabled={!canSubmit || step === "submitting"}
-                    className="flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {step === "submitting" ? (
-                      <>
-                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        {t("form.submitting")}
-                      </>
-                    ) : (
-                      <>
-                        {t("form.submit")}
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={reset}
-                    disabled={step === "submitting"}
-                    className="rounded-panel border border-hairline px-4 py-2.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-40"
-                  >
-                    {t("form.back")}
-                  </button>
-                </div>
-              </div>
-              ) : (
-                <div className="rounded-panel border border-primary/25 bg-primary/[0.06] p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-panel bg-primary/10 text-primary">
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <div>
+                    <label className={labelCls}>{t("form.messageLabel")}</label>
+                    <textarea
+                      value={form.notes}
+                      onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                      rows={3}
+                      placeholder={t("form.messagePlaceholder")}
+                      className={`${inputCls} resize-none`}
+                    />
+                  </div>
+
+                  {submitError && (
+                    <div role="alert" className="flex gap-3 rounded-panel border border-primary/40 bg-primary/[0.07] p-4">
+                      <svg className="mt-0.5 h-5 w-5 shrink-0 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
+                      <p className="text-fr-sm text-ink">{submitError}</p>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-fr-body font-bold text-ink">{t("restricted.title")}</p>
-                      <p className="mt-1 text-fr-body leading-relaxed text-muted">{t("restricted.lead")}</p>
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <a
-                          href="mailto:biuro@fp-solutions.pl"
-                          className="inline-flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white transition-colors hover:bg-primary/90"
-                        >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  )}
+
+                  {!invoiceReady && (
+                    <p className="text-fr-sm text-warn">{t("form.invoiceRequired")}</p>
+                  )}
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <Btn onClick={submit} disabled={!canSubmit || step === "submitting"}>
+                      {step === "submitting" ? (
+                        <>
+                          <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                           </svg>
-                          {t("restricted.emailCta")}
-                        </a>
-                        <a
-                          href="tel:+48790782993"
-                          className="inline-flex items-center gap-2 rounded-panel border border-hairline px-5 py-2.5 text-fr-body font-semibold text-ink transition-colors hover:bg-panel-deep"
-                        >
+                          {t("form.submitting")}
+                        </>
+                      ) : (
+                        <>
+                          {t("form.submit")}
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                           </svg>
-                          +48 790 782 993
-                        </a>
-                        <button
-                          onClick={reset}
-                          className="text-fr-body font-medium text-muted transition-colors hover:text-primary"
-                        >
-                          {t("form.back")}
-                        </button>
-                      </div>
-                    </div>
+                        </>
+                      )}
+                    </Btn>
+                    <Btn onClick={reset} disabled={step === "submitting"} variant="ghost">
+                      {t("form.back")}
+                    </Btn>
                   </div>
                 </div>
-              )}
+              </AccessGate>
             </div>
           )}
 
@@ -792,18 +734,15 @@ export default function SymulacjePage() {
                 <p className="mx-auto max-w-md text-fr-body text-muted">
                   {t("done.body", { email: form.email })}
                 </p>
-                <button
-                  onClick={reset}
-                  className="inline-flex items-center gap-2 rounded-panel border border-hairline px-6 py-3 text-fr-body font-semibold text-ink transition-colors hover:border-primary/40 hover:text-primary"
-                >
+                <Btn onClick={reset} variant="secondary">
                   {t("done.again")}
-                </button>
+                </Btn>
               </div>
             </div>
           )}
 
         </div>
-      </div>
-    </section>
+      </PageStack>
+    </Shell>
   );
 }

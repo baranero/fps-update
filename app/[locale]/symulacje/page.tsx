@@ -6,10 +6,13 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
 import { useFormat } from "@/lib/format";
+import { EMPTY_INVOICE, grossAmount, isInvoiceComplete, type InvoiceData } from "@/lib/invoice";
+import { loadInvoiceData } from "@/lib/invoiceClient";
 import {
-  BtnLink, Chip, EmptyState, Meter, Notice, PageHead, SectionLabel, Shell, Skeleton,
+  Block, BtnLink, Chip, EmptyState, Meter, Notice, PageHead, PageStack, Shell, Skeleton,
   btnCls, cardCls, cardHoverCls,
 } from "@/components/Cloud/ui";
+import { useAccess } from "@/components/Cloud/AccessProvider";
 
 type Item = {
   case_id: string;
@@ -19,32 +22,52 @@ type Item = {
   completed_at: string | null;
   price: number;
   wall_hours: number;
-  server_type: string | null;
+  /** Opis maszyny („16 vCPU · 32 GB RAM”) — symbol dostawcy zostaje na serwerze. */
+  server_label: string | null;
   total_cells: number;
   mesh_count: number | null;
   payment_status: "paid" | "pending" | null;
+  /** Czas końcowy symulacji [s] i ostatni odczyt solvera — realny postęp. */
+  t_end?: number | null;
+  last_sim_time?: number | null;
 };
 
-// Miękki szacunek postępu aktywnego zlecenia (kolejka + obliczenia liczą się od
-// created_at) — wyłącznie do poglądowego paska na Pulpicie, nie do rozliczeń.
-function softProgress(item: Item, now: number): number | null {
+type Progress = { pct: number; real: boolean } | null;
+
+/**
+ * Postęp aktywnego zlecenia. Najpierw sięgamy po ODCZYT Z SOLVERA: ile sekund
+ * symulacji zostało już policzonych względem czasu końcowego z pliku. To jedyna
+ * wiarygodna miara — prognoza czasu potrafi się mylić kilkukrotnie, więc pasek
+ * liczony z upływu zegara pokazywałby „prawie gotowe" przy biegu, któremu
+ * zostało pół doby.
+ *
+ * Dopóki pierwszy odczyt nie spłynie (maszyna wstaje, log jeszcze pusty),
+ * zostaje zgrubny ślad z upływu czasu — oznaczony w interfejsie jako szacunek.
+ */
+function jobProgress(item: Item, now: number): Progress {
+  if (item.last_sim_time != null && item.t_end != null && item.t_end > 0) {
+    // 99% zamiast 100%, bo po ostatnim kroku jest jeszcze pakowanie wyników.
+    return { pct: Math.min(99, Math.max(0, (item.last_sim_time / item.t_end) * 100)), real: true };
+  }
   if (!item.wall_hours) return null;
   const elapsedSec = Math.max(0, (now - new Date(item.created_at).getTime()) / 1000);
-  return Math.min(92, (elapsedSec / (item.wall_hours * 3600)) * 100);
+  return { pct: Math.min(92, (elapsedSec / (item.wall_hours * 3600)) * 100), real: false };
 }
 
 export default function PulpitPage() {
   const t = useTranslations("symDashboard");
   const ts = useTranslations("status");
   const f = useFormat();
-  const tr = useTranslations("symulacje");
+  const tg = useTranslations("symulacje.gate");
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [userName, setUserName] = useState<string>("");
   const [authChecked, setAuthChecked] = useState(false);
-  // Do czasu płatności symulacje uruchamia wyłącznie admin — reszcie chowamy CTA „Nowa".
-  const [canRun, setCanRun] = useState(false);
+  // Uprawnienia konta — z jednego odczytu w layoucie (AccessProvider),
+  // a nie z porównania e-maila właściciela w przeglądarce.
+  const { state: access } = useAccess();
   const [loading, setLoading] = useState(true);
+  const [invoice, setInvoice] = useState<InvoiceData>(EMPTY_INVOICE);
   const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -61,7 +84,6 @@ export default function PulpitPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/symulacje/nowa"); return; }
-      setCanRun(user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL);
       setAuthChecked(true);
 
       const { data: profile } = await supabase
@@ -70,6 +92,8 @@ export default function PulpitPage() {
         .eq("id", user.id)
         .single();
       setUserName(profile?.full_name || user.email?.split("@")[0] || "");
+
+      loadInvoiceData(supabase).then((res) => { if (res.ok) setInvoice(res.data); });
 
       const arr = await fetchItems();
       setLoading(false);
@@ -114,7 +138,13 @@ export default function PulpitPage() {
   const done = items.filter((s) => s.status === "done");
   const recent = done.slice(0, 4);
   const spent = done.reduce((sum, s) => sum + s.price, 0);
-  const toPay = done.filter((s) => s.payment_status !== "paid").reduce((sum, s) => sum + s.price, 0);
+  // Kwota do zapłaty jest BRUTTO — tak samo jak w Rozliczeniach i tak samo,
+  // jak zobaczy ją klient na fakturze. Netto zostaje przy wydatkach.
+  const toPayNet = done.filter((s) => s.payment_status !== "paid").reduce((sum, s) => sum + s.price, 0);
+  const toPay = grossAmount(toPayNet, invoice);
+  // Dane nabywcy blokują wystawienie faktury — przypominamy dopiero wtedy,
+  // gdy jest już co fakturować.
+  const needsInvoiceData = done.length > 0 && !isInvoiceComplete(invoice);
 
   const kpis = [
     { label: t("kpiTotal"), value: String(items.length), href: "/symulacje/historia", accent: false },
@@ -134,21 +164,50 @@ export default function PulpitPage() {
 
   return (
     <Shell>
-      <div className="space-y-10">
+      <PageStack>
 
-        {/* Baner „już wkrótce" — dla użytkowników bez dostępu do uruchamiania symulacji */}
-        {!canRun && (
+        {/* Stan bramki uruchamiania. Wcześniej stał tu baner „już wkrótce"
+            z adresem e-mail — mówił nieprawdę (serwis działa) i wyprowadzał
+            klienta poza produkt. Teraz każdy stan prowadzi do następnego kroku,
+            a prośbę o dostęp składa się w kreatorze, przy gotowej wycenie. */}
+        {access && !access.canRun && (
           <Notice
-            tone="primary"
-            title={tr("restricted.title")}
+            tone={access.access === "requested" ? "signal" : "primary"}
+            title={
+              access.access === "requested" ? tg("pending.title")
+              : access.access === "blocked" ? tg("blocked.title")
+              : tg("request.title")
+            }
             actions={
-              <a href="mailto:biuro@fp-solutions.pl" className={btnCls("primary", "sm")}>
-                {tr("restricted.emailCta")}
-              </a>
+              access.access === "blocked" ? (
+                <a href="mailto:biuro@fp-solutions.pl" className={btnCls("primary", "sm")}>
+                  {tg("emailCta")}
+                </a>
+              ) : access.access === "none" ? (
+                <BtnLink href="/symulacje/nowa" size="sm">{t("newSim")}</BtnLink>
+              ) : undefined
             }
           >
-            <Chip tone="primary" dot className="mb-2">{tr("restricted.badge")}</Chip>
-            <p>{tr("restricted.lead")}</p>
+            <p>
+              {access.access === "requested" ? tg("pending.lead")
+               : access.access === "blocked" ? tg("blocked.lead")
+               : tg("request.lead")}
+            </p>
+          </Notice>
+        )}
+
+        {/* Dane do faktury — blokada rozliczenia, nie kosmetyka */}
+        {needsInvoiceData && (
+          <Notice
+            tone="warn"
+            title={t("invoiceNudgeTitle")}
+            actions={
+              <Link href="/symulacje/rozliczenia#dane-do-faktury" className={btnCls("primary", "sm")}>
+                {t("invoiceNudgeCta")}
+              </Link>
+            }
+          >
+            <p>{t("invoiceNudgeLead")}</p>
           </Notice>
         )}
 
@@ -158,7 +217,7 @@ export default function PulpitPage() {
           title={userName ? t("greeting", { name: userName }) : t("title")}
           lead={t("subtitle")}
           actions={
-            canRun && (
+            (
               <BtnLink href="/symulacje/nowa">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={ADD_ICON} />
@@ -174,7 +233,7 @@ export default function PulpitPage() {
           {kpis.map((k) => (
             <Link key={k.label} href={k.href} className={`${cardHoverCls} p-5`}>
               <p className="mb-1.5 font-mono text-fr-micro uppercase text-faint">{k.label}</p>
-              <p className={`fr-num font-heading text-fr-h2 ${k.accent ? "text-primary" : "text-ink"}`}>
+              <p className={`fr-num font-heading text-fr-h2 ${k.accent ? "text-accent" : "text-ink"}`}>
                 {k.value}
               </p>
             </Link>
@@ -182,28 +241,29 @@ export default function PulpitPage() {
         </div>
 
         {/* Symulacje w toku */}
-        <div>
-          <div className="mb-3 flex items-center gap-2.5">
-            <SectionLabel>{t("activeTitle")}</SectionLabel>
-            {active.length > 0 && (
+        <Block
+          title={t("activeTitle")}
+          actions={
+            active.length > 0 && (
               <Chip tone="warn" dot pulse>
                 {active.length} · {t("activeLive")}
               </Chip>
-            )}
-          </div>
+            )
+          }
+        >
 
           {loading ? (
             <Skeleton />
           ) : active.length === 0 ? (
             <EmptyState
               text={t("activeEmpty")}
-              cta={canRun ? { href: "/symulacje/nowa", label: t("activeEmptyCta") } : undefined}
+              cta={{ href: "/symulacje/nowa", label: t("activeEmptyCta") }}
             />
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {active.map((s) => {
                 const st = statusMeta(s.status);
-                const pct = softProgress(s, now);
+                const progress = jobProgress(s, now);
                 return (
                   <Link key={s.case_id} href={`/symulacje/${s.case_id}`} className={`${cardHoverCls} p-4`}>
                     <div className="flex items-center justify-between gap-3">
@@ -212,14 +272,21 @@ export default function PulpitPage() {
                     </div>
                     <p className="mt-2 truncate text-fr-body font-semibold text-ink">{s.file_name}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
-                      {s.server_type && <span className="uppercase">{s.server_type}</span>}
+                      {s.server_label && <span>{s.server_label}</span>}
                       <span>{f.fmtCells(s.total_cells)} {t("cellsWord")}</span>
                       <span>{t("activeOrdered")} {f.fmtDate(s.created_at, { day: "numeric", month: "short" })}</span>
                     </div>
-                    {pct != null && (
+                    {progress != null && (
                       <div className="mt-3">
-                        <Meter pct={pct} tone="warn" />
-                        <p className="mt-1.5 font-mono text-fr-micro uppercase text-faint">{t("activeEstProgress")}</p>
+                        <Meter pct={progress.pct} tone={progress.real ? "signal" : "warn"} />
+                        <div className="mt-1.5 flex items-center justify-between gap-2 font-mono text-fr-micro uppercase text-faint">
+                          <span>{progress.real ? t("activeRealProgress") : t("activeEstProgress")}</span>
+                          <span className="fr-num">
+                            {progress.real && s.last_sim_time != null && s.t_end
+                              ? t("activeSimTime", { done: Math.round(s.last_sim_time), total: Math.round(s.t_end) })
+                              : `${Math.round(progress.pct)}%`}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </Link>
@@ -227,21 +294,22 @@ export default function PulpitPage() {
               })}
             </div>
           )}
-        </div>
+        </Block>
 
         {/* Ostatnio zakończone */}
-        <div>
-          <div className="mb-3 flex items-center justify-between">
-            <SectionLabel>{t("recentTitle")}</SectionLabel>
-            {done.length > 0 && (
+        <Block
+          title={t("recentTitle")}
+          actions={
+            done.length > 0 && (
               <Link
                 href="/symulacje/historia"
-                className="font-mono text-fr-micro uppercase text-muted transition-colors hover:text-primary"
+                className="font-mono text-fr-micro uppercase text-muted transition-colors hover:text-accent"
               >
                 {t("recentViewAll")}
               </Link>
-            )}
-          </div>
+            )
+          }
+        >
 
           {loading ? (
             <Skeleton className="h-16" />
@@ -261,7 +329,7 @@ export default function PulpitPage() {
                       <p className="truncate text-fr-body font-medium text-ink">{s.file_name}</p>
                       <p className="font-mono text-fr-sm text-muted">
                         {f.fmtDate(s.completed_at ?? s.created_at, { day: "numeric", month: "short", year: "numeric" })}
-                        {s.server_type && <span className="ml-2 uppercase">{s.server_type}</span>}
+                        {s.server_label && <span className="ml-2">{s.server_label}</span>}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
@@ -270,7 +338,7 @@ export default function PulpitPage() {
                         {s.payment_status === "paid" ? t("paid") : t("toPay")}
                       </Chip>
                     </div>
-                    <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -278,15 +346,14 @@ export default function PulpitPage() {
               </div>
             </div>
           )}
-        </div>
+        </Block>
 
         {/* Szybki dostęp */}
-        <div>
-          <SectionLabel className="mb-3 block">{t("shortcutsTitle")}</SectionLabel>
+        <Block title={t("shortcutsTitle")}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {shortcuts.map((q) => (
               <Link key={q.href} href={q.href} className={`group flex items-start gap-4 ${cardHoverCls} p-4`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tile border border-hairline-soft bg-panel-deep text-muted transition-colors group-hover:border-primary/30 group-hover:text-primary">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tile border border-hairline-soft bg-panel-deep text-muted transition-colors group-hover:border-primary/30 group-hover:text-accent">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={q.icon} />
                   </svg>
@@ -298,9 +365,9 @@ export default function PulpitPage() {
               </Link>
             ))}
           </div>
-        </div>
+        </Block>
 
-      </div>
+      </PageStack>
     </Shell>
   );
 }

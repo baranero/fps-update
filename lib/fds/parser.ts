@@ -25,6 +25,13 @@ export interface FdsParseResult {
   meshDetails: FdsMeshDetail[];
   tEnd: number | null;
   fuel: string | null;
+  /**
+   * Najwieksze HRRPUA zadeklarowane w pliku [kW/m2] — miara intensywnosci
+   * pozaru. To ona rozpedza gaz i wymusza drobny krok czasowy, wiec wchodzi do
+   * modelu czasu (lib/fds/timestep.ts). null = plik nie deklaruje zadnego
+   * palacego sie SURF.
+   */
+  hrrpua: number | null;
   obstCount: number;
   ventCount: number;
   devcCount: number;
@@ -116,6 +123,7 @@ export function parseFds(content: string): FdsParseResult {
     meshDetails: [],
     tEnd: null,
     fuel: null,
+    hrrpua: null,
     obstCount: 0,
     ventCount: 0,
     devcCount: 0,
@@ -201,6 +209,19 @@ export function parseFds(content: string): FdsParseResult {
       case "REAC":
         result.fuel = getStringParam(nl.body, "FUEL") ?? getParam(nl.body, "FUEL");
         break;
+      case "SURF": {
+        // Bierzemy MAKSIMUM, nie sume: pliki deklaruja wiele powierzchni,
+        // z ktorych wiekszosc jest niepalna, a o kroku czasowym decyduje ta
+        // najintensywniejsza. Suma rosla by z liczby definicji, nie z pozaru.
+        const raw = getParam(nl.body, "HRRPUA");
+        if (raw !== null) {
+          const v = parseFloat(raw);
+          if (!isNaN(v) && v > 0) {
+            result.hrrpua = result.hrrpua === null ? v : Math.max(result.hrrpua, v);
+          }
+        }
+        break;
+      }
       case "OBST":
         result.obstCount++;
         break;
@@ -260,6 +281,7 @@ export function toPlanInput(parsed: FdsParseResult): PlanInput {
     tEnd: parsed.tEnd,
     minCellDim: parsed.minCellDim,
     domainVolume: parsed.domainVolume,
+    hrrpua: parsed.hrrpua,
     ompThreads: parsed.ompThreads,
     forcedProcs: parsed.forcedProcs,
   };

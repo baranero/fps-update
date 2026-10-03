@@ -18,48 +18,100 @@
      Tokeny w RGB (bez `rgb()`), bo Tailwind składa je z <alpha-value> —
      dzięki temu działa `bg-panel/60` czy `border-hairline/50`.
      Motyw JASNY: papier + cienka kreska, ta sama gęstość co wzór, inny walor.
-     Motyw CIEMNY: wartości 1:1 ze wzoru Stitch (#070708 / #101112 / #232426). */
+     Motyw CIEMNY: chłodny grafit — odświeżenie z 2026-09-20; wcześniej czysta
+     szarość ze wzoru Stitch (#070708 / #101112 / #232426). */
   :root {
-    --fr-canvas: 250 250 251;
+    --fr-canvas: 249 250 252;
     --fr-panel: 255 255 255;
-    --fr-panel-deep: 245 246 248;
-    --fr-well: 241 243 246;
-    --fr-hairline: 224 227 233;
-    --fr-hairline-soft: 237 239 243;
-    --fr-ink: 17 20 26;
-    --fr-muted: 92 99 110;
-    --fr-faint: 140 147 159;
-    --fr-signal: 46 110 128;   /* steel — serie danych czytelne na bieli */
-    --fr-warn: 180 83 9;
-    --fr-ok: 21 128 61;        /* zakończone / opłacone */
+    --fr-panel-deep: 243 245 249;
+    --fr-well: 237 240 245;
+    --fr-hairline: 220 225 233;
+    --fr-hairline-soft: 234 237 243;
+    --fr-ink: 15 18 25;
+    --fr-muted: 86 94 107;
+    /* Podniesione z 140 147 159 — tamta wartość dawała 2,97:1 na tle strony,
+       czyli mniej niż próg 3:1 nawet dla elementów nietekstowych, a nosi
+       etykiety 11 px (kickery, nagłówki kolumn). Teraz 4,6:1. */
+    --fr-faint: 102 110 124;
+    --fr-signal: 40 104 122;   /* steel — serie danych czytelne na bieli */
+    --fr-warn: 170 77 8;
+    --fr-ok: 20 120 57;        /* zakończone / opłacone */
+    /* Czerwień marki (#DC3545) daje na bieli 4,34:1 — za mało dla drobnego
+       tekstu. `accent` to ta sama barwa przyciemniona do 5,5:1 i służy
+       WYŁĄCZNIE do tekstu; tła i obwódki zostają na `primary`. */
+    --fr-accent: 198 32 48;
     --fr-lime: 209 235 156;
-    --fr-grid: rgba(15, 23, 42, 0.07);
-    --fr-grid-strong: rgba(15, 23, 42, 0.11);
-    --fr-shadow-panel: 0 18px 40px -12px rgba(15, 23, 42, 0.14);
-    --fr-shadow-float: 0 12px 28px -8px rgba(15, 23, 42, 0.12);
+    --fr-grid: rgba(15, 23, 42, 0.06);
+    --fr-grid-strong: rgba(15, 23, 42, 0.10);
+    --fr-shadow-panel: 0 1px 2px -1px rgba(15, 23, 42, 0.10), 0 12px 32px -12px rgba(15, 23, 42, 0.16);
+    --fr-shadow-float: 0 1px 2px -1px rgba(15, 23, 42, 0.08), 0 8px 24px -10px rgba(15, 23, 42, 0.14);
+    --fr-ring: 220 53 69;
   }
 
   .dark {
-    --fr-canvas: 7 7 8;
-    --fr-panel: 16 17 18;
-    --fr-panel-deep: 10 10 11;
-    --fr-well: 5 5 5;
-    --fr-hairline: 35 36 38;
-    --fr-hairline-soft: 27 28 30;
-    --fr-ink: 229 226 227;
-    --fr-muted: 154 157 163;
-    --fr-faint: 110 114 122;
-    --fr-signal: 95 167 188;   /* steel-light — świeci na czerni */
+    /* Baza odeszła od czystej szarości (7 7 8) w stronę chłodnego grafitu.
+       Czysto neutralna czerń czytała się jak brak decyzji; lekki nawias
+       niebieskiego daje głębię i odróżnia powierzchnie od siebie. Panel jest
+       teraz WYRAŹNIE jaśniejszy od tła (1,10 zamiast 1,04 poprzednio), więc
+       karta wygląda jak karta, a nie jak obrys na tym samym walorze. */
+    --fr-canvas: 10 11 14;
+    --fr-panel: 21 23 28;
+    --fr-panel-deep: 15 16 20;
+    --fr-well: 7 8 10;
+    --fr-hairline: 44 47 56;
+    --fr-hairline-soft: 31 34 41;
+    --fr-ink: 233 234 239;
+    --fr-muted: 158 164 176;
+    /* Było 110 114 122 → 3,92:1 na panelu. Teraz 4,8:1. */
+    --fr-faint: 126 133 147;
+    --fr-signal: 96 175 199;   /* steel-light — świeci na czerni */
     --fr-warn: 251 176 64;
     --fr-ok: 74 222 128;
+    /* Czerwień marki na czerni to tylko 3,96:1 — nieczytelna w cenach i
+       etykietach. Rozjaśniona do 7:1, znowu wyłącznie dla tekstu. */
+    --fr-accent: 255 118 128;
     --fr-lime: 196 255 68;
-    --fr-grid: rgba(255, 255, 255, 0.045);
-    --fr-grid-strong: rgba(255, 255, 255, 0.08);
-    --fr-shadow-panel: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
-    --fr-shadow-float: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+    --fr-grid: rgba(255, 255, 255, 0.05);
+    --fr-grid-strong: rgba(255, 255, 255, 0.09);
+    --fr-shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 0.03), 0 24px 56px -16px rgba(0, 0, 0, 0.75);
+    --fr-shadow-float: 0 1px 0 0 rgba(255, 255, 255, 0.04), 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+    --fr-ring: 255 118 128;
   }
 }
 
+@layer base {
+  /* ── Widoczny fokus klawiatury ────────────────────────────────────────────
+     Do tej pory obwódkę fokusu miały wyłącznie pola formularzy — przyciski,
+     odnośniki i zakładki nie miały żadnej, więc nawigując klawiaturą nie dało
+     się stwierdzić, gdzie się jest. `:focus-visible` nie pokazuje obwódki przy
+     kliknięciu myszą, tylko przy tabulacji. */
+  :where(a, button, [role="button"], [role="tab"], summary, input, select, textarea):focus-visible {
+    outline: 2px solid rgb(var(--fr-ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* ── Sygnał „ładuję stronę" ───────────────────────────────────────────────
+     Atrybuty ustawia components/Common/NavigationProgress. Kursor mówi, że
+     kliknięcie zostało przyjęte, a wygaszony odnośnik — dokąd prowadzi.
+     Kursor musimy powtórzyć dla odnośników i przycisków, bo ich własne
+     `cursor: pointer` bije regułę z <html>. */
+  html[data-nav-busy],
+  html[data-nav-busy] body { cursor: progress; }
+  html[data-nav-busy] :where(a, button, [role="button"], summary, label) { cursor: progress; }
+  [data-nav-pending] { opacity: 0.6; transition: opacity 120ms ease; }
+
+  /* Szanujemy ustawienie systemowe „ogranicz animacje" — pasek postępu,
+     pulsujące kropki stanu i przejścia potrafią przeszkadzać. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
 
 @layer components {
   input[type="checkbox"]:checked ~ label span svg { @apply inline-flex; }
@@ -73,7 +125,38 @@
   .input-unit-tag { @apply absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 pointer-events-none; }
 }
 
+@layer base {
+  /* Zaznaczenie tekstu w barwie marki zamiast domyślnego niebieskiego
+     systemu — drobiazg, ale widać go przy każdym kopiowaniu numeru zlecenia. */
+  ::selection { background: rgb(var(--fr-accent) / 0.25); color: rgb(var(--fr-ink)); }
+
+  /* Pasek przewijania dopasowany do powierzchni. Bez tego na ciemnym motywie
+     zostawał jasny pasek systemowy, który rozbijał okno. */
+  * { scrollbar-color: rgb(var(--fr-hairline)) transparent; scrollbar-width: thin; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--fr-hairline));
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--fr-faint) / 0.6); background-clip: content-box; }
+}
+
 @layer utilities {
+  /* Szkielet ładowania — połysk przesuwający się po powierzchni. Czytelniejszy
+     niż pulsowanie przezroczystością, bo nie zmienia jasności całego bloku. */
+  .fr-shimmer { position: relative; overflow: hidden; }
+  .fr-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--fr-ink) / 0.06), transparent);
+    animation: frShimmer 1.6s ease-in-out infinite;
+  }
+
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -111,4 +194,8 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes frShimmer {
+  100% { transform: translateX(100%); }
 }

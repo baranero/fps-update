@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ScrollToTop from "@/components/ScrollToTop";
+import NavigationProgress from "@/components/Common/NavigationProgress";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
@@ -71,6 +72,10 @@ export default async function LocaleLayout(
       >
         <NextIntlClientProvider messages={messages}>
           <Providers>
+            {/* Znak życia przy przechodzeniu między stronami — App Router
+                zmienia adres dopiero po odpowiedzi serwera, więc bez tego klik
+                w odnośnik przez chwilę wygląda jak nietrafiony. */}
+            <NavigationProgress />
             <Header />
             {children}
             <Footer />

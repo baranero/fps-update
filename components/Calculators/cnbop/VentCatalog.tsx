@@ -77,7 +77,7 @@ export default function VentCatalog({ requiredAcz, onSelect }: VentCatalogProps)
       const d = sortCol === "A" ? a.A - b.A : sortCol === "B" ? a.B - b.B : sortCol === "Av" ? a.Av - b.Av : aa(a) - aa(b);
       return sortDir === "asc" ? d : -d;
     });
-  }, [producer, gType, gH, gMaxA, gMaxB, count, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
+  }, [producer, gType, gH, gMaxA, gMaxB, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
 
   /* ── ASKON data ── */
   const filteredA = useMemo(() => {
@@ -92,7 +92,7 @@ export default function VentCatalog({ requiredAcz, onSelect }: VentCatalogProps)
       const d = sortCol === "A" ? a.A - b.A : sortCol === "B" ? a.B - b.B : sortCol === "Av" ? a.Av - b.Av : aa(a) - aa(b);
       return sortDir === "asc" ? d : -d;
     });
-  }, [producer, aCfg, aMaxA, aMaxB, count, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
+  }, [producer, aCfg, aMaxA, aMaxB, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
 
   /* ── AWAK data ── */
   const filteredW = useMemo(() => {
@@ -107,7 +107,7 @@ export default function VentCatalog({ requiredAcz, onSelect }: VentCatalogProps)
       const d = sortCol === "A" ? a.A - b.A : sortCol === "B" ? a.B - b.B : sortCol === "Av" ? a.Av - b.Av : aa(a) - aa(b);
       return sortDir === "asc" ? d : -d;
     });
-  }, [producer, wCfg, wMaxA, wMaxB, count, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
+  }, [producer, wCfg, wMaxA, wMaxB, showSmaller, requiredAcz, sortCol, sortDir, perVentMin]);
 
   const filteredCount = producer === "gulajski" ? filteredG.length : producer === "askon" ? filteredA.length : filteredW.length;
 

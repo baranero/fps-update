@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,10 +14,17 @@ import {
   OAuthButtons,
 } from "@/components/Cloud/AuthUI";
 
-export default function SignupPage() {
+function SignupForm() {
   const t = useTranslations("auth.signup");
   const tc = useTranslations("auth.common");
   const router = useRouter();
+  // Dokąd wrócić po rejestracji. Klient przychodzi tu zwykle z kreatora, mając
+  // na ekranie gotową wycenę — po potwierdzeniu adresu ma wylądować dokładnie
+  // tam, a nie na pulpicie, skąd musiałby wgrywać plik od nowa.
+  // (Logowanie honoruje ten parametr od dawna; rejestracja go gubiła.)
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
+  const callbackUrl = next ? `/auth/callback?next=${encodeURIComponent(next)}` : "/auth/callback";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +52,7 @@ export default function SignupPage() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${location.origin}${callbackUrl}` },
     });
   }
 
@@ -63,7 +71,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${location.origin}${callbackUrl}`,
         data: {
           consent_privacy: new Date().toISOString(),
           consent_terms: new Date().toISOString(),
@@ -162,5 +170,15 @@ export default function SignupPage() {
         <p className="font-mono text-fr-label leading-relaxed text-muted">{t("gdpr")}</p>
       </form>
     </AuthShell>
+  );
+}
+
+// `useSearchParams` wymaga granicy Suspense — bez niej prerender strony pada
+// przy budowaniu. Ten sam układ ma /signin.
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

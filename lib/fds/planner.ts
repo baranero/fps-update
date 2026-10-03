@@ -22,13 +22,19 @@ import {
 } from "@/lib/hetzner/catalog";
 import { OVERHEAD_H, STORAGE_EUR_PER_GB, estimateOutputGb, priceFromCost } from "./pricing";
 import { meshLoadFor } from "./mpi";
+import {
+  CFL_MODEL, DEFAULT_DX, DT_MAX, DT_MIN, V_COEFF,
+  cflTimestep, effectiveVelocity, predictTimestep,
+  type TimestepModel,
+} from "./timestep";
+
+// Stale i wzory kroku czasowego mieszkaja w ./timestep — reeksport zostaje dla
+// kodu, ktory importowal je stad wczesniej.
+export { effectiveVelocity, cflTimestep, DT_MIN, DT_MAX, DEFAULT_DX, V_COEFF };
+export type { TimestepModel };
 
 // ─── Stałe modelu fizycznego ─────────────────────────────────────────────────
 
-const CFL_FACTOR = 0.8;   // współczynnik CFL (domyślny w FDS)
-const DEFAULT_DX = 0.10;  // m — zakładany rozmiar komórki, gdy plik nie podaje XB
-const DT_MAX = 0.5;       // s — górne ograniczenie kroku
-const DT_MIN = 0.001;     // s — dolne ograniczenie kroku
 
 // Prędkość charakterystyczna w warunku CFL (dt = CFL·dx/V).
 //
@@ -42,15 +48,7 @@ const DT_MIN = 0.001;     // s — dolne ograniczenie kroku
 //
 //   V = V_COEFF · L^(1/3)  odtwarza te pomiary z błędem ±5% dla 9 z 11 biegów,
 //   przy 93-krotnej rozpiętości objętości domeny.
-const V_COEFF = 4.3;
-const V_EFF_MIN = 4;
-const V_EFF_MAX = 20;
 
-/** Prędkość charakterystyczna [m/s] z objętości domeny [m³]. */
-export function effectiveVelocity(domainVolumeM3: number, coeff = V_COEFF): number {
-  const L = Math.cbrt(Math.max(1e-6, domainVolumeM3));
-  return Math.min(V_EFF_MAX, Math.max(V_EFF_MIN, coeff * Math.cbrt(L)));
-}
 
 // Stały narzut na każdą siatkę obsługiwaną przez proces, wyrażony w
 // „komórkach-równoważnikach" doliczanych do obciążenia w każdym kroku:
@@ -64,6 +62,68 @@ export function effectiveVelocity(domainVolumeM3: number, coeff = V_COEFF): numb
 // Przy realnych modelach (dziesiątki tysięcy komórek na siatkę) to poprawka
 // rzędu procentów; ratuje wycenę dopiero przy modelach pociętych na drobno.
 export const MESH_OVERHEAD_CELLS = 1000;
+
+/** Wynik modelu kroku czasowego — komplet liczb, na ktorych stoi prognoza. */
+export interface TimestepEstimate {
+  /** Krok czasowy [s] przyjety do prognozy. */
+  dt: number;
+  /** Predkosc charakterystyczna w warunku CFL [m/s]. */
+  vEff: number;
+  /** Objetosc domeny [m3] — z pliku albo oszacowana z komorek. */
+  domainVolume: number;
+  /** Najmniejszy wymiar komorki [m] uzyty w rachunku. */
+  minDx: number;
+  /** Czy rozmiar komorki pochodzil z pliku, czy z zalozenia. */
+  cellDimSource: "file" | "assumed";
+}
+
+/**
+ * Krok czasowy dla modelu wejsciowego.
+ *
+ * Pierwszenstwo ma model WYUCZONY z zakonczonych biegow (lib/fds/timestep.ts),
+ * bo zna zaleznosci, ktorych wzor CFL nie obejmuje — przede wszystkim wplyw
+ * intensywnosci pozaru. Gdy kalibracja go nie ma (za malo biegow albo brak
+ * przewagi na walidacji), spada na wzor CFL ze wspolczynnikiem predkosci
+ * z kalibracji.
+ *
+ * `vEff` zostaje w wyniku jako wielkosc pogladowa: przy modelu wyuczonym jest
+ * ODCZYTANA z przewidzianego kroku (V = CFL*dx/dt), a nie uzyta do jego
+ * policzenia. Panel admina pokazuje ja dalej, zeby dalo sie porownac biegi.
+ */
+export function estimateTimestep(
+  input: {
+    minCellDim: number | null; domainVolume: number | null; totalCells: number;
+    meshCount?: number; hrrpua?: number | null; tEnd?: number | null; obstCount?: number | null;
+  },
+  cal: Calibration = DEFAULT_CALIBRATION
+): TimestepEstimate {
+  const cells = Math.max(1, input.totalCells);
+  const cellDimSource: "file" | "assumed" = input.minCellDim ? "file" : "assumed";
+  const minDx = input.minCellDim ?? DEFAULT_DX;
+  const domainVolume =
+    input.domainVolume && input.domainVolume > 0 ? input.domainVolume : cells * minDx ** 3;
+
+  const cechy = {
+    minCellDim: input.minCellDim,
+    domainVolume: input.domainVolume,
+    totalCells: cells,
+    meshCount: input.meshCount ?? 1,
+    hrrpua: input.hrrpua ?? null,
+    tEnd: input.tEnd ?? null,
+    obstCount: input.obstCount ?? null,
+  };
+
+  const model = cal.timestep ?? CFL_MODEL;
+  const dt =
+    model.kind === "learned"
+      ? predictTimestep(cechy, model)
+      : Math.max(DT_MIN, Math.min(cflTimestep(cechy, cal.vCoeff), DT_MAX));
+
+  // Odczytana wstecz z kroku — sluzy do wgladu, nie do rachunku.
+  const vEff = (0.8 * minDx) / Math.max(dt, 1e-9);
+
+  return { dt, vEff, domainVolume, minDx, cellDimSource };
+}
 
 /** Obciążenie procesu w komórkach-równoważnikach: komórki + narzut na siatki. */
 export function effectiveProcLoad(cells: number, meshes: number, procs: number): number {
@@ -92,6 +152,10 @@ export interface PlanInput {
   minCellDim: number | null;
   /** Objętość domeny [m³] — suma objętości siatek. Steruje prędkością w warunku CFL. */
   domainVolume: number | null;
+  /** Najwieksze HRRPUA w pliku [kW/m2] — intensywnosc pozaru, wchodzi do modelu kroku. */
+  hrrpua?: number | null;
+  /** Liczba przeszkod — cecha modelu kroku czasowego. */
+  obstCount?: number | null;
   ompThreads: number;
   /** Gdy plik sztywno przypisuje siatki do procesów (MPI_PROCESS), liczba procesów jest narzucona. */
   forcedProcs: number | null;
@@ -138,8 +202,10 @@ export interface RunPlan {
 
 export interface Calibration {
   perf: Record<ServerFamily, FamilyPerf>;
-  /** Współczynnik w prawie V = coeff · L^(1/3). */
+  /** Współczynnik w prawie V = coeff · L^(1/3) — model zapasowy. */
   vCoeff: number;
+  /** Model kroku czasowego wyuczony z historii; CFL_MODEL = brak, wzor zapasowy. */
+  timestep: TimestepModel;
   /** Mnożniki czasu wyznaczające widełki (dolna/górna krawędź względem mediany). */
   spreadLo: number;
   spreadHi: number;
@@ -150,6 +216,7 @@ export interface Calibration {
 export const DEFAULT_CALIBRATION: Calibration = {
   perf: FAMILY_PERF,
   vCoeff: V_COEFF,
+  timestep: CFL_MODEL,
   // Rozrzut reszt modelu na biegach FDSRun (n=11): 0,78 … 1,49 przy medianie
   // 0,96. Widełki celowo trochę szersze niż zmierzony zakres — współdzielone
   // rdzenie potrafią zwolnić bardziej, niż widzieliśmy do tej pory.
@@ -309,11 +376,18 @@ export function planRuns(input: PlanInput, opts: PlannerOptions = {}): PlanResul
 
   // Krok czasowy z warunku CFL, z prędkością zależną od skali modelu.
   // Gdy plik nie podaje XB, objętość szacujemy z liczby komórek i założonego dx.
-  const cellDimSource: "file" | "assumed" = input.minCellDim ? "file" : "assumed";
-  const minDx = input.minCellDim ?? DEFAULT_DX;
-  const volume = input.domainVolume && input.domainVolume > 0 ? input.domainVolume : cells * minDx ** 3;
-  const vEff = effectiveVelocity(volume, cal.vCoeff);
-  const dtEstimate = Math.max(DT_MIN, Math.min((CFL_FACTOR * minDx) / vEff, DT_MAX));
+  const { dt: dtEstimate, vEff, domainVolume: volume, cellDimSource } = estimateTimestep(
+    {
+      minCellDim: input.minCellDim,
+      domainVolume: input.domainVolume,
+      totalCells: cells,
+      meshCount: input.meshCount,
+      hrrpua: input.hrrpua ?? null,
+      tEnd: input.tEnd,
+      obstCount: input.obstCount ?? null,
+    },
+    cal
+  );
   const steps = tEnd / dtEstimate;
 
   const available = opts.availableTypes ? new Set(opts.availableTypes) : null;

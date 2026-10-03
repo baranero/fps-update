@@ -112,10 +112,28 @@ describe("progi produkcyjne", () => {
     expect(LIMITS.storage.limit).toBeLessThan(LIMITS.caseRead.limit);
   });
 
-  it("wszystkie liczą w oknie minutowym", () => {
+  it("każdy profil ma sensowne okno i dodatni limit", () => {
     for (const profil of Object.values(LIMITS)) {
-      expect(profil.windowMs).toBe(60_000);
+      // Okno od minuty do godziny: krótsze nie zdąży nic stłumić, dłuższe
+      // zaczyna karać zwykłego użytkownika za aktywność sprzed pół dnia.
+      expect(profil.windowMs).toBeGreaterThanOrEqual(60_000);
+      expect(profil.windowMs).toBeLessThanOrEqual(3_600_000);
       expect(profil.limit).toBeGreaterThan(0);
     }
+  });
+
+  it("operacje na zleceniach liczą w oknie minutowym", () => {
+    // Profile ruchu „w tle" (polling, magazyn, planer) muszą odnawiać się
+    // szybko — klient nie może czekać minut na kolejne odświeżenie.
+    for (const profil of [LIMITS.caseRead, LIMITS.storage, LIMITS.archive, LIMITS.publicPlan]) {
+      expect(profil.windowMs).toBe(60_000);
+    }
+  });
+
+  it("prośba o dostęp jest liczona w skali godziny, nie minuty", () => {
+    // To akcja wykonywana raz w życiu konta, a każda wysyła maila do
+    // właściciela — okno minutowe nie chroniłoby przed niczym.
+    expect(LIMITS.accessRequest.windowMs).toBe(3_600_000);
+    expect(LIMITS.accessRequest.limit).toBeLessThan(LIMITS.archive.limit);
   });
 });

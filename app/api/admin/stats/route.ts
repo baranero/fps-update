@@ -39,5 +39,22 @@ export async function GET() {
   const { data: usersData } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const userCount = usersData?.users?.length ?? 0;
 
-  return NextResponse.json({ counts: { ...counts, users: userCount }, recent: recent ?? [] });
+  // Konta czekające na zgodę na uruchamianie. Prośba bez odpowiedzi to klient,
+  // który chce zapłacić i nie może — dlatego liczy się na pulpicie razem
+  // z zawieszonymi zleceniami, a nie dopiero po wejściu w zakładkę.
+  // `head: true` — potrzebna jest sama liczba, nie wiersze.
+  const pendingAccess = await admin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("sim_access", "requested");
+
+  return NextResponse.json({
+    counts: {
+      ...counts,
+      users: userCount,
+      // Brak kolumny (nieuruchomiona migration_sim_access.sql) → 0, nie błąd.
+      accessRequests: pendingAccess.error ? 0 : pendingAccess.count ?? 0,
+    },
+    recent: recent ?? [],
+  });
 }

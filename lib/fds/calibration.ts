@@ -11,18 +11,29 @@
 // z każdym kolejnym biegiem — bez ręcznego strojenia stałych.
 
 import { createAdminClient } from "@/lib/supabase/server";
-import { FAMILY_PERF, getSpec, type ServerFamily, type FamilyPerf } from "@/lib/hetzner/catalog";
+import { FAMILY_PERF, getSpec, perProcThroughput, type ServerFamily, type FamilyPerf } from "@/lib/hetzner/catalog";
 import { DEFAULT_CALIBRATION, effectiveProcLoad, type Calibration } from "./planner";
+import { fitTimestepModel, predictTimestep, type TimestepSample } from "./timestep";
 
 /** Minimalna liczba biegów danej rodziny, by ufać zmierzonej przepustowości. */
 const MIN_SAMPLES_PER_FAMILY = 3;
 /** Minimalna liczba biegów, by ruszyć współczynnik prędkości. */
 const MIN_SAMPLES_V = 4;
+/** Minimalna liczba biegow, by widelki liczyc z danych zamiast z wartosci domyslnych. */
+const MIN_SAMPLES_SPREAD = 15;
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 export interface RunMeasurement {
   caseId: string;
+  /** Nazwa pliku FDS — po niej rozpoznaje sie zlecenie w diagnostyce. */
+  fileName: string | null;
+  /** Najwieksze HRRPUA z pliku [kW/m2]; null dla biegow sprzed zapisu tej kolumny. */
+  hrrpua: number | null;
+  /** Czas symulacji z pliku [s]. */
+  tEnd: number | null;
+  /** Liczba przeszkod w modelu. */
+  obstCount: number | null;
   serverType: string;
   family: ServerFamily;
   cores: number;
@@ -122,9 +133,11 @@ interface SubmissionRow {
   fds_log: string | null;
 }
 
-const FULL_COLUMNS = "case_id, server_type, mesh_count, mpi_procs, total_cells, min_cell_dim, domain_volume, fds_log";
+const FULL_COLUMNS = "case_id, t_end, obst_count, file_name, hrrpua, server_type, mesh_count, mpi_procs, total_cells, min_cell_dim, domain_volume, fds_log";
+/** Bez `hrrpua` — zestaw sprzed migration_hrrpua.sql, ale z pelna geometria. */
+const GEOMETRY_COLUMNS = "case_id, t_end, obst_count, file_name, server_type, mesh_count, mpi_procs, total_cells, min_cell_dim, domain_volume, fds_log";
 /** Zestaw sprzed migration_server_plan.sql — bez geometrii i liczby procesów. */
-const LEGACY_COLUMNS = "case_id, server_type, mesh_count, total_cells, fds_log";
+const LEGACY_COLUMNS = "case_id, t_end, obst_count, file_name, server_type, mesh_count, total_cells, fds_log";
 
 export async function collectMeasurements(limit = 200): Promise<RunMeasurement[]> {
   const supabase = createAdminClient();
@@ -138,12 +151,33 @@ export async function collectMeasurements(limit = 200): Promise<RunMeasurement[]
       .order("created_at", { ascending: false })
       .limit(limit);
 
-  let { data, error } = await query(FULL_COLUMNS);
+  // Kaskada zestawow kolumn, od najbogatszego. KOLEJNOSC MA ZNACZENIE i kazdy
+  // stopien schodzi o JEDNA rzecz: brak swiezo dodanej kolumny nie moze kasowac
+  // wszystkich pozostalych.
+  //
+  // Zdarzylo sie to juz raz: dopisanie `hrrpua` do zestawu pelnego zrzucalo
+  // odczyt od razu na LEGACY, czyli bez `min_cell_dim`, `domain_volume`
+  // i `mpi_procs`. Model kroku czasowego dostawal wtedy u KAZDEJ probki ten sam,
+  // podstawiony rozmiar komorki — i nie mial jak nauczyc sie zaleznosci od
+  // rozdzielczosci siatki, czyli od najwazniejszej cechy, jaka ma.
+  const brakKolumny = (msg: string) =>
+    /column .* does not exist|could not find the .* column/i.test(msg);
 
-  // Przed migracją planera brakuje części kolumn — wtedy uczymy się z tego, co
-  // jest: przepustowość maszyn wyjdzie, współczynnik prędkości zostanie domyślny.
-  if (error && /column .* does not exist|could not find the .* column/i.test(error.message)) {
+  let zestaw = "pelny";
+  let { data, error } = await query(FULL_COLUMNS);
+  if (error && brakKolumny(error.message)) {
+    zestaw = "bez hrrpua";
+    ({ data, error } = await query(GEOMETRY_COLUMNS));
+  }
+  if (error && brakKolumny(error.message)) {
+    zestaw = "zapasowy (bez geometrii)";
     ({ data, error } = await query(LEGACY_COLUMNS));
+  }
+  if (zestaw !== "pelny") {
+    console.warn(
+      `kalibracja: odczyt na zestawie "${zestaw}" — brakuje kolumn w bazie. ` +
+      "Model kroku czasowego uczy sie bez czesci cech; uruchom zalegle migracje."
+    );
   }
 
   if (error || !data) {
@@ -175,6 +209,10 @@ export async function collectMeasurements(limit = 200): Promise<RunMeasurement[]
 
     out.push({
       caseId: row.case_id,
+      fileName: (row as { file_name?: string | null }).file_name ?? null,
+      hrrpua: (row as { hrrpua?: number | null }).hrrpua ?? null,
+      tEnd: (row as { t_end?: number | null }).t_end ?? null,
+      obstCount: (row as { obst_count?: number | null }).obst_count ?? null,
       serverType: row.server_type,
       family,
       cores: spec.cores,
@@ -239,11 +277,69 @@ export function deriveCalibration(measurements: RunMeasurement[]): Calibration {
     vCoeff = median(coeffs);
   }
 
+  // Model kroku czasowego uczony wprost na zmierzonych krokach. Przejmuje
+  // prognoze, gdy wypadnie lepiej od wzoru CFL na danych odlozonych — inaczej
+  // zostaje CFL ze wspolczynnikiem `vCoeff` wyliczonym wyzej.
+  const probki: TimestepSample[] = measurements
+    .filter((m) => m.dtMean > 0)
+    .map((m) => ({
+      minCellDim: m.minCellDim,
+      domainVolume: m.domainVolume,
+      totalCells: m.totalCells,
+      meshCount: m.meshCount ?? 1,
+      hrrpua: m.hrrpua ?? null,
+      tEnd: m.tEnd,
+      obstCount: m.obstCount,
+      dt: m.dtMean,
+    }));
+  const timestep = fitTimestepModel(probki);
+
+  // ── Widelki prognozy ───────────────────────────────────────────────────────
+  //
+  // Dotad byly zakodowane na sztywno (0,75 ... 1,5) i nie mialy zwiazku z tym,
+  // jak model naprawde sie myli. Biegi ladowaly POZA pasmem, ktore mialo je
+  // obejmowac — a pasmo jest jedyna informacja, jaka klient dostaje o tym, ile
+  // prognoza moze sie rozjechac.
+  //
+  // Liczymy je teraz z realnych reszt: dla kazdego biegu sprawdzamy, ile razy
+  // dluzej (lub krocej) trwal niz mowilby model, i bierzemy 10. i 90. centyl
+  // tego rozkladu. Pasmo obejmuje wiec 80% biegow z historii.
+  const reszty: number[] = [];
+  for (const m of measurements) {
+    if (!(m.dtMean > 0) || !(m.fdsHours > 0) || m.mpiProcs < 1) continue;
+    const dt = predictTimestep(
+      {
+        minCellDim: m.minCellDim, domainVolume: m.domainVolume, totalCells: m.totalCells,
+        meshCount: m.meshCount ?? 1, hrrpua: m.hrrpua, tEnd: m.tEnd, obstCount: m.obstCount,
+      },
+      timestep
+    );
+    if (!(dt > 0)) continue;
+    const thr = perProcThroughput(m.family, m.mpiProcs, perf);
+    if (!(thr > 0)) continue;
+    const load = effectiveProcLoad(m.totalCells, m.meshCount ?? m.mpiProcs, m.mpiProcs);
+    const prognoza = ((m.reachedSimTime / dt) * load) / thr / 3600;
+    if (prognoza > 0) reszty.push(m.fdsHours / prognoza);
+  }
+
+  let spreadLo = DEFAULT_CALIBRATION.spreadLo;
+  let spreadHi = DEFAULT_CALIBRATION.spreadHi;
+  if (reszty.length >= MIN_SAMPLES_SPREAD) {
+    const posort = [...reszty].sort((a, b) => a - b);
+    const centyl = (q: number) =>
+      posort[Math.min(posort.length - 1, Math.max(0, Math.round(q * (posort.length - 1))))];
+    // Pasmo nigdy nie zwezamy ponizej zmierzonego — to byloby udawanie
+    // precyzji, ktorej model nie ma.
+    spreadLo = Math.min(DEFAULT_CALIBRATION.spreadLo, Math.max(0.1, centyl(0.1)));
+    spreadHi = Math.max(DEFAULT_CALIBRATION.spreadHi, Math.min(10, centyl(0.9)));
+  }
+
   return {
     perf,
     vCoeff,
-    spreadLo: DEFAULT_CALIBRATION.spreadLo,
-    spreadHi: DEFAULT_CALIBRATION.spreadHi,
+    timestep,
+    spreadLo,
+    spreadHi,
     samples: measurements.length,
     updatedAt: new Date().toISOString(),
   };

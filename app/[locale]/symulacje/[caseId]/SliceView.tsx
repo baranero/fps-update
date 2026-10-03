@@ -345,7 +345,7 @@ export default function SliceView({ slice, running, caseId, finished, fileUrl }:
             {crisp ? t("slice.smooth") : t("slice.crisp")}
           </button>
           {finished && !inAnim && !!sel.id && (
-            <button onClick={() => loadAnim(sel.id as string)} disabled={animLoading} className="rounded-panel border border-primary/40 bg-primary/5 px-2.5 py-1 text-fr-sm font-semibold text-primary hover:bg-primary/10 transition-colors disabled:opacity-60">
+            <button onClick={() => loadAnim(sel.id as string)} disabled={animLoading} className="rounded-panel border border-primary/40 bg-primary/5 px-2.5 py-1 text-fr-sm font-semibold text-accent hover:bg-primary/10 transition-colors disabled:opacity-60">
               {animLoading ? t("slice.loading") : t("slice.fullAnim")}
             </button>
           )}
@@ -390,7 +390,7 @@ export default function SliceView({ slice, running, caseId, finished, fileUrl }:
               </div>
             </div>
             <span className="mt-1.5 text-center text-fr-sm font-mono text-muted">{sel.unit ? `[${sel.unit}]` : ""}</span>
-            {active && <button onClick={() => { setLo(0); setHi(1); }} className="mt-1 text-fr-sm text-primary hover:underline">{t("slice.clearSel")}</button>}
+            {active && <button onClick={() => { setLo(0); setHi(1); }} className="mt-1 text-fr-sm text-accent hover:underline">{t("slice.clearSel")}</button>}
           </div>
         </div>
 
@@ -407,7 +407,7 @@ export default function SliceView({ slice, running, caseId, finished, fileUrl }:
               </span>
             </div>
             {running && !inAnim && !atLatest && (
-              <button onClick={() => { setPlaying(false); setFollow(true); }} className="mt-1.5 text-fr-sm font-semibold text-primary hover:underline">{t("slice.backToLive")}</button>
+              <button onClick={() => { setPlaying(false); setFollow(true); }} className="mt-1.5 text-fr-sm font-semibold text-accent hover:underline">{t("slice.backToLive")}</button>
             )}
           </div>
         )}

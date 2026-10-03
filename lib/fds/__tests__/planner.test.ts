@@ -40,10 +40,15 @@ describe("effectiveVelocity", () => {
     expect(duza).toBeLessThan(14);
   });
 
-  it("rośnie ze skalą modelu, ale zostaje w widełkach 4…20 m/s", () => {
+  it("rośnie ze skalą modelu i nie ma już sufitu 20 m/s", () => {
     expect(effectiveVelocity(1e-9)).toBeGreaterThanOrEqual(4);
-    expect(effectiveVelocity(1e12)).toBeLessThanOrEqual(20);
     expect(effectiveVelocity(10_000)).toBeGreaterThan(effectiveVelocity(10));
+    // Sufit 20 m/s kasował wynik kalibracji: ta wyliczała z logów wyższe V,
+    // a funkcja przycinała je z powrotem, przez co krok czasowy nie mógł zejść
+    // poniżej 0,8·dx/20 — stąd systematyczne niedoszacowanie czasu liczenia.
+    // V nie jest prędkością gazu, tylko wielkością zastępczą CFL·dx/dt, więc
+    // „fizycznie sensowny zakres" nigdy nie był tu właściwym ograniczeniem.
+    expect(effectiveVelocity(1e12)).toBeGreaterThan(20);
   });
 });
 

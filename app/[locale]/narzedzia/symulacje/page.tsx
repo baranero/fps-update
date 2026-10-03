@@ -1,9 +1,4 @@
-"use client";
-import { useEffect } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { legacyRedirectPage } from "@/lib/legacyRedirect";
 
-export default function SymulacjeRedirect() {
-  const router = useRouter();
-  useEffect(() => { router.replace("/symulacje"); }, [router]);
-  return null;
-}
+// Stary adres konta — dziś /symulacje (patrz lib/legacyRedirect.ts).
+export default legacyRedirectPage("/symulacje");

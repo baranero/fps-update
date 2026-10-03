@@ -52,7 +52,7 @@ export default async function CloudLanding() {
             <div className="shrink-0 pb-1 lg:text-right">
               <Link
                 href="/funkcje"
-                className="inline-flex items-center gap-1.5 font-mono text-fr-data text-muted transition-colors hover:text-primary"
+                className="inline-flex items-center gap-1.5 font-mono text-fr-data text-muted transition-colors hover:text-accent"
               >
                 {t("hero.sideLink")} <span aria-hidden>→</span>
               </Link>

@@ -162,7 +162,7 @@ export default function AdminInfra() {
           <div className="flex gap-6 text-right">
             <div>
               <p className="font-mono text-fr-micro uppercase text-muted">{t("burnNow")}</p>
-              <p className="fr-num font-heading text-fr-h3 text-primary">
+              <p className="fr-num font-heading text-fr-h3 text-accent">
                 {f.fmtEur(st.hourlyNet, 3)}<span className="font-mono text-fr-sm font-normal text-faint"> /h</span>
               </p>
             </div>
@@ -324,7 +324,7 @@ export default function AdminInfra() {
               </div>
               <div className="rounded-panel border border-hairline-soft bg-panel-deep p-3">
                 <p className="mb-1 font-mono text-fr-micro uppercase text-muted">{t("storageMonthly")}</p>
-                <p className="fr-num font-heading text-fr-h3 text-primary">{f.fmtEur(storage.monthlyCostEstimateEur)}</p>
+                <p className="fr-num font-heading text-fr-h3 text-accent">{f.fmtEur(storage.monthlyCostEstimateEur)}</p>
                 <p className="mt-0.5 font-mono text-fr-sm text-faint">{t("perTb", { price: f.fmtEur(data.pricePerTbEur) })}</p>
               </div>
             </div>

@@ -210,9 +210,14 @@ export function suggestDampers(): DamperComponent[] {
   return dampers;
 }
 
-export default {
+// Nazwany obiekt zamiast anonimowego literału w `export default` — inaczej
+// narzędzia (stack trace, devtools, autouzupełnianie importu) nie mają czego
+// pokazać poza nazwą pliku.
+const mechanicalComponents = {
   ventilators,
   dampers,
   suggestVentilators,
   suggestDampers,
 };
+
+export default mechanicalComponents;

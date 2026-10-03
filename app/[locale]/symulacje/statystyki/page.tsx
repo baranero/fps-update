@@ -7,7 +7,7 @@ import { useIsDark } from "@/components/Cloud/chartTheme";
 import { MonthlyBars, MonthlyVolume, ServerShare, StatusDonut } from "@/components/Cloud/charts";
 import { useTranslations } from "next-intl";
 import { useFormat } from "@/lib/format";
-import { EmptyState, Kpi, PageHead, SectionLabel, Shell, Skeleton } from "@/components/Cloud/ui";
+import { EmptyState, Kpi, PageHead, SectionLabel, Shell, Skeleton, PageStack } from "@/components/Cloud/ui";
 
 type Item = {
   case_id: string;
@@ -15,19 +15,19 @@ type Item = {
   created_at: string;
   price: number;
   wall_hours: number;
-  server_type: string | null;
+  server_label: string | null;
   total_cells: number;
 };
 
 function buildMonthlyData(items: Item[], locale: string) {
-  const map = new Map<string, { month: string; koszt: number; szt: number; godziny: number }>();
+  const map = new Map<string, { month: string; kwota: number; szt: number; godziny: number }>();
 
   const now = new Date();
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const label = d.toLocaleDateString(locale === "en" ? "en-GB" : "pl-PL", { month: "short", year: "2-digit" });
-    map.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), koszt: 0, szt: 0, godziny: 0 });
+    map.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), kwota: 0, szt: 0, godziny: 0 });
   }
 
   for (const item of items) {
@@ -36,7 +36,7 @@ function buildMonthlyData(items: Item[], locale: string) {
     if (map.has(key)) {
       const entry = map.get(key)!;
       entry.szt += 1;
-      entry.koszt += item.price;
+      entry.kwota += item.price;
       entry.godziny += item.wall_hours;
     }
   }
@@ -61,7 +61,7 @@ function buildStatusData(items: Item[], dark: boolean, ts: (k: string) => string
 function buildServerData(items: Item[]) {
   const map = new Map<string, number>();
   for (const item of items) {
-    const key = item.server_type ?? "nieznany";
+    const key = item.server_label ?? "—";
     map.set(key, (map.get(key) ?? 0) + 1);
   }
   return Array.from(map.entries())
@@ -139,7 +139,7 @@ export default function StatystykiPage() {
 
   return (
     <Shell>
-    <div className="space-y-10">
+    <PageStack>
 
       {head}
 
@@ -153,13 +153,13 @@ export default function StatystykiPage() {
 
       {/* Koszty po miesiącach */}
       <div>
-        <SectionLabel className="mb-4 block">{t("costByMonth")}</SectionLabel>
-        <MonthlyBars data={monthly} dataKey="koszt" tipLabel={t("cost")} format={(v) => f.fmtPrice(v, { decimals: true })} />
+        <SectionLabel className="mb-3 block">{t("costByMonth")}</SectionLabel>
+        <MonthlyBars data={monthly} dataKey="kwota" tipLabel={t("cost")} format={(v) => f.fmtPrice(v, { decimals: true })} />
       </div>
 
       {/* Liczba symulacji + godziny */}
       <div>
-        <SectionLabel className="mb-4 block">{t("simsAndTime")}</SectionLabel>
+        <SectionLabel className="mb-3 block">{t("simsAndTime")}</SectionLabel>
         <MonthlyVolume data={monthly} gradientId="stats" countLabel={t("sims")} />
       </div>
 
@@ -168,19 +168,19 @@ export default function StatystykiPage() {
 
         {/* Rozkład statusów */}
         <div>
-          <SectionLabel className="mb-4 block">{t("statusSplit")}</SectionLabel>
+          <SectionLabel className="mb-3 block">{t("statusSplit")}</SectionLabel>
           <StatusDonut data={statuses} total={items.length} />
         </div>
 
         {/* Serwery */}
         <div>
-          <SectionLabel className="mb-4 block">{t("serverType")}</SectionLabel>
+          <SectionLabel className="mb-3 block">{t("serverType")}</SectionLabel>
           <ServerShare data={servers} total={items.length} />
         </div>
 
       </div>
 
-    </div>
+    </PageStack>
     </Shell>
   );
 }

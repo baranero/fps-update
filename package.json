@@ -10,7 +10,17 @@
     "postbuild": "next-sitemap",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preflight": "vite-node --config vitest.config.ts scripts/preflight.ts",
+    "sprawdz-baze": "vite-node --config vitest.config.ts scripts/sprawdz-baze.ts",
+    "env:przyklad": "vite-node --config vitest.config.ts scripts/generuj-env-przyklad.ts",
+    "przelicz-ceny": "vite-node --config vitest.config.ts scripts/przelicz-ceny.ts",
+    "przelicz-ceny:zapisz": "vite-node --config vitest.config.ts scripts/przelicz-ceny.ts --zapisz",
+    "przelicz-ceny:podloga": "vite-node --config vitest.config.ts scripts/przelicz-ceny.ts --podloga=2",
+    "przelicz-ceny:podloga:zapisz": "vite-node --config vitest.config.ts scripts/przelicz-ceny.ts --podloga=2 --zapisz",
+    "diagnoza-estymacji": "vite-node --config vitest.config.ts scripts/diagnoza-estymacji.ts",
+    "uzupelnij-cechy": "vite-node --config vitest.config.ts scripts/uzupelnij-cechy.ts",
+    "uzupelnij-cechy:zapisz": "vite-node --config vitest.config.ts scripts/uzupelnij-cechy.ts --zapisz"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.726.1",
@@ -19,7 +29,6 @@
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
-    "@react-email/render": "^2.0.8",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.106.0",
     "@vercel/analytics": "^2.0.1",
@@ -27,10 +36,8 @@
     "client-zip": "^2.5.0",
     "docx": "^9.6.1",
     "eslint-config-next": "^15.5.25",
-    "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
-    "jszip": "^3.10.1",
     "next": "^15.5.25",
     "next-intl": "^3.26.5",
     "next-sitemap": "^4.2.3",
@@ -50,12 +57,12 @@
     "@types/react": "^18.2.33",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.57.1",
-    "gh-pages": "^6.3.0",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.6",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
+    "vite-node": "^2.1.9",
     "vitest": "^2.1.9"
   }
 }

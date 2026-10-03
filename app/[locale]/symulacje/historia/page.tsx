@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
 import { useFormat } from "@/lib/format";
-import { Btn, Chip, EmptyState, FilterTabs, PageHead, Shell, cardCls, inputSmCls } from "@/components/Cloud/ui";
+import { Btn, Chip, EmptyState, FilterTabs, PageHead, Shell, cardCls, inputSmCls, PageStack } from "@/components/Cloud/ui";
 
 type Submission = {
   case_id: string;
@@ -15,7 +15,7 @@ type Submission = {
   created_at: string;
   price: number;
   wall_hours: number;
-  server_type: string | null;
+  server_label: string | null;
   mesh_count: number;
   total_cells: number;
 };
@@ -154,8 +154,8 @@ export default function HistoriaSymulacjiPage() {
   ).filter((tab) => tab.id === "all" || tab.count > 0);
 
   return (
-    <Shell width="md">
-        <div className="space-y-8">
+    <Shell>
+        <PageStack>
 
           <PageHead
             kicker="FDSRUN // ARCHIWUM ZLECEŃ"
@@ -201,7 +201,7 @@ export default function HistoriaSymulacjiPage() {
             <EmptyState text={t("empty")} cta={{ href: "/symulacje/nowa", label: t("emptyCta") }} />
           ) : (
             <>
-            {deleteError && <p className="text-fr-sm text-primary">{deleteError}</p>}
+            {deleteError && <p className="text-fr-sm text-accent">{deleteError}</p>}
 
             {/* Filtr: aktywne vs zakończone */}
             <FilterTabs tabs={TABS} active={filter} onPick={(id) => setFilter(id)} label={t("filterLabel")} />
@@ -258,7 +258,7 @@ export default function HistoriaSymulacjiPage() {
                             </p>
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
                               <span>{s.case_id}</span>
-                              {s.server_type && <span className="uppercase">{s.server_type}</span>}
+                              {s.server_label && <span>{s.server_label}</span>}
                               <span>
                                 {t("meshes", { count: s.mesh_count })} · {f.fmtCells(s.total_cells)} {t("cellsWord")}
                               </span>
@@ -279,7 +279,7 @@ export default function HistoriaSymulacjiPage() {
                             </p>
                           </div>
 
-                          <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                           </svg>
                         </Link>
@@ -287,7 +287,7 @@ export default function HistoriaSymulacjiPage() {
                         <button
                           onClick={(e) => { e.preventDefault(); setConfirmDelete(s.case_id); setDeleteError(null); }}
                           title={t("deleteTitle")}
-                          className="shrink-0 rounded-tile p-1.5 text-faint transition-colors hover:bg-primary/10 hover:text-primary"
+                          className="shrink-0 rounded-tile p-1.5 text-faint transition-colors hover:bg-primary/10 hover:text-accent"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -306,7 +306,7 @@ export default function HistoriaSymulacjiPage() {
             </>
           )}
 
-        </div>
+        </PageStack>
     </Shell>
   );
 }

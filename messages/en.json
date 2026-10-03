@@ -30,7 +30,8 @@
       "signUp": "Sign up",
       "toolsPanel": "Tools panel",
       "myProfile": "Profile"
-    }
+    },
+    "loading": "Loading page…"
   },
   "cfdNav": {
     "brand": "CFD Cloud",
@@ -91,7 +92,7 @@
   "cloudFeatures": {
     "metadata": {
       "title": "Features — CFD/FDS computing in the cloud | FDSRun",
-      "description": "FDS on dedicated servers, automatic hardware sizing, a cost estimator, live result previews and full result downloads. All without infrastructure of your own."
+      "description": "FDS on dedicated servers, automatic power matching, a price before you start, live result preview and a full file download. All without your own infrastructure."
     },
     "badge": "Features",
     "title": "Everything you need to run CFD",
@@ -101,8 +102,8 @@
       "f1Desc": "Run the Fire Dynamics Simulator solver on dedicated servers — no installation, no MPI configuration, no limits imposed by your own hardware.",
       "f2Title": "Automatic server sizing",
       "f2Desc": "The system reads the mesh and core count from your .fds file and picks a machine to match. You never pay for cores you cannot use.",
-      "f3Title": "Cost estimator",
-      "f3Desc": "Before anything starts, upload the file and see the estimated runtime and cost within seconds. The estimate runs in your browser, no account needed.",
+      "f3Title": "Price before you start",
+      "f3Desc": "Before anything runs, upload the file and see the estimated time and price in seconds. The quote is computed in your browser, with no account.",
       "f4Title": "Live result preview",
       "f4Desc": "DEVC/HRR charts and slice planes update while the solver runs — you can tell whether the scenario is heading the right way long before it finishes.",
       "f5Title": "Complete results to download",
@@ -114,32 +115,32 @@
   "cloudPricing": {
     "metadata": {
       "title": "Pricing — pay for what you use | FDSRun",
-      "description": "No subscription. The cost of a CFD simulation follows the compute time and the power of the server we pick. Get the exact price for your .fds file in the estimator, no account required."
+      "description": "No subscription. You see the price of a CFD simulation before it starts — it depends on model size and computation time. Get the exact quote for your .fds file without an account."
     },
     "badge": "Pricing",
     "title": "You pay for actual usage",
-    "lead": "No subscription, no standing fees. The cost follows the compute time and the power of the server we pick — exactly as much as your simulation took.",
-    "modelHeading": "How we calculate the cost",
+    "lead": "No subscription, no fixed fees. The price depends on model size and computation time — you pay for this one simulation, exactly.",
+    "modelHeading": "What the price depends on",
     "model": {
-      "m1Title": "Server power",
-      "m1Desc": "The more meshes and cores your file needs, the stronger the machine and the higher the hourly rate. Sizing is automatic.",
-      "m2Title": "Compute time",
-      "m2Desc": "You pay for the actual solver runtime — from start to finish — not for a full day of server rental.",
+      "m1Title": "Model size",
+      "m1Desc": "The more cells and meshes, the larger the machine we assign and the higher the price. Matching is automatic — you configure nothing.",
+      "m2Title": "Computation time",
+      "m2Desc": "You pay for the actual computing time — from start to finish. A shorter simulation means a lower price.",
       "m3Title": "No subscription",
-      "m3Desc": "Zero standing fees, zero commitments. No runs, no charges. Ideal for irregular project work."
+      "m3Desc": "No fixed fees and no commitments. You do not compute — you do not pay. Ideal for irregular projects."
     },
     "examplesHeading": "Example quotes",
-    "examplesNote": "Indicative only — the estimator gives the exact price for your file.",
+    "examplesNote": "Indicative, for the economy and the fastest variant — the exact price for your file comes from the quote.",
     "examples": {
-      "e1Name": "Stairwell",
-      "e1Spec": "~3M cells · T_END 900 s",
-      "e1Price": "~PLN 80–120",
+      "e1Name": "Staircase",
+      "e1Spec": "~0.8M cells · T_END 1200 s",
+      "e1Price": "~PLN 25–60",
       "e2Name": "Underground car park",
-      "e2Spec": "~8M cells · T_END 1200 s",
-      "e2Price": "~PLN 250–400",
-      "e3Name": "Large facility",
-      "e3Spec": "~20M cells · T_END 1800 s",
-      "e3Price": "~PLN 600–900"
+      "e2Spec": "~2.5M cells · T_END 1500 s",
+      "e2Price": "~PLN 120–270",
+      "e3Name": "Large building",
+      "e3Spec": "~5M cells · T_END 1200 s",
+      "e3Price": "~PLN 190–570"
     },
     "includedHeading": "Included",
     "included": {
@@ -150,19 +151,19 @@
       "i5": "Email status notifications",
       "i6": "History and invoicing details"
     },
-    "ctaTitle": "Find out what your file will cost",
-    "ctaLead": "Upload the .fds — the estimator works out the runtime and price in seconds, with no account and no commitment."
+    "ctaTitle": "See the exact price for your file",
+    "ctaLead": "Upload a .fds file — the quote gives you time and price in seconds, with no account and no commitment."
   },
   "cloudSpotlight": {
     "badge": "CFD Cloud",
     "titleStart": "FDS computing",
     "titleAccent": "without infrastructure of your own",
-    "lead": "Upload a .fds file — you get an estimated cost, the run happens in the cloud and the results come back to you. You pay only for the compute time and result storage you actually use.",
+    "lead": "Upload a .fds file — you will see the estimated price, then the computation runs in the cloud and comes back to you with results. You pay only for the actual computation time and result storage.",
     "cta": "Go to FDSRun ↗",
     "separateNote": "This is a separate computing service — the CFD cloud lives at fdsrun.com.",
     "steps": {
       "s1Title": "Upload the .fds file",
-      "s1Desc": "Your model is analysed locally in the browser — you see the estimated cost before the file is sent anywhere.",
+      "s1Desc": "The model is analysed locally in your browser — you see the estimated price before the file is even sent.",
       "s2Title": "Confirm and pay",
       "s2Desc": "The system picks the optimal server and starts the run. You follow progress live — the log refreshes every 5 seconds.",
       "s3Title": "Download the results",
@@ -234,20 +235,20 @@
   "cloudLanding": {
     "metadata": {
       "title": "FDSRun — FDS fire simulations in the cloud",
-      "description": "Upload your FDS input file, see the cost within seconds and run the solver on cloud servers. Quotes without an account, billing based on actual usage."
+      "description": "Upload your FDS input file, see the price in seconds and run the computation on cloud servers. Quote without an account, pay for actual usage."
     },
     "panelCaption": "Illustrative job · payment after the run completes",
     "finalCta": {
       "title": "Price it and run your first simulation",
-      "lead": "Upload a .fds file — you will see the cost within seconds, no account required. You pay for the server time you actually use.",
-      "line1": "Price the run.",
+      "lead": "Upload a .fds file — you will see the price in seconds, with no account needed. You pay for the actual computation time.",
+      "line1": "See the price.",
       "line2": "Start the simulation.",
       "contact": "Write to us"
     },
     "hero": {
       "line1": "FDS fire simulations",
       "line2": "computed in the cloud",
-      "lead": "Upload a .fds file — you will see an estimated cost within seconds, before you commit to running anything. The simulation runs in the cloud and you only pay for the compute time it actually takes.",
+      "lead": "Upload a .fds file — in seconds you will see the estimated price of the computation, before you decide to run anything. The simulation runs in the cloud and you pay only for the actual computation time.",
       "ctaSecondary": "See pricing",
       "sideLink": "Full feature list"
     },
@@ -261,7 +262,7 @@
       "remainingVal": "41",
       "remainingUnit": "min",
       "etaSub": "finishes around 14:32",
-      "cost": "ESTIMATED COST",
+      "cost": "ESTIMATED PRICE",
       "costVal": "88 PLN",
       "costSub": "net · billed by actual computation time",
       "modelNote": "3.24M cells · 15 meshes · 0.84 ms step",
@@ -284,7 +285,7 @@
       "log3": "SERVER STARTED"
     },
     "figures": {
-      "title": "Computing without a server room of your own. Anatomy of a single job.",
+      "title": "Computing without a server room of your own. From the .fds file to the result.",
       "f1Caption": "FIG 0.1 / MODEL PARTITIONING",
       "f1Title": "Meshes from the .fds file",
       "f1Desc": "We read the &MESH sections and count the cells in each one — that is the basis for both the estimate and the machine sizing.",
@@ -293,7 +294,13 @@
       "f2Desc": "Meshes go to separate MPI processes on a dedicated server. No queue, no resource sharing.",
       "f3Caption": "FIG 0.3 / FIRE DEVELOPMENT",
       "f3Title": "HRR curve and simulated time",
-      "f3Desc": "The &TIME and &REAC sections give the simulated duration, and the CFL condition gives the real compute time."
+      "f3Desc": "The &TIME and &REAC sections give the simulated duration, and the CFL condition gives the real compute time.",
+      "f1Note": "&MESH ×4 // IJK 60,40,60",
+      "f1Tag": "DX 0.10 m // 576,000 cells",
+      "f2Note": "4 meshes // 4 cores",
+      "f2Tag": "MPI // 4 ranks",
+      "f3Note": "&TIME T_END = 900 s",
+      "f3Tag": "α·t² // fast fire"
     },
     "parser": {
       "badge": "Quote",
@@ -302,14 +309,14 @@
       "points": {
         "p1": "The &MESH, &TIME and &REAC sections plus model elements (&OBST, &VENT, &DEVC) are read without uploading the file.",
         "p2": "Runtime estimated from the CFL condition and a throughput of ~240,000 cell-timesteps/s per core.",
-        "p3": "You see the cost before the start — no subscription, no account."
+        "p3": "You see the price before you start — no subscription, no account."
       },
       "panel": {
         "file": "FILE",
         "cells": "CELLS",
         "note1": "LOCAL ANALYSIS // FILE NEVER LEAVES THE BROWSER",
         "note2": "ESTIMATE FROM THE CFL CONDITION",
-        "cost": "ESTIMATED COST",
+        "cost": "ESTIMATED PRICE",
         "costValue": "PLN 87"
       }
     },
@@ -347,7 +354,7 @@
     "stages": {
       "s1Meta": "STATUS: ACTIVE",
       "s1Title": "Quote",
-      "s1Desc": "Cells and the estimated cost are worked out locally in your browser.",
+      "s1Desc": "Cells and the estimated price computed locally in your browser.",
       "s1Stat": "NO ACCOUNT // NO UPLOAD",
       "s2Meta": "STEP 02",
       "s2Title": "Confirmation",
@@ -469,7 +476,7 @@
     "newSim": "New simulation",
     "kpiTotal": "Simulations total",
     "kpiActive": "Running",
-    "kpiSpent": "Cost (completed)",
+    "kpiSpent": "Spend (completed)",
     "kpiToPay": "Due",
     "activeTitle": "Simulations in progress",
     "activeLive": "live",
@@ -487,11 +494,16 @@
     "scHistoryTitle": "History",
     "scHistoryDesc": "Every job — active and completed.",
     "scBillingTitle": "Billing",
-    "scBillingDesc": "Costs, invoices and CSV export.",
+    "scBillingDesc": "Payments, invoices and CSV export.",
     "scStatsTitle": "Statistics",
-    "scStatsDesc": "Cost and compute time over time.",
+    "scStatsDesc": "Spend and compute time over time.",
     "scInvoiceTitle": "Invoicing details",
-    "scInvoiceDesc": "One set of billing details for everything."
+    "scInvoiceDesc": "One set of billing details for everything.",
+    "invoiceNudgeTitle": "Complete your invoice details",
+    "invoiceNudgeLead": "You have finished simulations, but the buyer details are incomplete — we cannot issue an invoice without them.",
+    "invoiceNudgeCta": "Complete details",
+    "activeRealProgress": "Computation progress",
+    "activeSimTime": "{done} / {total} s"
   },
   "symHistory": {
     "back": "← CFD Cloud",
@@ -540,7 +552,7 @@
   "symulacje": {
     "badge": "CFD Cloud",
     "title": "FDS simulations in the cloud",
-    "lead": "Upload your FDS input file — we show an estimated cost and start the run. You pay only for the compute time and result storage you actually use, with no subscription.",
+    "lead": "Upload your FDS input file — we will show the estimated price and run the computation. You pay only for the actual computation time and result storage, with no subscription.",
     "historyLink": "Simulation history",
     "trust": {
       "vm": "A dedicated VM per job",
@@ -584,8 +596,8 @@
       "heading": "Frequently asked questions",
       "q1": "Which files are supported?",
       "a1": "FDS input files with the .fds extension. We read the &MESH, &TIME and &REAC sections plus model elements (&OBST, &VENT, &DEVC) directly in your browser.",
-      "q2": "What does it cost and when do I pay?",
-      "a2": "You pay for actual compute time and result storage — no subscription, no standing fees. You see the estimated cost before the run starts, and payment (Stripe, BLIK, Przelewy24) happens after the computation finishes. A VAT invoice is available in your account.",
+      "q2": "What is the price and when do I pay?",
+      "a2": "The price depends on model size and the actual computation time — no subscription, no fixed fees. You see the estimated price before starting, and payment (Stripe, BLIK, Przelewy24) follows once the computation finishes. A VAT invoice is available in your panel.",
       "q3": "How long does a run take?",
       "a3": "It depends on the cell count and the simulated duration. We show a runtime estimate with the quote, based on the CFL condition and a throughput of ~240,000 cell-timesteps/s per core. Every job gets its own dedicated compute server.",
       "q4": "Can I run several simulations at once?",
@@ -622,7 +634,7 @@
       "dt": "Time step Δt",
       "dtFromFile": "from the file (dx={dx} cm)",
       "dtAssumed": "assuming dx = 10 cm",
-      "costLabel": "Estimated cost",
+      "costLabel": "Estimated price",
       "costSub": "net · payable after the run",
       "note": "This is a preliminary estimate. The final price is charged once the run finishes, based on the server time and result storage actually used. You pay only for finished results.",
       "serverSubPending": "selecting a machine…",
@@ -639,7 +651,8 @@
       "back": "Back",
       "genericError": "Something went wrong. Please try again.",
       "networkError": "No connection to the server. Please try again.",
-      "fallbackName": "User"
+      "fallbackName": "User",
+      "invoiceRequired": "Complete and save your invoice details to place the order."
     },
     "done": {
       "title": "Job accepted",
@@ -654,15 +667,6 @@
       "zakonczone": "Completed",
       "blad": "Error"
     },
-    "restricted": {
-      "badge": "Coming soon",
-      "title": "CFD simulations in the cloud — coming soon",
-      "lead": "Running CFD/FDS computations straight from your account is in the final stages of preparation. We will open it up shortly.",
-      "body": "Want early access? Write or call and we will enable it on your account.",
-      "emailCta": "Write to us",
-      "phoneCta": "Call us",
-      "back": "← Back to dashboard"
-    },
     "parseErrors": {
       "unreadable": "The structure of the FDS file could not be read.",
       "noNamelists": "The file contains no FDS namelists. Check that the file is valid.",
@@ -671,7 +675,7 @@
     },
     "picker": {
       "heading": "Compute mode",
-      "lead": "The same model runs faster on a larger machine or cheaper on a smaller one. Pick what matters more to you — the results are identical, only time and cost differ.",
+      "lead": "The same model computes faster on a bigger machine or cheaper on a smaller one. Pick what matters more to you — the result is identical, only time and price differ.",
       "meshes": "{count} meshes in the model",
       "tier": {
         "eco": "Economy",
@@ -692,9 +696,39 @@
         "hardware": "Machine",
         "split": "Work split",
         "time": "Time",
-        "cost": "Estimated cost"
+        "cost": "Estimated price"
       },
       "allNote": "The list includes every available machine that fits this model — not just the recommended picks above. Time is an estimate — billing follows actual compute time."
+    },
+    "gate": {
+      "anon": {
+        "title": "Your estimate is ready — now create an account",
+        "lead": "Computations run from an account: that is where results, job history and invoices land. Signing up takes a minute, and you pay only after the run, based on actual usage.",
+        "signUp": "Create an account",
+        "signIn": "I already have one",
+        "keep": "Your estimate stays on screen — signing in brings you back to this exact point."
+      },
+      "request": {
+        "title": "Request permission to run",
+        "lead": "Every job starts a dedicated compute machine and is billed after the run, so we switch access on by hand. Tell us in two sentences what you are working on; we usually reply the same day.",
+        "noteLabel": "What are you working on? (optional)",
+        "notePlaceholder": "E.g. smoke extraction in an underground car park, 2.1M cells, due Friday.",
+        "submit": "Request access",
+        "sending": "Sending…",
+        "error": "The request could not be sent. Try again or email biuro@fp-solutions.pl."
+      },
+      "pending": {
+        "title": "Your request is being reviewed",
+        "lead": "We have your request. We will email you as soon as running is enabled on this account — usually the same business day.",
+        "hint": "In the meantime keep estimating: file analysis has no limits."
+      },
+      "blocked": {
+        "title": "Running is not available on this account",
+        "lead": "Get in touch and we will explain the situation and agree on next steps."
+      },
+      "emailCta": "Write to us",
+      "phoneCta": "Call us",
+      "back": "Back"
     }
   },
   "profile": {
@@ -722,7 +756,7 @@
       "billingTitle": "Billing",
       "billingDesc": "Invoices and payment history for your simulations.",
       "statsTitle": "Statistics",
-      "statsDesc": "Resource usage and a cost summary."
+      "statsDesc": "Resource usage and spend summary."
     },
     "billing": {
       "title": "Billing model",
@@ -733,23 +767,104 @@
       "cta": "Billing →"
     },
     "invoice": {
-      "title": "Invoicing details",
-      "subtitle": "Used automatically when invoices for simulations are issued.",
+      "title": "Invoice details",
+      "subtitle": "Used to invoice your simulations. The required fields follow art. 106e of the Polish VAT Act — without them an invoice cannot be issued.",
+      "completeness": "Data completeness",
+      "completeYes": "Ready to invoice",
+      "completeNo": "{filled} of {total} filled",
+      "buyerType": "Who is the buyer",
+      "buyer": {
+        "company": "Company in Poland",
+        "person": "Private individual",
+        "eu": "Company in the EU",
+        "nonEu": "Company outside the EU"
+      },
+      "buyerDesc": {
+        "company": "Invoice with tax ID and 23% VAT.",
+        "person": "No tax ID, invoice on request.",
+        "eu": "EU VAT number, reverse charge.",
+        "nonEu": "Outside the scope of Polish VAT."
+      },
+      "company": "Company name",
       "fullName": "Full name",
-      "company": "Company",
-      "nip": "VAT ID",
-      "nipHint": "Digits only, no dashes.",
+      "contactPerson": "Contact person",
+      "nip": "Tax ID (NIP)",
+      "nipHint": "10 digits. We verify the checksum, so a typo will not pass.",
+      "vatId": "EU VAT number",
+      "vatIdHint": "With the country prefix, e.g. DE123456789.",
+      "addressSection": "Address",
+      "street": "Street and number",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country",
       "phone": "Phone",
-      "address": "Address",
+      "optional": "(optional)",
+      "phCompany": "Fire Protection Ltd.",
+      "phFullName": "John Smith",
+      "phNip": "123-456-32-18",
+      "phVatId": "DE123456789",
+      "phStreet": "1 Example Street",
+      "phPostal": "Postal code",
+      "phCity": "Warsaw",
+      "phPhone": "+48 600 100 200",
+      "err": {
+        "required": "This field is required on the invoice.",
+        "nipInvalid": "Invalid tax ID — check the digits.",
+        "vatIdInvalid": "Invalid EU VAT number. Include the country prefix.",
+        "postalInvalid": "Postal code must look like 00-000."
+      },
+      "vatTitle": "VAT treatment",
+      "vat": {
+        "standard": "23% VAT is added to the net price.",
+        "reverseCharge": "Reverse charge — VAT is settled by the buyer in their own country (art. 28b of the Polish VAT Act). We issue the invoice without VAT.",
+        "outOfScope": "Outside the scope of Polish VAT — invoice issued without tax."
+      },
+      "preview": "How it will appear on the invoice",
+      "legalBasis": "Visible only to you and our accounting.",
+      "incomplete": "Complete the highlighted fields — an invoice cannot be issued without them.",
       "save": "Save details",
       "saving": "Saving…",
       "savedOk": "Your details have been saved.",
       "saveErr": "Could not save. Please try again.",
-      "phFullName": "John Smith",
-      "phCompany": "Fire Protection Ltd.",
-      "phNip": "0000000000",
-      "phPhone": "+48 000 000 000",
-      "phAddress": "1 Example St, 00-000 Warsaw"
+      "country_": {
+        "PL": "Poland",
+        "DE": "Germany",
+        "CZ": "Czechia",
+        "SK": "Slovakia",
+        "LT": "Lithuania",
+        "LV": "Latvia",
+        "EE": "Estonia",
+        "AT": "Austria",
+        "NL": "Netherlands",
+        "BE": "Belgium",
+        "FR": "France",
+        "ES": "Spain",
+        "IT": "Italy",
+        "SE": "Sweden",
+        "DK": "Denmark",
+        "FI": "Finland",
+        "IE": "Ireland",
+        "PT": "Portugal",
+        "RO": "Romania",
+        "BG": "Bulgaria",
+        "HR": "Croatia",
+        "HU": "Hungary",
+        "SI": "Slovenia",
+        "GR": "Greece",
+        "CY": "Cyprus",
+        "LU": "Luxembourg",
+        "MT": "Malta",
+        "GB": "United Kingdom",
+        "NO": "Norway",
+        "CH": "Switzerland",
+        "UA": "Ukraine",
+        "US": "United States",
+        "AE": "United Arab Emirates"
+      },
+      "gateRequired": "Required for invoicing",
+      "gateEdit": "Edit details",
+      "gateHide": "Collapse",
+      "gateLead": "Complete the buyer details — without them we cannot invoice this job. You enter them once; later orders reuse the same details."
     },
     "security": {
       "title": "Security",
@@ -775,9 +890,9 @@
     }
   },
   "billing": {
-    "kicker": "FDSRUN // COSTS AND INVOICES",
+    "kicker": "FDSRUN // PAYMENTS & INVOICES",
     "title": "Billing",
-    "lead": "The cost history of FDS runs linked to your account.",
+    "lead": "Payment history for FDS computations linked to your account.",
     "back": "Dashboard",
     "exportCsv": "Export CSV",
     "invoiceData": "Invoicing details",
@@ -786,13 +901,9 @@
     "signIn": "Sign in",
     "noJobs": "No simulations ordered yet.",
     "firstJob": "Submit your first job",
-    "kpiTotal": "Total amount (completed)",
-    "kpiDone": "Completed simulations",
-    "kpiActive": "Simulations running",
+    "kpiTotal": "Net total",
     "net": "net",
     "jobsCount": "{n, plural, one {job} other {jobs}}",
-    "active": "active",
-    "noActive": "none active",
     "filterLabel": "Billing filter",
     "noneForFilter": "No results for this filter.",
     "cells": "{n} cells",
@@ -809,8 +920,27 @@
       "server": "Server",
       "cells": "Cells",
       "time": "Compute time",
-      "amount": "Net amount (PLN)"
-    }
+      "amount": "Net amount (PLN)",
+      "vatRate": "VAT rate",
+      "gross": "Gross amount (PLN)"
+    },
+    "kpiVat": "VAT {rate}%",
+    "kpiVatNone": "VAT",
+    "kpiGross": "Gross total",
+    "kpiToPay": "Outstanding",
+    "gross": "gross",
+    "allPaid": "all settled",
+    "activeNote": "{n, plural, one {One job is} other {# jobs are}} still running — the final amount appears once the computation finishes.",
+    "vatNote": {
+      "standard": "added to the net price",
+      "reverseCharge": "reverse charge",
+      "outOfScope": "outside the scope of Polish VAT"
+    },
+    "invoiceIncompleteTitle": "Complete your invoice details",
+    "invoiceIncompleteLead": "You have jobs to settle, but the buyer details are incomplete — we cannot issue an invoice without them.",
+    "invoiceIncompleteCta": "Complete details",
+    "payNow": "Pay",
+    "paying": "Redirecting…"
   },
   "stats": {
     "kicker": "FDSRUN // USAGE",
@@ -823,12 +953,12 @@
     "emptyCta": "Submit a job",
     "kpiTotal": "Simulations total",
     "kpiTotalSub": "{n} completed",
-    "kpiCost": "Total net cost",
+    "kpiCost": "Net total",
     "kpiTime": "Total compute time",
-    "kpiAvg": "Avg. cost / sim.",
+    "kpiAvg": "Avg. price / sim.",
     "doneSub": "completed",
-    "costByMonth": "Net cost by month (PLN)",
-    "cost": "Cost",
+    "costByMonth": "Net spend by month (PLN)",
+    "cost": "Price",
     "simsAndTime": "Simulations and compute time by month",
     "sims": "Simulations",
     "statusSplit": "Status breakdown",
@@ -862,13 +992,15 @@
       "users": "Users",
       "infra": "Infrastructure",
       "label": "Panel sections",
-      "calibration": "Calibration"
+      "calibration": "Calibration",
+      "margin": "Margin"
     },
     "attention": {
       "title": "Needs attention",
       "pending": "{n, plural, one {# pending} other {# pending}}",
       "failed": "{n, plural, one {# with an error} other {# with errors}}",
-      "unpaid": "{amount} due"
+      "unpaid": "{amount} due",
+      "accessRequests": "{n, plural, one {# access request} other {# access requests}}"
     },
     "kpi": {
       "all": "All",
@@ -897,7 +1029,10 @@
       "lastSignIn": "Last sign-in",
       "sims": "Simulations",
       "done": "Completed",
-      "revenue": "Revenue"
+      "revenue": "Revenue",
+      "taxId": "Tax ID / city",
+      "invoiceState": "Invoice details",
+      "access": "Running"
     },
     "filterStatus": "Status filter",
     "searchSims": "Search: case_id, email, file…",
@@ -932,7 +1067,15 @@
       "nip": "VAT ID",
       "phone": "Phone",
       "address": "Address",
-      "updated": "Updated"
+      "updated": "Updated",
+      "buyerType": "Buyer type",
+      "addressBlock": "Invoice address block",
+      "buyer": {
+        "company": "Company in Poland",
+        "person": "Private individual",
+        "eu": "Company in the EU",
+        "nonEu": "Company outside the EU"
+      }
     },
     "csv": {
       "caseId": "Case ID",
@@ -1049,6 +1192,62 @@
       "open": "Open",
       "deleting": "Deleting…",
       "delete": "Delete job"
+    },
+    "margin": {
+      "noData": "No jobs with an assigned machine — nothing to settle.",
+      "verdictTitle": "Margin against target",
+      "target": "target {x}×",
+      "verdictOk": "Realised multiple {realized} — target met. Billed jobs alone give {billed}; machines burned on failed runs cost {burn} ({share}% of total cost).",
+      "verdictBelow": "Realised multiple {realized}, while billed jobs alone give {billed}. The gap comes from machines burned on failed runs: {burn}, i.e. {share}% of total cost. That, not the tariff, is what eats the margin.",
+      "revenue": "Revenue",
+      "costBilled": "Cost of billed jobs",
+      "costBurned": "Burned cost",
+      "burnedJobs": "{n} unpaid runs",
+      "grossMargin": "Gross profit",
+      "multiplier": "Tariff multiple",
+      "multiplierSub": "revenue / billed cost",
+      "realized": "Realised multiple",
+      "realizedSub": "including failed runs",
+      "bySizeTitle": "Margin by model size",
+      "bySizeLead": "The tariff assumes {max}× on the smallest jobs and {min}× on the largest. This table shows what actually came out of it.",
+      "colSize": "Size",
+      "colJobs": "Jobs",
+      "colRevenue": "Revenue",
+      "colCost": "Cost",
+      "colMargin": "Profit",
+      "colMultiplier": "Multiple",
+      "targetLine": "The tick on each bar marks the 4× target (300% markup)",
+      "size": {
+        "xs": "up to 50k cells",
+        "sm": "50–300k",
+        "md": "300–900k",
+        "lg": "0.9–2M",
+        "xl": "above 2M"
+      },
+      "methodTitle": "Where these numbers come from",
+      "method1": "Machine cost = time from creation to job completion × the provider's hourly rate, at PLN 4.30/€.",
+      "method2": "Storage cost estimated the same way as in the quote — from cell count and simulation time.",
+      "method3": "Jobs without an assigned machine are skipped on both sides; cancelled and failed runs count on the cost side only."
+    },
+    "invoiceMissing": "Incomplete details",
+    "invoiceReady": "Ready to invoice",
+    "invoiceIncomplete": "Details incomplete",
+    "invoiceNone": "No details",
+    "access": {
+      "none": "No access",
+      "requested": "Access requested",
+      "granted": "Can run",
+      "blocked": "Blocked",
+      "grant": "Grant",
+      "revoke": "Revoke",
+      "block": "Block",
+      "saving": "Saving…",
+      "failed": "The decision could not be saved.",
+      "noteLabel": "Reason given",
+      "requestedAt": "Requested",
+      "pendingOne": "1 account is waiting for an access decision",
+      "pendingMany": "{n} accounts are waiting for an access decision",
+      "showPending": "Show"
     }
   },
   "symDetail": {
@@ -1245,9 +1444,14 @@
       "awaiting": "Awaiting payment",
       "toPay": "Due:",
       "gross": "gross",
-      "note": "The amount is charged from the server time and result storage actually used.",
+      "note": "Amount based on the actual computation time and result storage.",
       "pay": "Pay {amount}",
-      "redirecting": "Redirecting…"
+      "redirecting": "Redirecting…",
+      "vat": {
+        "standard": "incl. VAT",
+        "reverseCharge": "reverse charge",
+        "outOfScope": "outside VAT scope"
+      }
     },
     "cancelled": {
       "title": "Computation cancelled.",
@@ -1348,7 +1552,7 @@
       "estWall": "estimated computation time: {v}",
       "totalTime": "TOTAL TIME",
       "finishedAt": "finished at {time}",
-      "cost": "ESTIMATED COST",
+      "cost": "ESTIMATED PRICE",
       "costNote": "net · billed by actual computation time",
       "cellsNote": "{v} cells",
       "meshesNote": "{n} meshes",

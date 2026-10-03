@@ -8,20 +8,23 @@
 // (wolniejsze i droższe od innych) — klient może mieć powód sięgnąć po
 // konkretną maszynę, którego front Pareto nie widzi.
 //
-// Zgodnie z zasadami copy FDSRun nie pokazujemy tu symboli maszyn dostawcy —
-// klient widzi rdzenie, pamięć, czas i koszt szacunkowy.
+// Zgodnie z zasadami copy FDSRun nie pokazujemy symboli maszyn dostawcy —
+// klient widzi rdzenie, pamięć, czas i CENĘ. Warianty przychodzą już jako
+// `PublicPlan` (lib/fds/publicPlan.ts), więc w payloadzie nie ma ani stawek
+// dostawcy, ani naszego kosztu — nie da się ich odczytać z przeglądarki.
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useFormat } from "@/lib/format";
 import { CHIP_SHAPE, TONE_CHIP } from "@/lib/tone";
-import type { PlanTier, RunPlan } from "@/lib/fds/planner";
+import type { PlanTier } from "@/lib/fds/planner";
+import type { PublicPlan } from "@/lib/fds/publicPlan";
 
 export interface ServerPickerProps {
-  plans: RunPlan[];
+  plans: PublicPlan[];
   tiers: { eco: string | null; balanced: string | null; fast: string | null };
   selected: string | null;
-  onSelect: (serverType: string) => void;
+  onSelect: (planId: string) => void;
   loading?: boolean;
   meshCount: number;
 }
@@ -56,14 +59,14 @@ export default function ServerPicker({
 
   if (plans.length === 0) return null;
 
-  const byType = new Map(plans.map((p) => [p.serverType, p]));
+  const byType = new Map(plans.map((p) => [p.id, p]));
   // Warianty mogą się pokrywać (np. najtańszy bywa też kompromisem) — pokazujemy
   // każdą maszynę raz, z etykietą o najwyższym priorytecie.
-  const tileTypes: Array<{ tier: PlanTier; plan: RunPlan }> = [];
+  const tileTypes: Array<{ tier: PlanTier; plan: PublicPlan }> = [];
   for (const tier of TIER_ORDER) {
     const type = tiers[tier];
     const plan = type ? byType.get(type) : null;
-    if (plan && !tileTypes.some((x) => x.plan.serverType === plan.serverType)) {
+    if (plan && !tileTypes.some((x) => x.plan.id === plan.id)) {
       tileTypes.push({ tier, plan });
     }
   }
@@ -83,12 +86,12 @@ export default function ServerPicker({
 
       <div className="grid gap-3 sm:grid-cols-3">
         {tileTypes.map(({ tier, plan }) => {
-          const active = selected === plan.serverType;
+          const active = selected === plan.id;
           return (
             <button
-              key={plan.serverType}
+              key={plan.id}
               type="button"
-              onClick={() => onSelect(plan.serverType)}
+              onClick={() => onSelect(plan.id)}
               aria-pressed={active}
               className={`rounded-tile border p-4 text-left transition-colors ${
                 active
@@ -110,7 +113,7 @@ export default function ServerPicker({
                 {t("range", { lo: formatHours(plan.wallLoHours), hi: formatHours(plan.wallHiHours) })}
               </p>
 
-              <p className="mt-3 fr-num font-heading text-fr-h3 text-primary">~{f.fmtPrice(plan.price)}</p>
+              <p className="mt-3 fr-num font-heading text-fr-h3 text-accent">~{f.fmtPrice(plan.price)}</p>
               <p className="mt-1.5 border-t border-hairline pt-2 font-mono text-fr-sm text-muted">
                 {t("hardware", { cores: plan.cores, ram: plan.ramGb })}
               </p>
@@ -130,7 +133,7 @@ export default function ServerPicker({
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            className="mt-4 inline-flex items-center gap-1.5 font-mono text-fr-sm text-muted transition-colors hover:text-primary"
+            className="mt-4 inline-flex items-center gap-1.5 font-mono text-fr-sm text-muted transition-colors hover:text-accent"
           >
             <svg
               className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-90" : ""}`}
@@ -155,11 +158,11 @@ export default function ServerPicker({
                 </thead>
                 <tbody>
                   {plans.map((plan) => {
-                    const active = selected === plan.serverType;
+                    const active = selected === plan.id;
                     return (
                       <tr
-                        key={plan.serverType}
-                        onClick={() => onSelect(plan.serverType)}
+                        key={plan.id}
+                        onClick={() => onSelect(plan.id)}
                         className={`cursor-pointer border-b border-hairline-soft transition-colors ${
                           active ? "bg-primary/[0.06]" : "hover:bg-panel-deep"
                         }`}

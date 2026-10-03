@@ -6,13 +6,16 @@ import { Link } from "@/i18n/navigation";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminCalibration from "./AdminCalibration";
 import AdminInfra from "./AdminInfra";
+import AdminMargin from "./AdminMargin";
 import SimDrawer from "./SimDrawer";
 import { statusMeta, ADMIN_STATUS_KEYS } from "@/lib/status";
 import { useFormat } from "@/lib/format";
 import { EUR_PLN } from "@/lib/fds/parser";
+import { addressLines, formatNip, type InvoiceData } from "@/lib/invoice";
+import { type SimAccess } from "@/lib/access";
 import {
   Btn, Chip, FilterTabs, Kpi, Notice, PageHead, SectionLabel, Shell, Skeleton,
-  cardCls, iconBtnCls, inputSmCls, tableCls, tdCls, tdNumCls, thCls, theadRowCls, trCls,
+  btnCls, cardCls, iconBtnCls, inputSmCls, tableCls, tdCls, tdNumCls, thCls, theadRowCls, trCls,
 } from "@/components/Cloud/ui";
 
 // Marża wiersza listy = cena klienta − koszt serwera Hetzner (przeliczony na zł).
@@ -34,13 +37,20 @@ type Sim = {
 type User = {
   id: string; email: string; created_at: string; last_sign_in_at: string | null;
   total: number; done: number; revenue: number;
-  // Dane do faktury (z profiles) — podgląd dla admina
-  full_name: string; company: string; nip: string; phone: string; address: string;
+  // Dane nabywcy — ten sam model, co formularz klienta (lib/invoice.ts), więc
+  // „gotowe do faktury" znaczy w panelu dokładnie to samo, co u użytkownika.
+  invoice: InvoiceData;
+  invoiceReady: boolean;
   profile_updated_at: string | null;
+  // Bramka uruchamiania obliczeń — decyzja właściciela zapadająca w tej tabeli.
+  simAccess: SimAccess;
+  simAccessRequestedAt: string | null;
+  simAccessNote: string | null;
 };
 
 function hasInvoiceData(u: User): boolean {
-  return !!(u.full_name || u.company || u.nip || u.phone || u.address);
+  const i = u.invoice;
+  return !!(i.fullName || i.company || i.nip || i.phone || i.street || i.city);
 }
 
 /* ── Szczegół danych do faktury ── */
@@ -55,7 +65,7 @@ function DetailField({ label, value, wide }: { label: string; value: string; wid
   );
 }
 type Stats = {
-  counts: { total: number; pending: number; running: number; done: number; failed: number; revenue: number; unpaid: number; users: number };
+  counts: { total: number; pending: number; running: number; done: number; failed: number; revenue: number; unpaid: number; users: number; accessRequests?: number };
   recent: Sim[];
 };
 
@@ -93,6 +103,69 @@ function exportSimsCsv(
   a.download = `symulacje-admin-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/* ── Bramka uruchamiania obliczeń ── */
+//
+// Maszyna startuje PRZED płatnością (rozliczenie idzie z realnego zużycia),
+// więc zgoda na uruchamianie jest decyzją finansową właściciela. Zapada tutaj,
+// w tym samym wierszu, w którym widać komplet danych do faktury i historię
+// zleceń konta — czyli wszystko, na czym ta decyzja się opiera.
+const ACCESS_TONE: Record<SimAccess, "ok" | "warn" | "muted" | "primary"> = {
+  granted: "ok",
+  requested: "warn",
+  none: "muted",
+  blocked: "primary",
+};
+
+function AccessCell({
+  user, onChange,
+}: { user: User; onChange: (next: SimAccess) => void }) {
+  const t = useTranslations("admin");
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function set(next: SimAccess) {
+    setSaving(true);
+    setFailed(false);
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, simAccess: next }),
+    });
+    setSaving(false);
+    if (res.ok) onChange(next);
+    else setFailed(true);
+  }
+
+  const granted = user.simAccess === "granted";
+
+  return (
+    <div onClick={(e) => e.stopPropagation()} className="space-y-1.5">
+      <Chip tone={ACCESS_TONE[user.simAccess]} dot={user.simAccess !== "none"}>
+        {t(`access.${user.simAccess}`)}
+      </Chip>
+      <div className="flex flex-wrap gap-1.5">
+        {granted ? (
+          <button onClick={() => set("none")} disabled={saving} className={btnCls("secondary", "sm")}>
+            {saving ? t("access.saving") : t("access.revoke")}
+          </button>
+        ) : (
+          <>
+            <button onClick={() => set("granted")} disabled={saving} className={btnCls("primary", "sm")}>
+              {saving ? t("access.saving") : t("access.grant")}
+            </button>
+            {user.simAccess === "requested" && (
+              <button onClick={() => set("blocked")} disabled={saving} className={btnCls("ghost", "sm")}>
+                {t("access.block")}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      {failed && <p className="text-fr-micro text-warn">{t("access.failed")}</p>}
+    </div>
+  );
 }
 
 /* ── Status dropdown ── */
@@ -144,7 +217,7 @@ function StatusCell({ caseId, initial, onChange }: { caseId: string; initial: st
         <div role="listbox" className="absolute left-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-panel border border-hairline bg-panel shadow-fr-float">
           {ADMIN_STATUS_KEYS.map((key) => (
             <button key={key} role="option" aria-selected={key === current} onClick={() => pick(key)}
-              className={`w-full px-3 py-2 text-left text-fr-sm transition-colors hover:bg-panel-deep ${key === current ? "text-primary" : "text-ink"}`}>
+              className={`w-full px-3 py-2 text-left text-fr-sm transition-colors hover:bg-panel-deep ${key === current ? "text-accent" : "text-ink"}`}>
               {ts(statusMeta(key).key)}
             </button>
           ))}
@@ -190,7 +263,7 @@ function PriceCell({ caseId, initial, onChange }: { caseId: string; initial: num
 
   return (
     <button onClick={() => setEditing(true)} aria-label={t("priceEdit")}
-      className="group/p fr-num flex items-center gap-1 font-mono text-fr-sm text-ink transition-colors hover:text-primary">
+      className="group/p fr-num flex items-center gap-1 font-mono text-fr-sm text-ink transition-colors hover:text-accent">
       {f.fmtPrice(initial)}
       <svg className="h-3 w-3 text-faint opacity-0 group-hover/p:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -205,7 +278,7 @@ export default function AdminPage() {
   const ts = useTranslations("status");
   const f = useFormat();
   const [access, setAccess] = useState<"loading" | "ok" | "denied">("loading");
-  const [tab, setTab] = useState<"pulpit" | "analityka" | "symulacje" | "uzytkownicy" | "infrastruktura" | "kalibracja">("pulpit");
+  const [tab, setTab] = useState<"pulpit" | "marza" | "analityka" | "symulacje" | "uzytkownicy" | "infrastruktura" | "kalibracja">("pulpit");
   const [stats, setStats] = useState<Stats | null>(null);
   const [drawerSim, setDrawerSim] = useState<Sim | null>(null);
 
@@ -248,6 +321,11 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (tab === "symulacje" && access === "ok") loadSims(simsPage, simsStatus, simsSearch);
+    // `simsSearch` ŚWIADOMIE poza zależnościami: fraza ma wystrzelić zapytanie
+    // dopiero po zatwierdzeniu (handleSearch), a nie po każdym wciśniętym
+    // klawiszu. Wchodzi tu wyłącznie jako aktualna wartość przy zmianie
+    // zakładki, strony lub filtra statusu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, simsPage, simsStatus, access, loadSims]);
 
   const handleSearch = () => { setSimsPage(1); loadSims(1, simsStatus, simsSearch); };
@@ -305,7 +383,7 @@ export default function AdminPage() {
           <p className="mt-1 text-fr-sm text-muted">{t("noAccessText")}</p>
           <Link
             href="/symulacje"
-            className="mt-4 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-primary transition-opacity hover:opacity-80"
+            className="mt-4 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-accent transition-opacity hover:opacity-80"
           >
             {t("backToDashboard")} <span aria-hidden>→</span>
           </Link>
@@ -319,9 +397,9 @@ export default function AdminPage() {
     ? users.filter(u => {
         const q = usersSearch.toLowerCase();
         return u.email.toLowerCase().includes(q)
-          || u.full_name.toLowerCase().includes(q)
-          || u.company.toLowerCase().includes(q)
-          || u.nip.toLowerCase().includes(q);
+          || u.invoice.fullName.toLowerCase().includes(q)
+          || u.invoice.company.toLowerCase().includes(q)
+          || u.invoice.nip.toLowerCase().includes(q);
       })
     : users;
 
@@ -329,6 +407,7 @@ export default function AdminPage() {
 
   const SECTIONS = [
     { id: "pulpit", label: t("sections.dashboard") },
+    { id: "marza", label: t("sections.margin") },
     { id: "analityka", label: t("sections.analytics") },
     { id: "symulacje", label: t("sections.sims") },
     { id: "uzytkownicy", label: t("sections.users") },
@@ -362,7 +441,7 @@ export default function AdminPage() {
         <div className="space-y-6">
 
           {/* Wymaga uwagi */}
-          {(c.pending > 0 || c.failed > 0 || c.unpaid > 0) && (
+          {(c.pending > 0 || c.failed > 0 || c.unpaid > 0 || (c.accessRequests ?? 0) > 0) && (
             <Notice tone="warn" title={t("attention.title")}>
               <div className="mt-2 flex flex-wrap gap-2">
                 {c.pending > 0 && (
@@ -378,6 +457,13 @@ export default function AdminPage() {
                 {c.unpaid > 0 && (
                   <Btn variant="secondary" size="sm" onClick={() => jumpToSims("done")}>
                     {t("attention.unpaid", { amount: f.fmtPrice(c.unpaid) })} <span aria-hidden>→</span>
+                  </Btn>
+                )}
+                {/* Prośba o dostęp bez odpowiedzi = klient gotowy zapłacić,
+                    który nie może uruchomić. Najdroższa z rzeczy czekających. */}
+                {(c.accessRequests ?? 0) > 0 && (
+                  <Btn variant="secondary" size="sm" onClick={() => setTab("uzytkownicy")}>
+                    {t("attention.accessRequests", { n: c.accessRequests ?? 0 })} <span aria-hidden>→</span>
                   </Btn>
                 )}
               </div>
@@ -413,7 +499,7 @@ export default function AdminPage() {
                         <span className={statusMeta(r.status).cls}>{ts(statusMeta(r.status).key)}</span>
                       </td>
                       <td className="px-3 py-2 font-mono text-muted">
-                        <Link href={`/symulacje/${r.case_id}`} className="transition-colors hover:text-primary">{r.case_id}</Link>
+                        <Link href={`/symulacje/${r.case_id}`} className="transition-colors hover:text-accent">{r.case_id}</Link>
                       </td>
                       <td className={`${tdCls} max-w-[140px] truncate`}>{r.email}</td>
                       <td className={`${tdCls} max-w-[120px] truncate`}>{r.file_name}</td>
@@ -430,6 +516,7 @@ export default function AdminPage() {
       )}
 
       {/* ── ANALITYKA ── */}
+      {tab === "marza" && <AdminMargin />}
       {tab === "analityka" && <AdminAnalytics />}
 
       {/* ── INFRASTRUKTURA (Hetzner: serwery + storage, koszty) ── */}
@@ -500,7 +587,7 @@ export default function AdminPage() {
                           onChange={(s) => setSims(prev => prev.map(x => x.case_id === r.case_id ? { ...x, status: s } : x))} />
                       </td>
                       <td className="whitespace-nowrap px-3 py-2.5 font-mono text-muted">
-                        <Link href={`/symulacje/${r.case_id}`} className="transition-colors hover:text-primary">{r.case_id}</Link>
+                        <Link href={`/symulacje/${r.case_id}`} className="transition-colors hover:text-accent">{r.case_id}</Link>
                       </td>
                       <td className={`${tdCls} max-w-[160px] truncate`}>{r.email}</td>
                       <td className={`${tdCls} max-w-[140px] truncate`}>{r.file_name}</td>
@@ -517,7 +604,7 @@ export default function AdminPage() {
                         const m = rowMarginPln(r);
                         return (
                           <td
-                            className={`${tdNumCls} ${m == null ? "text-faint" : m >= 0 ? "text-ok" : "text-primary"}`}
+                            className={`${tdNumCls} ${m == null ? "text-faint" : m >= 0 ? "text-ok" : "text-accent"}`}
                             title={t("marginTitle")}
                           >
                             {m != null ? f.fmtPrice(m, { decimals: true }) : "—"}
@@ -608,10 +695,10 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className={`${cardCls} overflow-hidden overflow-x-auto`}>
-              <table className={`${tableCls} min-w-[860px]`}>
+              <table className={`${tableCls} min-w-[1180px]`}>
                 <thead>
                   <tr className={theadRowCls}>
-                    {[t("cols.email"), t("cols.client"), t("cols.registered"), t("cols.lastSignIn"), t("cols.sims"), t("cols.done"), t("cols.revenue")].map(h => (
+                    {[t("cols.email"), t("cols.client"), t("cols.taxId"), t("cols.invoiceState"), t("cols.access"), t("cols.registered"), t("cols.lastSignIn"), t("cols.sims"), t("cols.done"), t("cols.revenue")].map(h => (
                       <th key={h} className={thCls}>{h}</th>
                     ))}
                     <th className="px-3 py-2" />
@@ -629,16 +716,55 @@ export default function AdminPage() {
                         >
                           <td className="px-3 py-2.5 font-mono text-fr-sm text-ink">{u.email}</td>
                           <td className="px-3 py-2.5">
-                            {u.full_name
-                              ? <span className="text-ink">{u.full_name}</span>
+                            {u.invoice.fullName || u.invoice.company
+                              ? <span className="text-ink">{u.invoice.fullName || u.invoice.company}</span>
                               : <span className="text-faint">—</span>}
-                            {u.company && <div className="max-w-[180px] truncate text-fr-sm text-faint">{u.company}</div>}
+                            {u.invoice.company && u.invoice.fullName && (
+                              <div className="max-w-[180px] truncate text-fr-sm text-faint">{u.invoice.company}</div>
+                            )}
+                            {/* Klient, który już coś zlecił, a nie ma kompletu danych,
+                                blokuje wystawienie faktury — to musi rzucać się w oczy. */}
+                            {u.total > 0 && !u.invoiceReady && (
+                              <Chip tone="primary" className="mt-1">{t("invoiceMissing")}</Chip>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            {u.invoice.nip
+                              ? <span className="font-mono text-fr-sm text-ink">
+                                  {u.invoice.buyerType === "company" ? formatNip(u.invoice.nip) : u.invoice.nip}
+                                </span>
+                              : <span className="text-faint">—</span>}
+                            {u.invoice.city && (
+                              <div className="max-w-[160px] truncate text-fr-sm text-faint">{u.invoice.city}</div>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            {/* Stan danych rozliczeniowych widoczny od razu: bez kompletu
+                                nie da się wystawić faktury, więc to informacja operacyjna,
+                                a nie szczegół do odkrywania po kliknięciu w wiersz. */}
+                            {u.invoiceReady ? (
+                              <Chip tone="ok" dot>{t("invoiceReady")}</Chip>
+                            ) : hasInvoiceData(u) ? (
+                              <Chip tone="warn" dot>{t("invoiceIncomplete")}</Chip>
+                            ) : (
+                              <Chip tone="muted">{t("invoiceNone")}</Chip>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <AccessCell
+                              user={u}
+                              onChange={(next) =>
+                                setUsers((prev) =>
+                                  prev.map((x) => (x.id === u.id ? { ...x, simAccess: next } : x))
+                                )
+                              }
+                            />
                           </td>
                           <td className={`${tdCls} whitespace-nowrap`}>{f.fmtDateTime(u.created_at)}</td>
                           <td className={`${tdCls} whitespace-nowrap`}>{u.last_sign_in_at ? f.fmtDateTime(u.last_sign_in_at) : "—"}</td>
                           <td className={tdNumCls}>{u.total || "—"}</td>
                           <td className={`${tdNumCls} text-ok`}>{u.done || "—"}</td>
-                          <td className={`${tdNumCls} text-primary`}>{u.revenue ? f.fmtPrice(u.revenue) : "—"}</td>
+                          <td className={`${tdNumCls} text-accent`}>{u.revenue ? f.fmtPrice(u.revenue) : "—"}</td>
                           <td className="px-3 py-2.5 text-right">
                             <svg className={`inline h-4 w-4 text-faint transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -647,21 +773,52 @@ export default function AdminPage() {
                         </tr>
                         {open && (
                           <tr className="bg-panel-deep">
-                            <td colSpan={8} className="px-4 py-4">
+                            <td colSpan={11} className="px-4 py-4">
                               {hasInvoiceData(u) ? (
                                 <>
-                                  <p className="mb-3 font-mono text-fr-micro uppercase text-muted">{t("invoiceData")}</p>
+                                  <div className="mb-3 flex flex-wrap items-center gap-3">
+                                    <p className="font-mono text-fr-micro uppercase text-muted">{t("invoiceData")}</p>
+                                    <Chip tone={u.invoiceReady ? "ok" : "warn"} dot>
+                                      {u.invoiceReady ? t("invoiceReady") : t("invoiceIncomplete")}
+                                    </Chip>
+                                  </div>
                                   <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-                                    <DetailField label={t("invoice.fullName")} value={u.full_name} />
-                                    <DetailField label={t("invoice.company")} value={u.company} />
-                                    <DetailField label={t("invoice.nip")} value={u.nip} />
-                                    <DetailField label={t("invoice.phone")} value={u.phone} />
-                                    <DetailField label={t("invoice.address")} value={u.address} wide />
+                                    <DetailField label={t("invoice.buyerType")} value={t(`invoice.buyer.${u.invoice.buyerType}`)} />
+                                    <DetailField label={t("invoice.company")} value={u.invoice.company} />
+                                    <DetailField label={t("invoice.fullName")} value={u.invoice.fullName} />
+                                    <DetailField
+                                      label={t("invoice.nip")}
+                                      value={u.invoice.nip ? (u.invoice.buyerType === "company" ? formatNip(u.invoice.nip) : u.invoice.nip) : ""}
+                                    />
+                                    <DetailField label={t("invoice.phone")} value={u.invoice.phone} />
                                     <DetailField label={t("invoice.updated")} value={u.profile_updated_at ? f.fmtDateTime(u.profile_updated_at) : ""} />
+                                    {/* Blok adresowy dokładnie w tej postaci, w jakiej
+                                        trafi na fakturę — do skopiowania do księgowości. */}
+                                    <div className="sm:col-span-2 lg:col-span-4">
+                                      <p className="font-mono text-fr-micro uppercase text-faint">{t("invoice.addressBlock")}</p>
+                                      {addressLines(u.invoice).length > 0 ? (
+                                        <div className="mt-1 whitespace-pre-line font-mono text-fr-sm text-ink">
+                                          {addressLines(u.invoice).join(String.fromCharCode(10))}
+                                        </div>
+                                      ) : (
+                                        <p className="mt-0.5 text-fr-sm text-faint">—</p>
+                                      )}
+                                    </div>
                                   </div>
                                 </>
                               ) : (
                                 <p className="text-fr-sm text-faint">{t("noInvoiceData")}</p>
+                              )}
+                              {/* Po co klientowi obliczenia — kontekst prośby
+                                  o dostęp, wpisany przez niego w kreatorze. */}
+                              {u.simAccessNote && (
+                                <div className="mt-4 border-t border-hairline-soft pt-3">
+                                  <p className="font-mono text-fr-micro uppercase text-faint">
+                                    {t("access.noteLabel")}
+                                    {u.simAccessRequestedAt ? ` · ${t("access.requestedAt")} ${f.fmtDateTime(u.simAccessRequestedAt)}` : ""}
+                                  </p>
+                                  <p className="mt-1 whitespace-pre-line text-fr-sm text-ink">{u.simAccessNote}</p>
+                                </div>
                               )}
                             </td>
                           </tr>
@@ -670,7 +827,7 @@ export default function AdminPage() {
                     );
                   })}
                   {filteredUsers.length === 0 && (
-                    <tr><td colSpan={8} className="px-3 py-10 text-center text-faint">{t("noUsers")}</td></tr>
+                    <tr><td colSpan={11} className="px-3 py-10 text-center text-faint">{t("noUsers")}</td></tr>
                   )}
                 </tbody>
               </table>

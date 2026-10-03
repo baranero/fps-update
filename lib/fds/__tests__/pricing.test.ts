@@ -3,8 +3,11 @@ import {
   EUR_PLN,
   OVERHEAD_H,
   STORAGE_EUR_PER_GB,
+  MARKUP_RANGE,
   computeFinalPrice,
   estimateOutputGb,
+  markupPercent,
+  priceBreakdown,
   priceFromCost,
   progressiveMarkup,
 } from "@/lib/fds/pricing";
@@ -16,48 +19,100 @@ import { getSpec } from "@/lib/hetzner/catalog";
 // zlecenia zaczną wyceniać się kilkukrotnie za tanio albo za drogo.
 
 describe("progressiveMarkup", () => {
-  it("trzyma 25× na drobnych zleceniach i 10× na dużych", () => {
-    expect(progressiveMarkup(0.01)).toBe(25);
-    expect(progressiveMarkup(0.05)).toBe(25);
-    expect(progressiveMarkup(3)).toBe(10);
-    expect(progressiveMarkup(50)).toBe(10);
+  it("trzyma 6x na zleceniach drobnych i 3,8x na duzych", () => {
+    expect(progressiveMarkup(0.01)).toBe(MARKUP_RANGE.max);
+    expect(progressiveMarkup(0.05)).toBe(MARKUP_RANGE.max);
+    expect(progressiveMarkup(8)).toBe(MARKUP_RANGE.min);
+    expect(progressiveMarkup(50)).toBe(MARKUP_RANGE.min);
   });
 
-  it("maleje monotonicznie między progami — bez skoku na granicy", () => {
-    const samples = [0.05, 0.1, 0.3, 0.8, 1.5, 3];
+  it("maleje monotonicznie miedzy progami - bez skoku na granicy", () => {
+    const samples = [0.05, 0.1, 0.3, 0.8, 1.5, 3, 8];
     const markups = samples.map(progressiveMarkup);
     for (let i = 1; i < markups.length; i++) {
       expect(markups[i]).toBeLessThan(markups[i - 1]);
     }
-    expect(markups.at(-1)).toBeCloseTo(10, 6);
+    expect(markups.at(-1)).toBeCloseTo(MARKUP_RANGE.min, 6);
   });
 
-  it("nigdy nie schodzi poniżej marży minimalnej", () => {
-    for (const cost of [0, 0.001, 0.049, 2.999, 1000]) {
-      expect(progressiveMarkup(cost)).toBeGreaterThanOrEqual(10);
-      expect(progressiveMarkup(cost)).toBeLessThanOrEqual(25);
+  it("nigdy nie schodzi ponizej marzy minimalnej", () => {
+    for (const cost of [0, 0.001, 0.049, 7.999, 1000]) {
+      expect(progressiveMarkup(cost)).toBeGreaterThanOrEqual(MARKUP_RANGE.min);
+      expect(progressiveMarkup(cost)).toBeLessThanOrEqual(MARKUP_RANGE.max);
+    }
+  });
+
+  // To jest CEL BIZNESOWY cennika, nie szczegol implementacji: wlasciciel chce
+  // narzutu ok. 300% w skali portfela. Portfel jest wazony kosztem, wiec o
+  // wyniku decyduje marza duzych zlecen. Zmiana, ktora wywala ten test,
+  // przestawia realna marze firmy - popraw swiadomie albo cofnij.
+  it("na typowym rozkladzie zlecen daje narzut ok. 300%", () => {
+    // Surowe koszty [EUR] 99 zakonczonych biegow - kwartyle rzeczywistej historii.
+    const portfolio = [0.004, 0.02, 0.05, 0.1, 0.3, 1.17, 3, 5.5, 8, 12, 29];
+    const cost = portfolio.reduce((a, c) => a + c, 0);
+    const revenue = portfolio.reduce((a, c) => a + c * progressiveMarkup(c), 0);
+    expect(revenue / cost).toBeGreaterThan(3.6);
+    expect(revenue / cost).toBeLessThan(4.4);
+  });
+
+  it("drobne zlecenie ma wyzsza marze niz duze", () => {
+    expect(progressiveMarkup(0.02)).toBeGreaterThan(progressiveMarkup(1.17));
+    expect(progressiveMarkup(1.17)).toBeGreaterThan(progressiveMarkup(20));
+  });
+});
+
+describe("markupPercent", () => {
+  it("podaje narzut, nie krotnosc - 4x to 300%", () => {
+    expect(markupPercent(0.05)).toBeCloseTo((MARKUP_RANGE.max - 1) * 100, 6);
+    expect(markupPercent(8)).toBeCloseTo((MARKUP_RANGE.min - 1) * 100, 6);
+  });
+});
+
+describe("priceBreakdown", () => {
+  it("rozbija cene na koszt, marze i zysk - sumy sie zgadzaja", () => {
+    const b = priceBreakdown(0.6, 0.4);
+    expect(b.rawCostEur).toBeCloseTo(1, 6);
+    expect(b.rawCostPln).toBeCloseTo(1 * EUR_PLN, 6);
+    expect(b.price).toBe(priceFromCost(0.6, 0.4));
+    expect(b.margin).toBeCloseTo(b.price - b.rawCostPln, 6);
+    expect(b.markup).toBeCloseTo(progressiveMarkup(1), 6);
+  });
+
+  it("zysk na zleceniu jest dodatni w calym zakresie kosztow", () => {
+    for (const cost of [0.01, 0.05, 0.5, 5, 50]) {
+      expect(priceBreakdown(cost, 0).margin).toBeGreaterThan(0);
     }
   });
 });
 
 describe("priceFromCost", () => {
-  it("mnoży surowy koszt przez marżę i kurs", () => {
-    // 1 EUR kosztu → marża log-interpolowana, przeliczona po EUR_PLN
+  it("mnozy surowy koszt przez marze i kurs", () => {
     const raw = 1;
-    const expected = Math.round(raw * progressiveMarkup(raw) * EUR_PLN);
+    const expected = Math.round(raw * progressiveMarkup(raw) * EUR_PLN * 100) / 100;
     expect(priceFromCost(0.6, 0.4)).toBe(expected);
   });
 
-  it("nigdy nie oddaje zera — najtańsze zlecenie to 1 zł", () => {
-    expect(priceFromCost(0, 0)).toBe(1);
-    expect(priceFromCost(1e-9, 0)).toBe(1);
+  // Decyzja wlasciciela: zadnej sztucznej ceny minimalnej. Drobne zlecenie ma
+  // kosztowac tyle, ile wynika z marzy - grosz jest jedynym ograniczeniem,
+  // bo mniejszej kwoty nie da sie zafakturowac.
+  it("nie ma podlogi cenowej poza groszem", () => {
+    expect(priceFromCost(0, 0)).toBe(0.01);
+    expect(priceFromCost(1e-9, 0)).toBe(0.01);
+    // Kilkugroszowy koszt daje kilkunastogroszowa cene, a nie zaokraglona zlotowke.
+    expect(priceFromCost(0.01, 0)).toBeLessThan(1);
+    expect(priceFromCost(0.01, 0)).toBeGreaterThan(0.01);
   });
 
-  it("rośnie wraz z kosztem", () => {
+  it("rosnie wraz z kosztem", () => {
     const prices = [0.02, 0.2, 1, 5, 20].map((c) => priceFromCost(c, 0));
     for (let i = 1; i < prices.length; i++) {
       expect(prices[i]).toBeGreaterThan(prices[i - 1]);
     }
+  });
+
+  it("nie przyjmuje ujemnego kosztu jako rabatu", () => {
+    expect(priceFromCost(-5, 0)).toBe(0.01);
+    expect(priceFromCost(1, -100)).toBe(priceFromCost(1, 0));
   });
 });
 
@@ -71,7 +126,7 @@ describe("computeFinalPrice", () => {
 
   it("nie rozlicza czasu krótszego niż minuta jako zera", () => {
     const price = computeFinalPrice({ serverType: "cpx42", serverHours: 0, storageGb: 0 });
-    expect(price).toBeGreaterThanOrEqual(1);
+    expect(price).toBeGreaterThan(0);
   });
 
   it("nie daje ujemnej ceny przy ujemnym rozmiarze wyników", () => {

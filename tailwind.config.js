@@ -56,6 +56,10 @@ module.exports = {
         "fr-body": ["15px", { lineHeight: "1.6" }],
         "fr-sm": ["13px", { lineHeight: "1.55" }],
         "fr-data": ["13px", { lineHeight: "1", letterSpacing: "-0.01em" }],
+        // Odczyty telemetrii w konsoli zlecenia — liczby czytane z odległości,
+        // stały rozmiar (nie clamp), bo stoją w siatce o stałej wysokości.
+        "fr-readout": ["20px", { lineHeight: "1", letterSpacing: "-0.02em" }],
+        "fr-readout-lg": ["28px", { lineHeight: "1", letterSpacing: "-0.03em" }],
         // Etykiety. UWAGA na rozmiar: te tokeny niosą TREŚĆ (kickery, nagłówki
         // kolumn, opisy w stopce), a nie dekorację. Wersaliki + mono + szeroki
         // tracking i tak spowalniają czytanie, więc 9 px było nie do odczytania.
@@ -107,6 +111,9 @@ module.exports = {
         canvas: "rgb(var(--fr-canvas) / <alpha-value>)",          // tło strony
         panel: "rgb(var(--fr-panel) / <alpha-value>)",            // karta, panel
         "panel-deep": "rgb(var(--fr-panel-deep) / <alpha-value>)", // panel zagłębiony
+        // Czerwień marki DO TEKSTU. `primary` (#DC3545) zostaje do teł i obwódek —
+        // na tekście nie wyrabia progu kontrastu ani na bieli, ani na czerni.
+        accent: "rgb(var(--fr-accent) / <alpha-value>)",
         well: "rgb(var(--fr-well) / <alpha-value>)",              // pole wykresu/konsoli
         hairline: "rgb(var(--fr-hairline) / <alpha-value>)",      // linia 1 px
         "hairline-soft": "rgb(var(--fr-hairline-soft) / <alpha-value>)",

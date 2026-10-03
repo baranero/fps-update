@@ -183,7 +183,7 @@ export default function AdminAnalytics() {
                   <td className={tdNumCls}>{i + 1}</td>
                   <td className="max-w-[220px] truncate px-3 py-2.5 font-mono text-ink">{u.email}</td>
                   <td className={tdNumCls}>{u.count}</td>
-                  <td className={`${tdNumCls} text-primary`}>{f.fmtPrice(u.revenue)}</td>
+                  <td className={`${tdNumCls} text-accent`}>{f.fmtPrice(u.revenue)}</td>
                 </tr>
               ))}
               {topUsers.length === 0 && (

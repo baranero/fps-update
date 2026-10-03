@@ -7,8 +7,11 @@ import { statusMeta, ACTIVE_STATUSES } from "@/lib/status";
 import { useTranslations } from "next-intl";
 import { useFormat, type Format } from "@/lib/format";
 import InvoiceDataForm from "@/components/InvoiceDataForm";
+import { EMPTY_INVOICE, isInvoiceComplete, vatTreatment, type InvoiceData } from "@/lib/invoice";
+import { loadInvoiceData } from "@/lib/invoiceClient";
 import {
-  Btn, Chip, EmptyState, FilterTabs, Kpi, PageHead, Shell, Skeleton, cardCls,
+  Btn, Chip, EmptyState, FilterTabs, Kpi, Notice, PageHead, Shell, Skeleton, btnCls, cardCls,
+  PageStack,
 } from "@/components/Cloud/ui";
 
 type Item = {
@@ -19,7 +22,7 @@ type Item = {
   completed_at: string | null;
   price: number;
   wall_hours: number;
-  server_type: string | null;
+  server_label: string | null;
   total_cells: number;
   mesh_count: number | null;
   payment_status: "paid" | "pending" | null;
@@ -31,18 +34,27 @@ function exportCsv(
   items: Item[],
   t: (k: string) => string,
   ts: (k: string) => string,
-  f: Format
+  f: Format,
+  vatRate: number
 ) {
-  const header = [t("csv.caseId"), t("csv.file"), t("csv.date"), t("csv.status"), t("csv.server"), t("csv.cells"), t("csv.time"), t("csv.amount")];
+  // Eksport idzie prosto do księgowości, więc obok netto muszą być stawka VAT
+  // i brutto — inaczej każdą pozycję trzeba przeliczać ręcznie.
+  const header = [
+    t("csv.caseId"), t("csv.file"), t("csv.date"), t("csv.status"), t("csv.server"),
+    t("csv.cells"), t("csv.time"), t("csv.amount"), t("csv.vatRate"), t("csv.gross"),
+  ];
+  const money = (v: number) => v.toFixed(2).replace(".", ",");
   const rows = items.map((s) => [
     s.case_id,
     s.file_name,
     f.fmtDate(s.created_at, { day: "numeric", month: "numeric", year: "numeric" }),
     ts(statusMeta(s.status).key),
-    s.server_type ?? "—",
+    s.server_label ?? "—",
     f.fmtCells(s.total_cells),
     s.wall_hours > 0 ? f.fmtHours(s.wall_hours) : "—",
-    s.price.toFixed(2).replace(".", ","),
+    money(s.price),
+    `${Math.round(vatRate * 100)}%`,
+    money(Math.round(s.price * (1 + vatRate) * 100) / 100),
   ]);
 
   const csv = [header, ...rows]
@@ -83,6 +95,13 @@ export default function RozliczeniaPage() {
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [filter, setFilter] = useState<FilterTab>("all");
+  // Stawka VAT i kompletność danych zależą od tego, kim jest nabywca —
+  // czytamy je z tego samego źródła, co formularz niżej na stronie.
+  const [invoice, setInvoice] = useState<InvoiceData>(EMPTY_INVOICE);
+  // Rozliczenia to miejsce, do którego idzie się zapłacić. Do tej pory dało się
+  // tu wyłącznie zobaczyć, ile się jest winnym — płatność siedziała wyłącznie
+  // na karcie pojedynczego zlecenia.
+  const [paying, setPaying] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -90,9 +109,13 @@ export default function RozliczeniaPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoggedIn(false); setLoading(false); return; }
       setLoggedIn(true);
-      const res = await fetch("/api/rozliczenia");
+      const [res, inv] = await Promise.all([
+        fetch("/api/rozliczenia"),
+        loadInvoiceData(supabase),
+      ]);
       const data = await res.json();
       if (Array.isArray(data)) setItems(data);
+      if (inv.ok) setInvoice(inv.data);
       setLoading(false);
     }
     load();
@@ -111,6 +134,34 @@ export default function RozliczeniaPage() {
   const countActive = items.filter((s) => ACTIVE_STATUSES.has(s.status)).length;
   const filteredTotal = filtered.reduce((sum, s) => sum + s.price, 0);
 
+  const vat = vatTreatment(invoice);
+  const round = (v: number) => Math.round(v * 100) / 100;
+  const vatAmount = round(totalDone * vat.rate);
+  const grossTotal = round(totalDone + vatAmount);
+  const unpaidNet = items
+    .filter((s) => s.status === "done" && s.payment_status !== "paid")
+    .reduce((sum, s) => sum + s.price, 0);
+  const unpaidGross = round(unpaidNet * (1 + vat.rate));
+  // Faktury nie da się wystawić bez kompletu danych nabywcy — jeśli zlecenia
+  // już są, a danych brak, to jest blokada rozliczenia, nie kosmetyka.
+  const invoiceReady = isInvoiceComplete(invoice);
+
+  async function pay(caseId: string) {
+    setPaying(caseId);
+    try {
+      const res = await fetch("/api/platnosci/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else setPaying(null);
+    } catch {
+      setPaying(null);
+    }
+  }
+
   const groups = groupByMonth(filtered, f.locale);
 
   const countCancelled = items.filter((s) => s.status === "cancelled").length;
@@ -125,7 +176,7 @@ export default function RozliczeniaPage() {
 
   return (
     <Shell>
-    <div className="space-y-8">
+    <PageStack>
 
       {/* Header */}
       <PageHead
@@ -135,7 +186,7 @@ export default function RozliczeniaPage() {
         back={{ href: "/symulacje", label: t("back") }}
         actions={
           filtered.length > 0 && (
-            <Btn variant="secondary" size="sm" onClick={() => exportCsv(filtered, t, ts, f)}>
+            <Btn variant="secondary" size="sm" onClick={() => exportCsv(filtered, t, ts, f, vat.rate)}>
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
@@ -145,12 +196,28 @@ export default function RozliczeniaPage() {
         }
       />
 
+      {/* Bez kompletu danych nabywcy nie powstanie faktura — mówimy o tym
+          zanim klient zacznie szukać, czemu jej nie dostał. */}
+      {loggedIn && !loading && !invoiceReady && items.length > 0 && (
+        <Notice
+          tone="warn"
+          title={t("invoiceIncompleteTitle")}
+          actions={
+            <a href="#dane-do-faktury" className={btnCls("primary", "sm")}>
+              {t("invoiceIncompleteCta")}
+            </a>
+          }
+        >
+          <p>{t("invoiceIncompleteLead")}</p>
+        </Notice>
+      )}
+
       {/* Dane do faktury — zunifikowane dane rozliczeniowe (wspólne z Profilem) */}
       {loggedIn && (
         <details id="dane-do-faktury" className="group scroll-mt-24 overflow-hidden rounded-card border border-hairline bg-panel">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-accent">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -187,20 +254,31 @@ export default function RozliczeniaPage() {
       ) : (
         <>
           {/* Stat cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Kpi label={t("kpiTotal")} value={f.fmtPrice(totalDone, { decimals: true })} sub={t("net")} />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Kpi
-              label={t("kpiDone")}
-              value={countDone}
+              label={t("kpiTotal")}
+              value={f.fmtPrice(totalDone, { decimals: true })}
               sub={t("jobsCount", { n: countDone })}
             />
             <Kpi
-              label={t("kpiActive")}
-              value={countActive}
-              tone={countActive > 0 ? "warn" : "ink"}
-              sub={countActive > 0 ? t("active") : t("noActive")}
+              label={vat.treatment === "standard" ? t("kpiVat", { rate: Math.round(vat.rate * 100) }) : t("kpiVatNone")}
+              value={vat.treatment === "standard" ? f.fmtPrice(vatAmount, { decimals: true }) : "—"}
+              sub={t(`vatNote.${vat.treatment}`)}
+            />
+            <Kpi label={t("kpiGross")} value={f.fmtPrice(grossTotal, { decimals: true })} tone="ink" sub={t("gross")} />
+            <Kpi
+              label={t("kpiToPay")}
+              value={f.fmtPrice(unpaidGross, { decimals: true })}
+              tone={unpaidGross > 0 ? "warn" : "ok"}
+              sub={unpaidGross > 0 ? t("gross") : t("allPaid")}
             />
           </div>
+
+          {/* Aktywne zlecenia nie mają jeszcze ceny końcowej — mówimy to wprost,
+              żeby kwota u góry nie wyglądała na niepełną. */}
+          {countActive > 0 && (
+            <p className="text-fr-sm text-muted">{t("activeNote", { n: countActive })}</p>
+          )}
 
           {/* Filter tabs */}
           <FilterTabs tabs={TABS} active={filter} onPick={(id) => setFilter(id)} label={t("filterLabel")} />
@@ -238,7 +316,7 @@ export default function RozliczeniaPage() {
                               </p>
                               <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-fr-sm text-muted">
                                 <span>{s.case_id}</span>
-                                {s.server_type && <span className="uppercase">{s.server_type}</span>}
+                                {s.server_label && <span>{s.server_label}</span>}
                                 <span>{t("cells", { n: f.fmtCells(s.total_cells) })}</span>
                                 {s.wall_hours > 0 && <span>{f.fmtHours(s.wall_hours)}</span>}
                               </div>
@@ -262,16 +340,26 @@ export default function RozliczeniaPage() {
                                 {s.price > 0 ? f.fmtPrice(s.price, { decimals: true }) : "—"}
                               </p>
                               {s.status === "done" && (
-                                <Chip tone={s.payment_status === "paid" ? "ok" : "warn"} className="mt-1">
-                                  {s.payment_status === "paid" ? t("paid") : t("unpaid")}
-                                </Chip>
+                                s.payment_status === "paid" ? (
+                                  <Chip tone="ok" className="mt-1">{t("paid")}</Chip>
+                                ) : (
+                                  <Btn
+                                    variant="primary"
+                                    size="sm"
+                                    className="mt-1"
+                                    disabled={paying === s.case_id}
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); pay(s.case_id); }}
+                                  >
+                                    {paying === s.case_id ? t("paying") : t("payNow")}
+                                  </Btn>
+                                )
                               )}
                             </div>
 
                             {/* Link */}
                             <Link
                               href={`/symulacje/${s.case_id}`}
-                              className="shrink-0 text-faint transition-colors group-hover:text-primary"
+                              className="shrink-0 text-faint transition-colors group-hover:text-accent"
                               title={t("openJob")}
                             >
                               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,21 +374,37 @@ export default function RozliczeniaPage() {
                 </div>
               ))}
 
-              {/* Total row */}
-              <div className="flex items-center justify-between rounded-card border border-hairline bg-panel-deep px-4 py-3.5">
-                <p className="font-mono text-fr-micro uppercase text-muted">
+              {/* Podsumowanie — w rozbiciu, którego wymaga faktura */}
+              <div className="rounded-card border border-hairline bg-panel-deep px-4 py-3.5">
+                <p className="mb-2 font-mono text-fr-micro uppercase text-muted">
                   {t("sum", { filter: (filter === "all" ? ts("all") : TABS.find((tab) => tab.id === filter)?.label ?? "").toLowerCase() })}
                 </p>
-                <p className="fr-num font-heading text-fr-h4 text-ink">
-                  {f.fmtPrice(filteredTotal, { decimals: true })}
-                  <span className="ml-1.5 font-mono text-fr-sm font-normal text-muted">{t("net")}</span>
-                </p>
+                <dl className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="text-fr-sm text-muted">{t("net")}</dt>
+                    <dd className="fr-num font-mono text-fr-sm text-ink">{f.fmtPrice(filteredTotal, { decimals: true })}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="text-fr-sm text-muted">
+                      {vat.treatment === "standard" ? t("kpiVat", { rate: Math.round(vat.rate * 100) }) : t("kpiVatNone")}
+                    </dt>
+                    <dd className="fr-num font-mono text-fr-sm text-muted">
+                      {vat.treatment === "standard" ? f.fmtPrice(round(filteredTotal * vat.rate), { decimals: true }) : "—"}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 border-t border-hairline-soft pt-2">
+                    <dt className="font-mono text-fr-micro uppercase text-muted">{t("gross")}</dt>
+                    <dd className="fr-num font-heading text-fr-h4 text-ink">
+                      {f.fmtPrice(round(filteredTotal * (1 + vat.rate)), { decimals: true })}
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </div>
           )}
         </>
       )}
-    </div>
+    </PageStack>
     </Shell>
   );
 }

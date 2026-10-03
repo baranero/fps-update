@@ -12,13 +12,27 @@ import {
   Console, ConsoleHead, ConsoleLog, ConsoleMetric, ConsoleNote, ConsolePane, ConsoleProgress, ConsoleRow,
 } from "@/components/Cloud/Console";
 import SliceView from "./SliceView";
-import { serverSpec, type FdsDevc } from "@/lib/fds/parser";
+import {
+  Btn, BtnLink, Notice, Shell, Skeleton,
+} from "@/components/Cloud/ui";
+import { type FdsDevc } from "@/lib/fds/parser";
 import type { FdsSliceJson } from "@/lib/fds/slice";
 import { explainFdsErrors, diagnoseFailure, type FdsErrorInfo } from "@/lib/fds/errors";
+// Czysta logika karty zlecenia mieszka w osobnych modułach — tu zostaje widok.
+import {
+  consoleLogEntries, extractErrorLines, hasFatalFdsError, parseFdsProgress, parseFdsStats,
+} from "@/lib/fds/jobLog";
+import {
+  elapsed, fileIcon, fileTypeKey, formatCells, formatDt, formatDuration, formatSize,
+  packageLabel, remainingSec, splitDuration, totalSize,
+} from "@/lib/fds/jobFormat";
 import {
   GB, PACKAGE_SIZE_OPTIONS, DEFAULT_PACKAGE_BYTES, splitIntoPackages,
 } from "@/lib/fds/download-limits";
 import { fetchResult, proxyResultUrl, resultHref } from "@/lib/fds/result-fetch";
+import { EMPTY_INVOICE, grossAmount, vatTreatment, type InvoiceData } from "@/lib/invoice";
+import { loadInvoiceData } from "@/lib/invoiceClient";
+import { createClient } from "@/lib/supabase/client";
 import { saveFilePicker, streamZipToFile, type WritableFileHandle } from "@/lib/fds/zip-client";
 
 interface JobData {
@@ -33,7 +47,8 @@ interface JobData {
   vcpuHours: number;
   wallHours: number;
   price: number;
-  serverType: string | null;
+  serverLabel: string | null;
+  serverCores: number | null;
   dispatchedAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
@@ -58,7 +73,7 @@ function FdsErrorCards({ errors }: { errors: FdsErrorInfo[] }) {
     <div className="space-y-2">
       {errors.map((e, i) => (
         <div key={i} className="rounded-panel border border-primary/40 bg-panel/70 p-3">
-          <p className="text-fr-body font-semibold text-primary">
+          <p className="text-fr-body font-semibold text-accent">
             {e.code && (
               <span className="font-mono text-fr-sm mr-1.5 rounded-chip bg-primary/15 px-1.5 py-0.5 align-middle">
                 {t("errorCode")} {e.code}
@@ -76,25 +91,6 @@ function FdsErrorCards({ errors }: { errors: FdsErrorInfo[] }) {
   );
 }
 
-function hasFatalFdsError(log: string | null): boolean {
-  if (!log) return false;
-  return /improperly set-?up|forrtl:\s*severe|\bFatal error\b/i.test(log);
-}
-
-function extractErrorLines(log: string | null): string[] {
-  if (!log) return [];
-  const rx = /\b(error|fatal|forrtl|severe|abort|cannot|not found|failed|denied|no such)\b/i;
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const raw of log.split("\n")) {
-    const l = raw.trim();
-    if (!l || !rx.test(l) || seen.has(l)) continue;
-    seen.add(l);
-    out.push(l);
-  }
-  return out.slice(-12);
-}
-
 // Wyłącznie klasy kolorów/tła statusu — etykiety i opisy pochodzą z tłumaczeń.
 // Statusy w palecie serwisu zamiast czterech kolorów Tailwinda: neutralny dla
 // stanów spoczynkowych, „signal" (stal) dla pracy i sukcesu, „warn" dla
@@ -105,176 +101,9 @@ const STATUS_STYLE: Record<string, { color: string; bg: string; border: string; 
   dispatched: { color: "text-signal", bg: "bg-signal/[0.07]",  border: "border-signal/30",    dot: "bg-signal animate-pulse" },
   running:    { color: "text-warn",   bg: "bg-warn/[0.07]",    border: "border-warn/30",      dot: "bg-warn animate-pulse" },
   done:       { color: "text-signal", bg: "bg-signal/[0.07]",  border: "border-signal/30",    dot: "bg-signal" },
-  failed:     { color: "text-primary",bg: "bg-primary/[0.07]", border: "border-primary/40",   dot: "bg-primary" },
+  failed:     { color: "text-accent",bg: "bg-primary/[0.07]", border: "border-primary/40",   dot: "bg-primary" },
   cancelled:  { color: "text-muted",  bg: "bg-panel-deep",     border: "border-hairline",     dot: "bg-muted" },
 };
-
-function formatCells(n: number, thousands: string) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)} ${thousands}`;
-  return String(n);
-}
-
-// Czas trwania. `to` jest opcjonalne: dla zlecenia W TOKU liczymy do teraz,
-// dla zakończonego — do znacznika zakończenia. Bez tego czas całkowity
-// ukończonej symulacji rósł w nieskończoność przy każdym renderze.
-function elapsed(from: string | null, to?: string | null): string {
-  if (!from) return "—";
-  const end = to ? new Date(to).getTime() : Date.now();
-  const s = Math.max(0, Math.floor((end - new Date(from).getTime()) / 1000));
-  if (s < 60) return `${s} s`;
-  if (s < 3600) return `${Math.floor(s / 60)} min ${s % 60} s`;
-  return `${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min`;
-}
-
-function fileIcon(name: string) {
-  if (name.endsWith(".smv")) return "📊";
-  if (name.endsWith(".csv")) return "📄";
-  if (name.endsWith(".log")) return "📋";
-  return "📁";
-}
-
-function fileTypeKey(name: string): string {
-  if (name.endsWith(".smv"))  return "smv";
-  if (name.endsWith(".csv"))  return "csv";
-  if (name.endsWith(".log"))  return "log";
-  if (name.endsWith(".s3d"))  return "s3d";
-  if (name.endsWith(".q"))    return "q";
-  if (name.endsWith(".sf"))   return "sf";
-  if (name.endsWith(".bf"))   return "bf";
-  if (name.endsWith(".prt5")) return "prt5";
-  if (name.endsWith(".fds"))  return "fds";
-  return "other";
-}
-
-// ── Log konsoli ─────────────────────────────────────────────────────────────
-// Surowy log maszyny miesza dwie rzeczy: postęp solvera FDS i własną
-// telemetrię operacyjną runnera (rozmiary wysyłanych plików, instalacja
-// pakietów, pobieranie instalatora). To drugie nic nie mówi użytkownikowi,
-// a zajmowało cały panel — filtrujemy je.
-const LOG_NOISE =
-  /^(podglad|podglad-diag|migawka wynikow|Downloading|Instaluj|Running FDS installer|FDS extracted|FDS installed|FDS ready|Input ready|Uploading results|→)/i;
-
-type ConsoleEntry = { time: string; msg: string; tone: "ink" | "signal" | "muted" };
-
-function consoleLogEntries(log: string | null, max = 4): ConsoleEntry[] {
-  if (!log) return [];
-
-  const milestones: ConsoleEntry[] = [];
-  let latestStep: ConsoleEntry | null = null;
-
-  for (const raw of log.split("\n")) {
-    const line = raw.trim();
-    if (!line) continue;
-
-    const time = (line.match(/\d{2}:\d{2}:\d{2}/) ?? ["—"])[0];
-    const body = line.replace(/^\[?\d{2}:\d{2}:\d{2}(?:\.\d+)?\]?\s*/, "").trim();
-    if (!body || LOG_NOISE.test(body)) continue;
-
-    // Postęp solvera powtarza się setki razy — trzymamy tylko NAJNOWSZY wpis,
-    // skondensowany do odczytu, zamiast zalewać panel identycznymi liniami.
-    const step = body.match(/Time Step:\s*(\d+).*?Simulation Time:\s*([\d.]+)/i);
-    if (step) {
-      latestStep = {
-        time,
-        msg: `KROK ${step[1]} // T = ${parseFloat(step[2]).toFixed(2)} s`,
-        tone: "signal",
-      };
-      continue;
-    }
-
-    const isError = /^(ERROR|FDS exit 0, ale)/i.test(body);
-    milestones.push({
-      time,
-      msg: body.replace(/^===\s*/, "").replace(/\s*===$/, "").slice(0, 64),
-      tone: isError ? "ink" : "muted",
-    });
-  }
-
-  // Najnowszy krok solvera na górze, pod nim ostatnie kamienie milowe.
-  const tail = milestones.slice(-(max - (latestStep ? 1 : 0))).reverse();
-  return latestStep ? [latestStep, ...tail] : tail;
-}
-
-function parseFdsProgress(log: string, tEnd: number): { pct: number; currentTime: number } | null {
-  const matches = Array.from(log.matchAll(/Simulation Time:\s*([\d.E+\-]+)\s*s/g));
-  if (!matches.length || !tEnd) return null;
-  const currentTime = parseFloat(matches[matches.length - 1][1]);
-  if (isNaN(currentTime)) return null;
-  return { pct: Math.min(100, (currentTime / tEnd) * 100), currentTime };
-}
-
-interface FdsStats {
-  version: string | null;
-  chid: string | null;
-  currentStep: number | null;
-  currentTime: number | null;
-  stepSize: number | null;
-  iteRate: string | null;
-  meshCount: number | null;
-  totalCells: number | null;
-  startTime: string | null;
-}
-
-function parseFdsStats(log: string): FdsStats {
-  const version   = log.match(/Revision\s*:\s*(\S+)/)?.[1] ?? null;
-  const chid      = log.match(/Job ID string\s*:\s*(.+)/)?.[1]?.trim() ?? null;
-  const startTime = log.match(/Current Date\s*:\s*(.+)/)?.[1]?.trim() ?? null;
-
-  const tsMatches = Array.from(
-    log.matchAll(/Time Step:\s*(\d+),\s*Simulation Time:\s*([\d.E+\-]+)\s*s/g)
-  );
-  const lastTs      = tsMatches[tsMatches.length - 1];
-  const currentStep = lastTs ? parseInt(lastTs[1]) : null;
-  const currentTime = lastTs ? parseFloat(lastTs[2]) : null;
-
-  let stepSize: number | null = null;
-  if (tsMatches.length >= 2) {
-    const prev = tsMatches[tsMatches.length - 2];
-    const last = tsMatches[tsMatches.length - 1];
-    const dTime  = parseFloat(last[2]) - parseFloat(prev[2]);
-    const dSteps = parseInt(last[1]) - parseInt(prev[1]);
-    if (dSteps > 0 && dTime > 0) stepSize = dTime / dSteps;
-  }
-
-  const detailMatch = log.match(/Step Size:\s*([\d.E+\-]+)\s*s/);
-  if (detailMatch) stepSize = parseFloat(detailMatch[1]);
-
-  const iteRateMatch = log.match(/Ite Rate\/Proc:\s*([\d.E+\-nan]+)/);
-  const iteRate = iteRateMatch?.[1] ?? null;
-
-  const meshLines = Array.from(log.matchAll(/Number of Grid Cells\s+([\d,\s]+)/g));
-  const totalCells = meshLines.length
-    ? meshLines.reduce((s, m) => s + parseInt(m[1].replace(/[\s,]/g, "")), 0)
-    : null;
-  const meshCount = meshLines.length || null;
-
-  return { version, chid, currentStep, currentTime, stepSize, iteRate, meshCount, totalCells, startTime };
-}
-
-function formatSize(bytes: number | null): string {
-  if (bytes === null) return "—";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-// Łączny rozmiar paczki. Magazyn potrafi nie podać rozmiaru części plików —
-// wtedy suma jest niepełna i oznaczamy ją tyldą („co najmniej tyle”).
-function totalSize(files: Array<{ size: number | null }>): { bytes: number; label: string; partial: boolean } | null {
-  if (files.length === 0) return null;
-  const known = files.filter((f) => f.size !== null);
-  if (known.length === 0) return null;
-  const bytes = known.reduce((sum, f) => sum + (f.size as number), 0);
-  const partial = known.length < files.length;
-  return { bytes, label: `${partial ? "~" : ""}${formatSize(bytes)}`, partial };
-}
-
-// Etykieta rozmiaru paczki w wyborze — okrągła („2 GB”), nie „2,00 GB”.
-function packageLabel(bytes: number): string {
-  return bytes >= GB ? `${bytes / GB} GB` : `${Math.round(bytes / (1024 * 1024))} MB`;
-}
 
 // Zapis plików wprost do folderu wskazanego przez użytkownika (File System Access
 // API — Chrome/Edge). Typy nie ma w lib.dom tej wersji TS, więc minimalny kontrakt.
@@ -290,33 +119,6 @@ function directoryPicker(): ((opts?: Record<string, unknown>) => Promise<DirHand
   return typeof w.showDirectoryPicker === "function" ? w.showDirectoryPicker.bind(window) : null;
 }
 
-function formatDt(s: number | null): string {
-  if (s === null) return "—";
-  if (s >= 1)    return `${s.toFixed(3)} s`;
-  if (s >= 0.01) return `${(s * 1000).toFixed(1)} ms`;
-  return `${(s * 1000).toFixed(2)} ms`;
-}
-
-function formatDuration(sec: number): string {
-  if (sec < 60)   return `${Math.round(sec)} s`;
-  if (sec < 3600) return `${Math.ceil(sec / 60)} min`;
-  return `${(sec / 3600).toFixed(1)} h`;
-}
-
-// Ile jeszcze zostało: tempo dotychczasowej pracy przeniesione na resztę
-// zadania. Poniżej 1% tempo jest jeszcze przypadkowe (rozruch, alokacja
-// pamięci), więc wtedy nie zgadujemy — lepiej „—" niż prognoza z sufitu.
-function remainingSec(pct: number | null, elapsedSec: number | null): number | null {
-  if (pct === null || elapsedSec === null || pct <= 1) return null;
-  return Math.max(0, Math.round((elapsedSec / pct) * (100 - pct)));
-}
-
-// Czas rozbity na liczbę i jednostkę — szyna konsoli składa je osobno.
-function splitDuration(sec: number): { value: string; unit: string } {
-  if (sec < 60)   return { value: String(Math.round(sec)), unit: "s" };
-  if (sec < 3600) return { value: String(Math.ceil(sec / 60)), unit: "min" };
-  return { value: (sec / 3600).toFixed(1), unit: "h" };
-}
 
 export default function JobStatusPage(props: { params: Promise<{ caseId: string }> }) {
   const params = use(props.params);
@@ -359,6 +161,9 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [paying, setPaying] = useState(false);
+  // Stawka VAT zależy od tego, kim jest nabywca (odwrotne obciążenie w UE,
+  // poza zakresem poza UE) — na sztywno doliczane 23% było błędem dla obu.
+  const [invoice, setInvoice] = useState<InvoiceData>(EMPTY_INVOICE);
   const [filePage, setFilePage] = useState(1);
   const [finalCsv, setFinalCsv] = useState<{ devc: string | null; hrr: string | null }>({ devc: null, hrr: null });
   // Wyniki częściowe — migawka plików z magazynu dostępna W TRAKCIE obliczeń.
@@ -430,6 +235,11 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
       setPaying(false);
     }
   };
+
+  useEffect(() => {
+    loadInvoiceData(createClient()).then((res) => { if (res.ok) setInvoice(res.data); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (platnosc === "sukces") {
@@ -730,46 +540,36 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
 
   // ── Stany brzegowe ──────────────────────────────────────────────────────────
   if (error === "not_found") return (
-    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
-      <div className="mx-auto w-full max-w-[1100px]">
-        <div className="py-16 text-center">
-          <p className="text-7xl font-black text-hairline select-none leading-none mb-6">404</p>
-          <h2 className="text-xl font-bold text-ink mb-2">{t("notFound.title")}</h2>
-          <p className="text-fr-body text-muted mb-2">{t("notFound.body", { caseId })}</p>
-          <p className="text-fr-sm text-muted mb-8">{t("notFound.hint")}</p>
-          <div className="flex items-center justify-center gap-3">
-            <Link href="/symulacje/historia" className="rounded-panel bg-primary px-4 py-2 text-fr-body font-semibold text-white hover:bg-primary/90 transition-colors">
-              {t("notFound.history")}
-            </Link>
-            <Link href="/symulacje/nowa" className="rounded-panel border border-hairline px-4 py-2 text-fr-body font-semibold text-ink hover:bg-panel-deep transition-colors">
-              {t("notFound.newJob")}
-            </Link>
-          </div>
+    <Shell width="xl">
+      <div className="py-16 text-center">
+        <p className="mb-6 select-none font-heading text-fr-hero leading-none text-hairline">404</p>
+        <h2 className="mb-2 font-heading text-fr-h3 text-ink">{t("notFound.title")}</h2>
+        <p className="mb-2 text-fr-body text-muted">{t("notFound.body", { caseId })}</p>
+        <p className="mb-8 text-fr-sm text-muted">{t("notFound.hint")}</p>
+        <div className="flex items-center justify-center gap-3">
+          <BtnLink href="/symulacje/historia">{t("notFound.history")}</BtnLink>
+          <BtnLink href="/symulacje/nowa" variant="secondary">{t("notFound.newJob")}</BtnLink>
         </div>
       </div>
-    </section>
+    </Shell>
   );
 
   if (error === "connection") return (
-    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
-      <div className="mx-auto w-full max-w-[1100px]">
-        <div className="rounded-card border border-primary/50 bg-primary/[0.07] p-8 text-center">
-          <p className="font-semibold text-primary mb-1">{t("conn.title")}</p>
-          <p className="mb-4 text-fr-body text-muted">{t("conn.body")}</p>
-          <Link href="/symulacje" className="text-fr-body font-medium text-primary hover:underline">{t("conn.back")}</Link>
-        </div>
-      </div>
-    </section>
+    <Shell width="xl">
+      <Notice tone="primary" title={t("conn.title")} actions={<BtnLink href="/symulacje" variant="secondary" size="sm">{t("conn.back")}</BtnLink>}>
+        <p>{t("conn.body")}</p>
+      </Notice>
+    </Shell>
   );
 
   if (!job) return (
-    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
-      <div className="mx-auto w-full max-w-[1100px] space-y-4">
+    <Shell width="xl">
+      <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 rounded-card bg-panel-deep animate-pulse" />
+          <Skeleton key={i} className="h-20" />
         ))}
       </div>
-    </section>
+    </Shell>
   );
 
   const fatalErr = hasFatalFdsError(job.fdsLog);
@@ -840,9 +640,8 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
   const cLog = consoleLogEntries(job.fdsLog);
 
   return (
-    <section className="relative z-10 min-h-screen bg-canvas px-4 pb-24 pt-10">
-      <div className="mx-auto w-full max-w-[1100px]">
-        <div className="space-y-6" suppressHydrationWarning>
+    <Shell width="xl">
+      <div className="space-y-8" suppressHydrationWarning>
 
           {/* Nagłówek — kicker w mono nad nazwą pliku, identyfikator i maszyna
               jako odczyt techniczny, status po prawej. Układ jak na pozostałych
@@ -850,7 +649,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
           <div>
             <Link
               href="/symulacje"
-              className="inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-muted transition-colors hover:text-primary"
+              className="inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-muted transition-colors hover:text-accent"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               {t("back")}
@@ -864,10 +663,10 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 <h1 className="truncate font-heading text-fr-h2 text-ink">{job.fileName}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-fr-sm text-muted">
                   <span className="text-ink">{job.caseId}</span>
-                  {job.serverType && (
+                  {job.serverLabel && (
                     <span className="inline-flex items-center gap-2.5">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                      {serverSpec(job.serverType).label}
+                      {job.serverLabel}
                     </span>
                   )}
                 </div>
@@ -932,7 +731,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   <ConsoleMetric
                     label={t("console.cost")}
                     value={money(job.price)}
-                    tone="text-primary"
+                    tone="text-accent"
                     sub={t("console.costNote")}
                   />
                 </div>
@@ -1008,9 +807,9 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 <span className="font-bold text-ink">{elapsed(job.dispatchedAt, job.completedAt)}</span>
               </p>
             )}
-            {job.serverType && (
+            {job.serverLabel && (
               <p className="mt-2 font-mono text-fr-sm text-muted">
-                {t("card.machine")} <span className="font-bold text-ink">{serverSpec(job.serverType).label}</span>
+                {t("card.machine")} <span className="font-bold text-ink">{job.serverLabel}</span>
                 <span className="ml-1 text-faint">{t("card.machineNote")}</span>
               </p>
             )}
@@ -1029,18 +828,18 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   ) : confirmCancel ? (
                     <div className="flex items-center gap-2 rounded-panel border border-warn/40 bg-warn/[0.07] px-3 py-2 flex-wrap">
                       <span className="text-fr-body font-semibold text-ink">{t("actions.confirmStopQ")}</span>
-                      <button onClick={handleStop} disabled={stopping} className="rounded-panel bg-warn hover:opacity-90 px-3 py-1.5 text-fr-body font-semibold text-white transition-colors disabled:opacity-60">
+                      <Btn onClick={handleStop} disabled={stopping} variant="warn" size="sm">
                         {stopping ? t("actions.stopping") : t("actions.yesStop")}
-                      </button>
-                      <button onClick={() => setConfirmCancel(false)} disabled={stopping} className="rounded-panel border border-hairline px-3 py-1.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-60">
+                      </Btn>
+                      <Btn onClick={() => setConfirmCancel(false)} disabled={stopping} variant="ghost" size="sm">
                         {t("actions.no")}
-                      </button>
+                      </Btn>
                     </div>
                   ) : (
-                    <button onClick={() => { setConfirmCancel(true); setConfirmDelete(false); }} className="flex items-center gap-1.5 rounded-panel border border-warn/40 bg-warn/[0.07] px-4 py-2 text-fr-body font-semibold text-warn hover:bg-warn/[0.12] transition-colors">
+                    <Btn onClick={() => { setConfirmCancel(true); setConfirmDelete(false); }} variant="warn">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 16V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2z" /></svg>
                       {t("actions.stop")}
-                    </button>
+                    </Btn>
                   )
                 )}
 
@@ -1053,19 +852,19 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                       {canCancel ? t("actions.deleteActiveBody") : t("actions.deleteBody")}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <button onClick={handleDelete} disabled={deleting} className="rounded-panel bg-primary hover:opacity-90 px-3 py-1.5 text-fr-body font-semibold text-white transition-colors disabled:opacity-60">
+                      <Btn onClick={handleDelete} disabled={deleting} size="sm">
                         {deleting ? t("actions.deleting") : canCancel ? t("actions.yesStopDelete") : t("actions.yesDelete")}
-                      </button>
-                      <button onClick={() => setConfirmDelete(false)} disabled={deleting} className="rounded-panel border border-hairline px-3 py-1.5 text-fr-body font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-60">
+                      </Btn>
+                      <Btn onClick={() => setConfirmDelete(false)} disabled={deleting} variant="ghost" size="sm">
                         {t("actions.cancel")}
-                      </button>
+                      </Btn>
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setConfirmDelete(true); setConfirmCancel(false); }} className="flex items-center gap-1.5 rounded-panel border border-primary/40 bg-primary/[0.07] px-4 py-2 text-fr-body font-semibold text-primary hover:bg-primary/[0.12] transition-colors">
+                  <Btn onClick={() => { setConfirmDelete(true); setConfirmCancel(false); }} variant="danger">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     {canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}
-                  </button>
+                  </Btn>
                 )}
               </div>
 
@@ -1077,7 +876,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                     </li>
                   )}
                   <li>
-                    <span className="font-semibold text-primary">{canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}</span> — {t("actions.annDelete")}
+                    <span className="font-semibold text-accent">{canCancel ? t("actions.stopAndDelete") : t("actions.deleteJob")}</span> — {t("actions.annDelete")}
                     {canCancel && ` ${t("actions.annDeleteActive")}`}
                   </li>
                 </ul>
@@ -1108,7 +907,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 <Spec label={t("tiles.file")} value={<span className="font-mono text-fr-h4">{job.fileName}</span>} hint={cStats?.chid ? `CHID: ${cStats.chid}` : undefined} />
                 <Spec label={t("tiles.cells")} value={formatCells(job.totalCells, t("tiles.thousands"))} hint={job.meshCount ? t("sec.meshes", { n: job.meshCount }) : undefined} />
                 <Spec label={t("tiles.simTime")} value={String(job.tEnd)} unit="s" hint={t("sec.simTimeHint")} />
-                <Spec label={t("tiles.netPrice")} value={money(job.price)} tone="text-primary" hint={t("sec.priceHint")} />
+                <Spec label={t("tiles.netPrice")} value={money(job.price)} tone="text-accent" hint={t("sec.priceHint")} />
               </SpecGrid>
             </Plate>
           </Section>
@@ -1122,10 +921,10 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
           >
             <Plate className="p-6 md:p-8">
               <SpecGrid>
-                <Spec label={t("tiles.machine")} value={serverSpec(job.serverType).label} hint={t("sec.provider")} />
+                <Spec label={t("tiles.machine")} value={job.serverLabel ?? "—"} hint={t("sec.provider")} />
                 <Spec
                   label={t("sec.cores")}
-                  value={serverSpec(job.serverType).cores ?? "—"}
+                  value={job.serverCores ?? "—"}
                   unit="vCPU"
                   hint={
                     job.mpiProcs && job.meshCount && job.meshCount > job.mpiProcs
@@ -1181,7 +980,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                         onClick={() => setLogMode(mode)}
                         className={`rounded-chip border px-3 py-1.5 font-mono text-fr-label uppercase transition-colors ${
                           logMode === mode
-                            ? "border-primary/40 bg-primary/10 text-primary"
+                            ? "border-primary/40 bg-primary/10 text-accent"
                             : "border-hairline text-muted hover:text-ink"
                         }`}
                       >
@@ -1298,27 +1097,19 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 <div className="space-y-5 p-6">
                   {/* Akcje */}
                   <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => downloadMany(partial)}
-                      disabled={partial.length === 0 || seqRunning}
-                      className="flex items-center gap-2 rounded-panel bg-primary px-5 py-2.5 text-fr-body font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
+                    <Btn onClick={() => downloadMany(partial)} disabled={partial.length === 0 || seqRunning}>
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                       {t("partial.downloadAll")}
                       {partialSize ? <span className="font-semibold text-white/75">({partialSize.label})</span> : null}
-                    </button>
-                    <button
-                      onClick={loadPartial}
-                      disabled={partialLoading}
-                      className="flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-2 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep disabled:opacity-60"
-                    >
+                    </Btn>
+                    <Btn onClick={loadPartial} disabled={partialLoading} variant="secondary" size="sm">
                       <svg className={`h-3.5 w-3.5 ${partialLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                       {partialLoading ? t("partial.syncing") : t("partial.sync")}
-                    </button>
+                    </Btn>
                     {partialAt && (
                       <span className="font-mono text-fr-sm text-faint">
                         {t("partial.syncedAt", {
@@ -1369,7 +1160,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   {/* Lista plików — zwijana, do pobrania pojedynczo */}
                   {partial.length > 0 && (
                     <details className="group">
-                      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
+                      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
                         <svg className="h-3.5 w-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -1397,12 +1188,12 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                                 <td className="hidden whitespace-nowrap py-2.5 pl-4 align-middle text-fr-sm text-muted sm:table-cell">{t(`fileType.${fileTypeKey(f.name)}`)}</td>
                                 <td className="whitespace-nowrap py-2.5 pl-4 text-right align-middle font-mono text-fr-sm text-muted">{formatSize(f.size)}</td>
                                 <td className="py-2.5 pl-4 text-right align-middle">
-                                  <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep">
+                                  <Btn onClick={() => downloadFile(f)} variant="secondary" size="sm">
                                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
                                     {t("results.download")}
-                                  </button>
+                                  </Btn>
                                 </td>
                               </tr>
                             ))}
@@ -1454,20 +1245,20 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
               )}
               <div className="flex items-center justify-between gap-3 mb-4">
                 <label className="flex cursor-pointer items-center gap-2.5">
-                  <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 cursor-pointer rounded-chip border-hairline text-primary" />
+                  <input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }} onChange={toggleAll} className="h-4 w-4 cursor-pointer rounded-chip border-hairline text-accent" />
                   <span className="font-mono text-fr-label uppercase text-muted">{t("results.selectAll")}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || seqRunning} className="flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1.5 text-fr-sm font-semibold text-muted hover:bg-panel-deep transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <Btn onClick={() => downloadMany(allFiles.filter((f) => selected.has(f.name)))} disabled={!someSelected || seqRunning} variant="secondary" size="sm">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.downloadSelected")}
                     {someSelected && selectedSize ? <span className="font-normal text-muted">({selectedSize.label})</span> : null}
-                  </button>
-                  <button onClick={() => downloadMany(allFiles)} disabled={seqRunning} className="flex items-center gap-1.5 rounded-panel bg-primary hover:bg-primary/90 px-3 py-1.5 text-fr-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  </Btn>
+                  <Btn onClick={() => downloadMany(allFiles)} disabled={seqRunning} size="sm">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {t("results.zipAll")}
                     {allSize ? <span className="font-normal text-white/75">({allSize.label})</span> : null}
-                  </button>
+                  </Btn>
                 </div>
               </div>
 
@@ -1491,7 +1282,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 onToggle={(e) => setPkgOpen((e.target as HTMLDetailsElement).open)}
                 className="group mb-4 rounded-panel border border-hairline-soft bg-canvas px-4 py-3"
               >
-                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-fr-sm font-semibold text-muted transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
                   <svg className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -1530,13 +1321,15 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                             {t("results.partMeta", { files: part.length, size: partSize?.label ?? "—" })}
                           </span>
                         </span>
-                        <button
+                        <Btn
                           onClick={() => downloadPart(part, i + 1, packages.length)}
                           disabled={seqRunning}
-                          className="shrink-0 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted transition-colors hover:bg-panel-deep disabled:cursor-not-allowed disabled:opacity-40"
+                          variant="secondary"
+                          size="sm"
+                          className="shrink-0"
                         >
                           {t("results.download")}
-                        </button>
+                        </Btn>
                       </li>
                     );
                   })}
@@ -1560,7 +1353,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                     {visibleFiles.map((f) => (
                       <tr key={f.name} className="group">
                         <td className="py-2.5 pr-3 align-middle">
-                          <input type="checkbox" checked={selected.has(f.name)} onChange={() => toggleFile(f.name)} className="h-4 w-4 rounded border-hairline text-primary cursor-pointer" />
+                          <input type="checkbox" checked={selected.has(f.name)} onChange={() => toggleFile(f.name)} className="h-4 w-4 rounded border-hairline text-accent cursor-pointer" />
                         </td>
                         <td className="py-2.5 align-middle min-w-0 max-w-[200px]">
                           <div className="flex items-center gap-2">
@@ -1575,10 +1368,10 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                         </td>
                         <td className="py-2.5 pl-4 align-middle whitespace-nowrap text-fr-sm font-mono text-muted text-right">{formatSize(f.size)}</td>
                         <td className="py-2.5 pl-4 align-middle text-right">
-                          <button onClick={() => downloadFile(f)} className="inline-flex items-center gap-1.5 rounded-panel border border-hairline px-3 py-1 text-fr-sm font-semibold text-muted hover:bg-panel-deep transition-colors">
+                          <Btn onClick={() => downloadFile(f)} variant="secondary" size="sm">
                             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             {t("results.download")}
-                          </button>
+                          </Btn>
                         </td>
                       </tr>
                     ))}
@@ -1621,7 +1414,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                 <p className="text-fr-sm text-warn mb-3">{t("payment.verifying")}</p>
               )}
               {platnosc === "anulowano" && (
-                <p className="text-fr-sm text-primary mb-3">{t("payment.cancelledMsg")}</p>
+                <p className="text-fr-sm text-accent mb-3">{t("payment.cancelledMsg")}</p>
               )}
 
               {job.paymentStatus === "paid" ? (
@@ -1632,7 +1425,12 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   <div>
                     <p className="text-fr-body font-semibold text-signal">{t("payment.done")}</p>
                     <p className="mt-1 text-fr-sm text-muted">
-                      {t("payment.amount")} <span className="font-semibold">{money(job.price, true)}</span> {t("payment.net")}
+                      {t("payment.amount")}{" "}
+                      <span className="font-semibold">{money(grossAmount(job.price, invoice), true)}</span>{" "}
+                      {t("payment.gross")}
+                      <span className="ml-1 text-faint">
+                        ({money(job.price, true)} {t("payment.net")})
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -1641,19 +1439,26 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   <div>
                     <p className="text-fr-body font-semibold text-warn">{t("payment.awaiting")}</p>
                     <p className="text-fr-sm text-warn/80 mt-0.5">
-                      {t("payment.toPay")} <span className="font-bold">{money(job.price, true)}</span> {t("payment.net")}
-                      <span className="ml-1 text-warn/70">(~{money(job.price * 1.23, true)} {t("payment.gross")})</span>
+                      {t("payment.toPay")}{" "}
+                      <span className="font-bold">{money(grossAmount(job.price, invoice), true)}</span>{" "}
+                      {t("payment.gross")}
+                      <span className="ml-1 text-warn/70">
+                        ({money(job.price, true)} {t("payment.net")}
+                        {vatTreatment(invoice).treatment === "standard"
+                          ? ` + VAT ${Math.round(vatTreatment(invoice).rate * 100)}%`
+                          : ` · ${t(`payment.vat.${vatTreatment(invoice).treatment}`)}`})
+                      </span>
                     </p>
                     <p className="text-fr-sm text-warn/70 mt-1">{t("payment.note")}</p>
                   </div>
-                  <button onClick={handlePay} disabled={paying} className="flex items-center gap-2 rounded-panel bg-primary hover:bg-primary/90 px-5 py-2.5 text-fr-body font-bold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
+                  <Btn onClick={handlePay} disabled={paying} className="shrink-0">
                     {paying ? (
                       <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
                     ) : (
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                     )}
-                    {paying ? t("payment.redirecting") : t("payment.pay", { amount: money(job.price, true) })}
-                  </button>
+                    {paying ? t("payment.redirecting") : t("payment.pay", { amount: money(grossAmount(job.price, invoice), true) })}
+                  </Btn>
                 </div>
               )}
             </div>
@@ -1691,9 +1496,9 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             const explained = diag.errors;
             return (
               <div className="rounded-card border border-primary/40 bg-primary/[0.07] p-5 flex items-start gap-4">
-                <svg className="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg className="h-5 w-5 text-accent shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div className="min-w-0 w-full">
-                  <p className="text-fr-body font-semibold text-primary">
+                  <p className="text-fr-body font-semibold text-accent">
                     {t(`failed.kind.${diag.kind}.title`)}
                   </p>
                   <p className="text-fr-sm text-muted mt-1">
@@ -1735,7 +1540,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
 
                   {explained.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-fr-sm font-semibold text-primary mb-2">{t("failed.whatMeans")}</p>
+                      <p className="text-fr-sm font-semibold text-accent mb-2">{t("failed.whatMeans")}</p>
                       <FdsErrorCards errors={explained} />
                     </div>
                   )}
@@ -1743,7 +1548,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
                   {errLines.length > 0 && (
                     <details className="mt-3" open={explained.length === 0}>
                       <summary className="text-fr-sm font-medium text-muted cursor-pointer select-none">{t("failed.rawConsole")}</summary>
-                      <div className="mt-2 rounded-panel bg-well p-3 max-h-56 overflow-auto"><pre className="text-fr-sm font-mono text-primary leading-relaxed whitespace-pre-wrap break-all">{errLines.join("\n")}</pre></div>
+                      <div className="mt-2 rounded-panel bg-well p-3 max-h-56 overflow-auto"><pre className="text-fr-sm font-mono text-accent leading-relaxed whitespace-pre-wrap break-all">{errLines.join("\n")}</pre></div>
                     </details>
                   )}
 
@@ -1756,8 +1561,7 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             );
           })()}
 
-        </div>
       </div>
-    </section>
+    </Shell>
   );
 }

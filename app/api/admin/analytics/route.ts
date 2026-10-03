@@ -16,7 +16,9 @@ export async function GET() {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("fds_submissions")
-    .select("case_id, email, status, created_at, completed_at, price, server_type, wall_hours, total_cells, payment_status")
+    // dispatched_at + t_end są tu po to, żeby dało się policzyć REALNY koszt
+    // maszyny (lib/fds/margin.ts) — bez nich panel pokazywałby sam przychód.
+    .select("case_id, email, status, created_at, dispatched_at, completed_at, price, server_type, wall_hours, total_cells, t_end, payment_status")
     .order("created_at", { ascending: true })
     .limit(5000);
 

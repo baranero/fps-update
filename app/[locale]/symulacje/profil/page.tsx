@@ -224,7 +224,7 @@ function ProfilForm() {
 
   if (loadError) return (
     <Shell width="md">
-      <p className="text-fr-sm text-primary">{t("loadError")}</p>
+      <p className="text-fr-sm text-accent">{t("loadError")}</p>
     </Shell>
   );
 
@@ -277,7 +277,7 @@ function ProfilForm() {
         {statCards.map((s) => (
           <Link key={s.label} href={s.href} className={`group ${cardHoverCls} p-4`}>
             <p className="fr-num font-heading text-fr-h2 text-ink">{s.value}</p>
-            <p className="mt-1 font-mono text-fr-micro uppercase text-faint transition-colors group-hover:text-primary">
+            <p className="mt-1 font-mono text-fr-micro uppercase text-faint transition-colors group-hover:text-accent">
               {s.label}
             </p>
           </Link>
@@ -303,15 +303,15 @@ function ProfilForm() {
             >
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-tile border transition-colors ${
                 q.accent
-                  ? "border-primary/20 bg-primary/10 text-primary"
-                  : "border-hairline-soft bg-panel-deep text-muted group-hover:border-primary/30 group-hover:text-primary"
+                  ? "border-primary/20 bg-primary/10 text-accent"
+                  : "border-hairline-soft bg-panel-deep text-muted group-hover:border-primary/30 group-hover:text-accent"
               }`}>
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={q.icon} />
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className={`font-heading text-fr-h4 ${q.accent ? "text-primary" : "text-ink"}`}>
+                <p className={`font-heading text-fr-h4 ${q.accent ? "text-accent" : "text-ink"}`}>
                   {t(`links.${q.key}Title`)}
                 </p>
                 <p className="mt-0.5 text-fr-sm text-muted">
@@ -351,7 +351,7 @@ function ProfilForm() {
 
       {/* Bezpieczeństwo / hasło */}
       <section className="border-t border-hairline pt-8">
-        <SectionLabel className="mb-4 block">{t("security.title")}</SectionLabel>
+        <SectionLabel className="mb-3 block">{t("security.title")}</SectionLabel>
         {provider === "email" ? (
           <form onSubmit={handlePassword} className="max-w-lg space-y-4">
             <div>
@@ -396,7 +396,7 @@ function ProfilForm() {
 
       {/* Usunięcie konta */}
       <section className="border-t border-primary/30 pt-8">
-        <SectionLabel className="mb-1 block !text-primary">{t("danger.title")}</SectionLabel>
+        <SectionLabel className="mb-1 block !text-accent">{t("danger.title")}</SectionLabel>
         <p className="mb-4 max-w-lg text-fr-sm text-muted">
           {t("danger.warning")}
         </p>
@@ -413,7 +413,7 @@ function ProfilForm() {
               placeholder={email}
             />
           </div>
-          {deleteError && <p className="text-fr-sm text-primary">{deleteError}</p>}
+          {deleteError && <p className="text-fr-sm text-accent">{deleteError}</p>}
           <Btn variant="danger" onClick={handleDelete} disabled={deleteLoading || deleteConfirm !== email}>
             {deleteLoading ? t("danger.deleting") : t("danger.delete")}
           </Btn>

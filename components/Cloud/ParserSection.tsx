@@ -20,7 +20,7 @@ export default function ParserSection() {
           <ul className="space-y-4">
             {["p1", "p2", "p3"].map((k) => (
               <li key={k} className="flex gap-3 border-t border-hairline-soft pt-4">
-                <span className="mt-0.5 font-mono text-fr-micro text-primary">{`0${k.slice(1)}`}</span>
+                <span className="mt-0.5 font-mono text-fr-micro text-accent">{`0${k.slice(1)}`}</span>
                 <p className="text-fr-sm text-muted">{t(`points.${k}`)}</p>
               </li>
             ))}
@@ -108,7 +108,7 @@ export default function ParserSection() {
             </div>
             <div className="text-right">
               <span className="block font-mono text-fr-micro uppercase text-muted">{t("panel.cost")}</span>
-              <span className="fr-num font-heading text-fr-h3 text-primary">{t("panel.costValue")}</span>
+              <span className="fr-num font-heading text-fr-h3 text-accent">{t("panel.costValue")}</span>
             </div>
           </div>
         </div>

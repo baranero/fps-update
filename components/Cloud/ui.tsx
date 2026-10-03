@@ -24,11 +24,12 @@ export type { Tone } from "@/lib/tone";
    `primary` = akcja główna (czerwień marki), `secondary` = na kresce,
    `ghost` = nawigacyjny, `danger` = destrukcyjny (usuń/anuluj zlecenie).
    Wszystkie mają tę samą geometrię — różni je wyłącznie warstwa koloru. */
-export type BtnVariant = "primary" | "secondary" | "ghost" | "danger";
+export type BtnVariant = "primary" | "secondary" | "ghost" | "danger" | "warn";
 export type BtnSize = "sm" | "md" | "lg";
 
 const BTN_BASE =
-  "inline-flex items-center justify-center gap-2 rounded-panel transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex select-none items-center justify-center gap-2 rounded-panel transition-colors " +
+  "active:translate-y-px disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50";
 
 const BTN_SIZE: Record<BtnSize, string> = {
   sm: "px-3 py-1.5 text-fr-sm font-semibold",
@@ -38,9 +39,13 @@ const BTN_SIZE: Record<BtnSize, string> = {
 
 const BTN_VARIANT: Record<BtnVariant, string> = {
   primary: "bg-primary font-bold text-white hover:opacity-90",
-  secondary: "border border-hairline bg-panel text-ink hover:border-primary/40 hover:text-primary",
+  secondary: "border border-hairline bg-panel text-ink hover:border-primary/40 hover:text-accent",
   ghost: "border border-transparent text-muted hover:bg-panel-deep hover:text-ink",
-  danger: "border border-primary/40 bg-primary/[0.07] text-primary hover:bg-primary/15",
+  danger: "border border-primary/40 bg-primary/[0.07] text-accent hover:bg-primary/15",
+  // Akcja przerywająca, nie niszcząca (zatrzymanie obliczeń) — ten sam kształt
+  // co `danger`, inny ton. Bez niej strona zlecenia budowała ten przycisk
+  // ręcznie i wychodził o 2 px niższy od sąsiadów.
+  warn: "border border-warn/40 bg-warn/[0.07] text-warn hover:bg-warn/15",
 };
 
 export function btnCls(variant: BtnVariant = "primary", size: BtnSize = "md", extra = ""): string {
@@ -88,14 +93,14 @@ export function BtnLink({
 export const labelCls = "mb-2 block font-mono text-fr-label uppercase text-muted";
 
 export const inputCls =
-  "w-full rounded-panel border border-hairline bg-panel-deep px-4 py-3 text-fr-body text-ink outline-none transition-colors placeholder:text-muted/70 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-panel border border-hairline bg-panel-deep px-4 py-3 text-fr-body text-ink transition-colors placeholder:text-muted/70 focus:border-primary disabled:cursor-not-allowed disabled:opacity-60";
 
 // Wariant gęsty — paski filtrów, wyszukiwarki nad tabelami, pola w wierszach.
 export const inputSmCls =
-  "w-full rounded-panel border border-hairline bg-panel-deep px-3 py-2 text-fr-sm text-ink outline-none transition-colors placeholder:text-muted/70 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-panel border border-hairline bg-panel-deep px-3 py-2 text-fr-sm text-ink transition-colors placeholder:text-muted/70 focus:border-primary disabled:cursor-not-allowed disabled:opacity-60";
 
 export const inputErrCls =
-  "w-full rounded-panel border border-primary bg-panel-deep px-4 py-3 text-fr-body text-ink outline-none transition-colors placeholder:text-muted/70 focus:border-primary focus:ring-1 focus:ring-primary";
+  "w-full rounded-panel border border-primary bg-panel-deep px-4 py-3 text-fr-body text-ink transition-colors placeholder:text-muted/70 focus:border-primary";
 
 export function Field({
   label,
@@ -113,7 +118,7 @@ export function Field({
       <label className={labelCls}>{label}</label>
       {children}
       {hint && !error && <p className="mt-1.5 text-fr-sm text-muted">{hint}</p>}
-      {error && <p className="mt-1.5 text-fr-sm text-primary">{error}</p>}
+      {error && <p className="mt-1.5 text-fr-sm text-accent">{error}</p>}
     </div>
   );
 }
@@ -145,7 +150,8 @@ export function Chip({
 /* ── Powierzchnie ────────────────────────────────────────────────────────── */
 export const cardCls = "rounded-card border border-hairline bg-panel";
 export const cardHoverCls =
-  "rounded-card border border-hairline bg-panel transition-colors hover:border-primary/40";
+  "rounded-card border border-hairline bg-panel transition-[color,background-color,border-color,box-shadow,transform] duration-200 " +
+  "hover:-translate-y-px hover:border-primary/40 hover:shadow-fr-float";
 
 export function Card({ className = "", children }: { className?: string; children: ReactNode }) {
   return <div className={`${cardCls} ${className}`}>{children}</div>;
@@ -197,7 +203,7 @@ export function PageHead({
       {back && (
         <Link
           href={back.href}
-          className="mb-3 inline-flex items-center gap-1.5 font-mono text-fr-micro uppercase text-muted transition-colors hover:text-primary"
+          className="mb-3 inline-flex items-center gap-1.5 font-mono text-fr-micro uppercase text-muted transition-colors hover:text-accent"
         >
           <span aria-hidden>←</span>
           {back.label}
@@ -250,14 +256,14 @@ export function FilterTabs<T extends string>({
             aria-selected={on}
             onClick={() => onPick(tab.id)}
             className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2 font-mono text-fr-label uppercase transition-colors ${
-              on ? "border-primary text-primary" : "border-transparent text-muted hover:text-ink"
+              on ? "border-primary text-accent" : "border-transparent text-muted hover:text-ink"
             }`}
           >
             {tab.label}
             {!!tab.count && (
               <span
                 className={`fr-num rounded-chip px-1.5 py-0.5 ${
-                  on ? "bg-primary/10 text-primary" : "bg-panel-deep text-muted"
+                  on ? "bg-primary/10 text-accent" : "bg-panel-deep text-muted"
                 }`}
               >
                 {tab.count}
@@ -286,7 +292,7 @@ export function EmptyState({
       {cta && (
         <Link
           href={cta.href}
-          className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-primary transition-opacity hover:opacity-80"
+          className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-accent transition-opacity hover:opacity-80"
         >
           {cta.label} <span aria-hidden>→</span>
         </Link>
@@ -309,7 +315,7 @@ export const trCls = "bg-panel transition-colors hover:bg-panel-deep";
 // Przycisk ikonowy w wierszu tabeli (pobierz / podgląd / usuń).
 export function iconBtnCls(danger = false): string {
   return `rounded-tile p-1 text-faint transition-colors ${
-    danger ? "hover:bg-primary/10 hover:text-primary" : "hover:bg-panel-deep hover:text-primary"
+    danger ? "hover:bg-primary/10 hover:text-accent" : "hover:bg-panel-deep hover:text-accent"
   }`;
 }
 
@@ -336,7 +342,7 @@ export function Kpi({
 
 /* ── Szkielet ładowania ──────────────────────────────────────────────────── */
 export function Skeleton({ className = "h-24" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-card bg-panel-deep ${className}`} />;
+  return <div className={`fr-shimmer rounded-card bg-panel-deep ${className}`} />;
 }
 
 /* ── Komunikat (błąd / ostrzeżenie / potwierdzenie) ──────────────────────── */
@@ -373,5 +379,58 @@ export function Meter({ pct, tone = "primary" }: { pct: number; tone?: Tone }) {
         style={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
       />
     </div>
+  );
+}
+
+/* ── Rytm pionowy podstrony ──────────────────────────────────────────────────
+   JEDNA wartość odstępu między działami strony, dla całego konta. Powstało,
+   bo każdy widok miał własny: pulpit `space-y-10`, historia i rozliczenia
+   `space-y-8`, admin `space-y-6`. Przy przechodzeniu między zakładkami treść
+   „skakała", co czytało się jak niedbałość, choć każda strona z osobna
+   wyglądała poprawnie.
+
+   Anatomia każdej podstrony konta jest odtąd ta sama:
+
+       <Shell>
+         <PageStack>
+           <PageHead … />        ← tytuł, opis, akcje
+           <section>…</section>  ← kolejne działy
+         </PageStack>
+       </Shell>
+
+   Nie dopisuj `space-y-*` na korzeniu strony — od tego jest ten komponent. */
+export function PageStack({ children }: { children: ReactNode }) {
+  return <div className="space-y-8">{children}</div>;
+}
+
+/* ── Dział strony ────────────────────────────────────────────────────────────
+   Lekki nagłówek działu: etykieta w mono, opcjonalna akcja po prawej i treść.
+   Używaj go wszędzie tam, gdzie do tej pory stało gołe `<SectionLabel>` obok
+   ręcznie budowanego rzędu z odstępem — dzięki temu odstęp pod etykietą jest
+   wszędzie taki sam. Ciężki wariant działu (numerowany kicker + nagłówek H3
+   nad kreską) mieszka w `components/Cloud/Section.tsx` i zostaje dla strony
+   zlecenia, gdzie dział jest całym rozdziałem, a nie blokiem listy. */
+export function Block({
+  title,
+  actions,
+  hint,
+  children,
+}: {
+  title: ReactNode;
+  actions?: ReactNode;
+  hint?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <SectionLabel>{title}</SectionLabel>
+        </div>
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      </div>
+      {hint && <p className="-mt-1 mb-3 text-fr-sm text-muted">{hint}</p>}
+      {children}
+    </section>
   );
 }

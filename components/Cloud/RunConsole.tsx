@@ -41,7 +41,7 @@ export default function RunConsole() {
           <div className="flex flex-1 flex-col gap-6 overflow-hidden p-6">
             <ConsoleProgress label={t("progress")} pct={DEMO.pct} sub={t("progressSub")} />
             <ConsoleMetric label={t("remaining")} value={t("remainingVal")} unit={t("remainingUnit")} sub={t("etaSub")} />
-            <ConsoleMetric label={t("cost")} value={t("costVal")} tone="text-primary" sub={t("costSub")} />
+            <ConsoleMetric label={t("cost")} value={t("costVal")} tone="text-accent" sub={t("costSub")} />
           </div>
           <ConsoleNote>{t("modelNote")}</ConsoleNote>
         </>
@@ -124,7 +124,7 @@ export default function RunConsole() {
             <span className="absolute left-[34%] top-[11%] whitespace-nowrap font-mono text-fr-sm font-medium text-signal">
               {t("hrrMax")}
             </span>
-            <span className="absolute left-[40%] top-[38%] whitespace-nowrap font-mono text-fr-sm font-medium text-primary">
+            <span className="absolute left-[40%] top-[38%] whitespace-nowrap font-mono text-fr-sm font-medium text-accent">
               {t("tCeiling")}
             </span>
             <span className="absolute left-[45.5%] top-[52%] whitespace-nowrap font-mono text-fr-label uppercase text-muted">

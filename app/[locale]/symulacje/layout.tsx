@@ -5,11 +5,23 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cloudHomePath } from "@/lib/cloud";
+import { AccessProvider, useAccess } from "@/components/Cloud/AccessProvider";
 
 export default function SymulacjeLayout({ children }: { children: React.ReactNode }) {
+  // Uprawnienia czyta JEDEN dostawca na całą przestrzeń chmury — belka, pulpit
+  // i kreator biorą je z kontekstu zamiast pytać osobno.
+  return (
+    <AccessProvider>
+      <CloudChrome>{children}</CloudChrome>
+    </AccessProvider>
+  );
+}
+
+function CloudChrome({ children }: { children: React.ReactNode }) {
   const t = useTranslations("cfdNav");
   const pathname = usePathname();
   const router = useRouter();
+  const { state: access, refresh: refreshAccess } = useAccess();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -24,6 +36,7 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    await refreshAccess();
     router.push(cloudHomePath());
     router.refresh();
   }
@@ -78,11 +91,13 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
   // Pasek roboczy tylko dla zalogowanych — anonimowy gość widzi czysty landing.
   const showBar = ready && !!userEmail;
 
-  // Do czasu wdrożenia płatności uruchamianie symulacji ma wyłącznie admin —
-  // obcym chowamy wejście „Nowa symulacja" (CTA), reszta zakładek jest tylko do odczytu.
-  const isAdminUser = userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  // Wejście „Nowa symulacja" prowadzi do kreatora, a ten jest PUBLICZNY:
+  // analiza pliku i wycena liczą się w przeglądarce, więc pokazujemy je
+  // każdemu. Bramka („uruchom") jest dopiero na końcu kreatora i po stronie
+  // serwera. Ukrywanie zakładki odcinało lejek zanim klient poznał cenę.
+  const isAdminUser = !!access?.isAdmin;
   const visibleTabs: typeof tabs = [
-    ...tabs.filter((tab) => !tab.cta || isAdminUser),
+    ...tabs,
     // Panel administratora — zakładka chmury, nie narzędzi projektanta.
     ...(isAdminUser
       ? [{
@@ -107,7 +122,7 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
               <div className="flex min-w-0 items-center gap-3 overflow-x-auto">
                 <Link href="/symulacje" className="hidden shrink-0 items-center gap-2 pr-1 sm:flex">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  <span className="font-mono text-fr-micro font-bold uppercase text-primary">{t("brand")}</span>
+                  <span className="font-mono text-fr-micro font-bold uppercase text-accent">{t("brand")}</span>
                 </Link>
                 <nav className="flex items-center gap-1">
                   {visibleTabs.map((tab) => (
@@ -118,7 +133,7 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
                         active(tab.href, tab.exact)
                           ? "bg-primary text-white"
                           : tab.cta
-                          ? "bg-primary/10 text-primary hover:bg-primary/15"
+                          ? "bg-primary/10 text-accent hover:bg-primary/15"
                           : "text-muted hover:bg-panel-deep hover:text-ink"
                       }`}
                     >
@@ -137,7 +152,7 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
               <div className="hidden shrink-0 items-center gap-3 md:flex">
                 <Link
                   href="/symulacje/profil"
-                  className="max-w-[180px] truncate font-mono text-fr-micro text-muted transition-colors hover:text-primary"
+                  className="max-w-[180px] truncate font-mono text-fr-micro text-muted transition-colors hover:text-accent"
                   title={userEmail ?? undefined}
                 >
                   {userEmail}
@@ -145,7 +160,7 @@ export default function SymulacjeLayout({ children }: { children: React.ReactNod
                 <span className="text-faint">·</span>
                 <button
                   onClick={handleLogout}
-                  className="font-mono text-fr-micro uppercase text-muted transition-colors hover:text-primary"
+                  className="font-mono text-fr-micro uppercase text-muted transition-colors hover:text-accent"
                 >
                   {t("signOut")}
                 </button>

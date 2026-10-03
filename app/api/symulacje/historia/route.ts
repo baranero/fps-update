@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { serverLabel } from "@/lib/hetzner/catalog";
 
 export async function GET() {
   const userClient = await createClient();
@@ -23,5 +24,11 @@ export async function GET() {
     return NextResponse.json([], { status: 200 });
   }
 
-  return NextResponse.json(data ?? []);
+  // Zamiast symbolu maszyny oddajemy jej opis („16 vCPU · 32 GB RAM").
+  return NextResponse.json(
+    (data ?? []).map(({ server_type, ...row }) => ({
+      ...row,
+      server_label: server_type ? serverLabel(server_type).label : null,
+    }))
+  );
 }

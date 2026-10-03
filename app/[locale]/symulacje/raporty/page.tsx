@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { marketingUrl } from "@/lib/cloud";
 import { useFormat } from "@/lib/format";
 import { chipCls, type Tone } from "@/lib/tone";
-import { PageHead, Shell, cardCls } from "@/components/Cloud/ui";
+import { PageHead, Shell, cardCls, PageStack } from "@/components/Cloud/ui";
 
 type Report = {
   id: string;
@@ -110,7 +110,7 @@ export default function RaportyPage() {
 
   return (
     <Shell>
-      <div className="space-y-8">
+      <PageStack>
 
       <PageHead
         kicker={t("kicker")}
@@ -128,7 +128,7 @@ export default function RaportyPage() {
           <p className="text-fr-sm text-muted">{t("empty")}</p>
           <a
             href={marketingUrl("/narzedzia/kalkulatory")}
-            className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-primary transition-opacity hover:opacity-80"
+            className="mt-3 inline-flex items-center gap-1.5 font-mono text-fr-label uppercase text-accent transition-opacity hover:opacity-80"
           >
             {t("toCalculators")} <span aria-hidden>↗</span>
           </a>
@@ -158,7 +158,7 @@ export default function RaportyPage() {
                   ) : (
                     <a
                       href={r.share_url ?? calculatorHref(r.calculator)}
-                      className="block truncate text-fr-body font-medium text-ink transition-colors hover:text-primary"
+                      className="block truncate text-fr-body font-medium text-ink transition-colors hover:text-accent"
                     >
                       {r.project_name ?? <span className="font-normal italic text-faint">{t("noName")}</span>}
                     </a>
@@ -188,7 +188,7 @@ export default function RaportyPage() {
                 {/* delete */}
                 <button
                   onClick={() => handleDelete(r.id)}
-                  className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-primary group-hover:opacity-100"
+                  className="shrink-0 rounded-tile p-1 text-faint opacity-0 transition-all hover:text-accent group-hover:opacity-100"
                   title={t("delete")}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ export default function RaportyPage() {
         </div>
       )}
 
-      </div>
+      </PageStack>
     </Shell>
   );
 }

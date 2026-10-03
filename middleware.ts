@@ -2,7 +2,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
-import { SITE_MODE } from "./lib/cloud";
+import { SITE_MODE, isCloudPath, legacyTarget } from "./lib/cloud";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -17,19 +17,6 @@ const CLOUD_HOST = "fdsrun.com";
 // Dokumenty prawne: po polsku mieszkają na witrynie usługowej, po angielsku
 // (kurtuazyjne tłumaczenie dla klienta chmury) — na fdsrun.com/en/*.
 const LEGAL_PATHS = ["/regulamin", "/polityka-prywatnosci", "/polityka-cookies"];
-
-// Ścieżki należące do serwisu chmurowego (fdsrun.com). „rest" jest bez prefiksu
-// języka. Root ("/") NIE jest tu — na chmurze obsługiwany osobno (rewrite na landing).
-function isCloudPath(rest: string): boolean {
-  // Uwaga: baza wiedzy chmury stoi pod /baza-wiedzy, a NIE pod /blog — /blog
-  // należy do witryny usługowej i musi zostać na fp-solutions.pl.
-  const cloud = ["/chmura", "/funkcje", "/cennik", "/baza-wiedzy", "/symulacje", "/signin", "/signup", "/auth"];
-  // Stare adresy konta pod /narzedzia — dziś tylko stuby przekierowań na
-  // /symulacje/*. Zostają po stronie chmury, żeby wykonały redirect zamiast
-  // polecieć 301 na fp-solutions.pl, gdzie te strony nie istnieją.
-  const legacyAccount = ["/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty"];
-  return [...cloud, ...legacyAccount].some((p) => rest === p || rest.startsWith(p + "/"));
-}
 
 export async function middleware(request: NextRequest) {
   // 1. next-intl: ustalenie języka + ewentualny rewrite/redirect segmentu [locale]
@@ -46,6 +33,23 @@ export async function middleware(request: NextRequest) {
   }
   if (rest === "") rest = "/";
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+
+  // 2a. Stare adresy konta pod /narzedzia/* — 301 na ich dzisiejsze miejsce
+  //     w chmurze. Mapa mieszka w jednym pliku (lib/cloud.ts → legacyTarget),
+  //     a nie w sześciu komponentach klienckich robiących `router.replace`.
+  //     Strony pod tymi adresami zostają jako zapas (lib/legacyRedirect.ts),
+  //     ale w normalnym biegu żądanie kończy się tutaj.
+  const legacy = legacyTarget(rest);
+  if (legacy) {
+    const url = request.nextUrl.clone();
+    url.pathname = `${prefix}${legacy}`;
+    if (SITE_MODE === "marketing") {
+      url.protocol = "https";
+      url.host = CLOUD_HOST;
+      url.port = "";
+    }
+    return NextResponse.redirect(url, 301);
+  }
 
   // 3. Rozdział projektów wg SITE_MODE (build-time). Dev/preview → bez reguł.
   const redirectToHost = (host: string, pathnameOverride?: string) => {
@@ -89,12 +93,11 @@ export async function middleware(request: NextRequest) {
   // Publiczny „zakątek dla projektanta" i witryna produktu (chmura CFD):
   //  • kalkulatory + strona narzędzi liczą bez logowania (magnes na leady, SEO),
   //  • landing chmury i kreator pokazują ofertę anonimowi — bramka jest dopiero
-  //    na akcji „Uruchom" (isSimAllowed po stronie serwera), nie na wejściu.
+  //    na akcji „Uruchom" i stoi po stronie serwera (`currentAccess()`
+  //    w /api/symulacje/submit), nie na wejściu na stronę.
   //
-  // Cała przestrzeń /narzedzia jest już publiczna: zostały tam wyłącznie
-  // kalkulatory i stuby przekierowań po starych adresach konta. Same stuby nie
-  // dotykają danych, a chronienie ich wysyłałoby gościa do /signin z nieaktualnym
-  // `next` — po zalogowaniu wracałby na stub zamiast na docelową stronę.
+  // Cała przestrzeń /narzedzia jest publiczna: zostały tam wyłącznie kalkulatory,
+  // a stare adresy konta odchodzą 301 wyżej (punkt 2a).
   // Właściwe strony konta (/symulacje/profil, /raporty, /admin) chroni reguła niżej.
   const isCloudPublic = rest === "/symulacje" || rest === "/symulacje/nowa";
 

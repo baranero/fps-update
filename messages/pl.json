@@ -55,7 +55,7 @@
     "newSim": "Nowa symulacja",
     "kpiTotal": "Symulacje łącznie",
     "kpiActive": "W toku",
-    "kpiSpent": "Koszt (zakończone)",
+    "kpiSpent": "Wydatki (zakończone)",
     "kpiToPay": "Do zapłaty",
     "activeTitle": "Symulacje w toku",
     "activeLive": "na żywo",
@@ -73,11 +73,16 @@
     "scHistoryTitle": "Historia",
     "scHistoryDesc": "Wszystkie zlecenia — aktywne i zakończone.",
     "scBillingTitle": "Rozliczenia",
-    "scBillingDesc": "Koszty, faktury i eksport CSV.",
+    "scBillingDesc": "Płatności, faktury i eksport CSV.",
     "scStatsTitle": "Statystyki",
-    "scStatsDesc": "Koszty i czas obliczeń w czasie.",
+    "scStatsDesc": "Wydatki i czas obliczeń w czasie.",
     "scInvoiceTitle": "Dane do faktury",
-    "scInvoiceDesc": "Zunifikowane dane rozliczeniowe."
+    "scInvoiceDesc": "Zunifikowane dane rozliczeniowe.",
+    "invoiceNudgeTitle": "Uzupełnij dane do faktury",
+    "invoiceNudgeLead": "Masz zakończone symulacje, ale dane nabywcy są niekompletne — bez nich nie wystawimy faktury.",
+    "invoiceNudgeCta": "Uzupełnij dane",
+    "activeRealProgress": "Postęp obliczeń",
+    "activeSimTime": "{done} / {total} s"
   },
   "toolsHome": {
     "title": "Narzędzia",
@@ -804,7 +809,8 @@
       "signUp": "Zarejestruj się",
       "toolsPanel": "Panel narzędzi",
       "myProfile": "Profil"
-    }
+    },
+    "loading": "Ładowanie strony…"
   },
   "footer": {
     "tagline": "Kompleksowe usługi w zakresie ochrony przeciwpożarowej obejmujące projektowanie systemów, opracowywanie dokumentacji oraz symulacje CFD.",
@@ -839,7 +845,7 @@
       "server": "Serwer",
       "progress": "Obliczenia: {pct}%",
       "remaining": "{time} pozostało",
-      "cost": "Koszt netto",
+      "cost": "Cena netto",
       "caption": "Przykładowe zlecenie · osobny serwis obliczeniowy fdsrun.com",
       "priceValue": "87 zł"
     }
@@ -866,12 +872,12 @@
     "badge": "CFD Cloud",
     "titleStart": "Obliczenia FDS",
     "titleAccent": "bez własnej infrastruktury",
-    "lead": "Wgraj plik .fds — poznasz szacunkowy koszt, a obliczenia ruszą w chmurze i wrócą do Ciebie z wynikami. Płacisz tylko za rzeczywisty czas obliczeń i przechowywanie wyników.",
+    "lead": "Wgraj plik .fds — poznasz szacunkową cenę, a obliczenia ruszą w chmurze i wrócą do Ciebie z wynikami. Płacisz tylko za rzeczywisty czas obliczeń i przechowywanie wyników.",
     "cta": "Przejdź do FDSRun ↗",
     "separateNote": "To osobny serwis obliczeniowy — chmura CFD działa pod fdsrun.com.",
     "steps": {
       "s1Title": "Wgraj plik .fds",
-      "s1Desc": "Model jest analizowany lokalnie w Twojej przeglądarce — szacunkowy koszt widzisz jeszcze przed wysłaniem pliku.",
+      "s1Desc": "Model jest analizowany lokalnie w Twojej przeglądarce — szacunkową cenę widzisz jeszcze przed wysłaniem pliku.",
       "s2Title": "Potwierdź i zapłać",
       "s2Desc": "System dobiera optymalny serwer i uruchamia obliczenia. Śledzisz postęp na żywo — log co 5 sekund.",
       "s3Title": "Pobierz wyniki",
@@ -891,20 +897,20 @@
   "cloudLanding": {
     "metadata": {
       "title": "FDSRun — symulacje pożarowe FDS w chmurze",
-      "description": "Wgraj plik wejściowy FDS, poznaj koszt w kilka sekund i uruchom obliczenia na serwerach w chmurze. Wycena bez zakładania konta, płatność za rzeczywiste zużycie."
+      "description": "Wgraj plik wejściowy FDS, poznaj cenę w kilka sekund i uruchom obliczenia na serwerach w chmurze. Wycena bez zakładania konta, płatność za rzeczywiste zużycie."
     },
     "panelCaption": "Poglądowe zlecenie · płatność po zakończeniu obliczeń",
     "finalCta": {
       "title": "Policz i uruchom pierwszą symulację",
-      "lead": "Wgraj plik .fds — koszt poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywiste zużycie serwera.",
-      "line1": "Policz koszt.",
+      "lead": "Wgraj plik .fds — cenę poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywisty czas obliczeń.",
+      "line1": "Poznaj cenę.",
       "line2": "Uruchom symulację.",
       "contact": "Napisz do nas"
     },
     "hero": {
       "line1": "Symulacje pożarowe FDS",
       "line2": "liczone w chmurze",
-      "lead": "Wgraj plik .fds — w kilka sekund zobaczysz szacunkowy koszt obliczeń, zanim zdecydujesz się cokolwiek uruchomić. Symulacja liczy się w chmurze, a płacisz tylko za rzeczywisty czas obliczeń.",
+      "lead": "Wgraj plik .fds — w kilka sekund zobaczysz szacunkową cenę obliczeń, zanim zdecydujesz się cokolwiek uruchomić. Symulacja liczy się w chmurze, a płacisz tylko za rzeczywisty czas obliczeń.",
       "ctaSecondary": "Zobacz cennik",
       "sideLink": "Pełna lista funkcji"
     },
@@ -918,7 +924,7 @@
       "remainingVal": "41",
       "remainingUnit": "min",
       "etaSub": "koniec ok. 14:32",
-      "cost": "KOSZT SZACUNKOWY",
+      "cost": "CENA SZACUNKOWA",
       "costVal": "88 zł",
       "costSub": "netto · rozliczenie po rzeczywistym czasie obliczeń",
       "modelNote": "3,24 mln komórek · 15 siatek · krok 0,84 ms",
@@ -941,7 +947,7 @@
       "log3": "SERWER URUCHOMIONY"
     },
     "figures": {
-      "title": "Obliczenia bez własnej serwerowni. Anatomia jednego zlecenia.",
+      "title": "Obliczenia bez własnej serwerowni. Od pliku .fds do wyniku.",
       "f1Caption": "RYS 0.1 / PODZIAŁ MODELU",
       "f1Title": "Siatki z pliku .fds",
       "f1Desc": "Odczytujemy sekcje &MESH i liczymy komórki w każdej siatce — to podstawa szacunkowej wyceny i doboru maszyny.",
@@ -950,7 +956,13 @@
       "f2Desc": "Siatki trafiają na osobne procesy MPI dedykowanego serwera. Bez kolejki i bez dzielenia zasobów.",
       "f3Caption": "RYS 0.3 / PRZEBIEG POŻARU",
       "f3Title": "Krzywa HRR i czas symulacji",
-      "f3Desc": "Z sekcji &TIME i &REAC wychodzi czas symulacji, a z warunku CFL — realny czas obliczeń."
+      "f3Desc": "Z sekcji &TIME i &REAC wychodzi czas symulacji, a z warunku CFL — realny czas obliczeń.",
+      "f1Note": "&MESH ×4 // IJK 60,40,60",
+      "f1Tag": "DX 0,10 m // 576 000 kom.",
+      "f2Note": "4 siatki // 4 rdzenie",
+      "f2Tag": "MPI // 4 rank",
+      "f3Note": "&TIME T_END = 900 s",
+      "f3Tag": "α·t² // pożar fast"
     },
     "parser": {
       "badge": "Wycena",
@@ -959,14 +971,14 @@
       "points": {
         "p1": "Sekcje &MESH, &TIME, &REAC oraz elementy modelu (&OBST, &VENT, &DEVC) czytane bez wysyłania pliku.",
         "p2": "Szacunek czasu z warunku CFL i wydajności ~240 000 cell-timesteps/s na rdzeń.",
-        "p3": "Koszt widzisz przed startem — bez abonamentu i bez zakładania konta."
+        "p3": "Cenę widzisz przed startem — bez abonamentu i bez zakładania konta."
       },
       "panel": {
         "file": "PLIK",
         "cells": "KOMÓRKI",
         "note1": "ANALIZA LOKALNA // PLIK NIE OPUSZCZA PRZEGLĄDARKI",
         "note2": "SZACUNEK Z WARUNKU CFL",
-        "cost": "KOSZT SZACOWANY",
+        "cost": "CENA SZACOWANA",
         "costValue": "87 zł"
       }
     },
@@ -1004,7 +1016,7 @@
     "stages": {
       "s1Meta": "STATUS: AKTYWNY",
       "s1Title": "Wycena",
-      "s1Desc": "Komórki i szacunkowy koszt liczone lokalnie w przeglądarce.",
+      "s1Desc": "Komórki i szacunkowa cena liczone lokalnie w przeglądarce.",
       "s1Stat": "BEZ KONTA // BEZ WYSYŁKI",
       "s2Meta": "KROK 02",
       "s2Title": "Potwierdzenie",
@@ -1044,13 +1056,15 @@
       "users": "Użytkownicy",
       "infra": "Infrastruktura",
       "label": "Sekcje panelu",
-      "calibration": "Kalibracja"
+      "calibration": "Kalibracja",
+      "margin": "Marża"
     },
     "attention": {
       "title": "Wymaga uwagi",
       "pending": "{n, plural, one {# oczekujące} few {# oczekujące} other {# oczekujących}}",
       "failed": "{n, plural, one {# z błędem} other {# z błędem}}",
-      "unpaid": "{amount} do zapłaty"
+      "unpaid": "{amount} do zapłaty",
+      "accessRequests": "{n, plural, one {# prośba o dostęp} few {# prośby o dostęp} other {# próśb o dostęp}}"
     },
     "kpi": {
       "all": "Wszystkie",
@@ -1079,7 +1093,10 @@
       "lastSignIn": "Ostatnie logowanie",
       "sims": "Symulacje",
       "done": "Zakończone",
-      "revenue": "Przychód"
+      "revenue": "Przychód",
+      "taxId": "NIP / miasto",
+      "invoiceState": "Dane do faktury",
+      "access": "Uruchamianie"
     },
     "filterStatus": "Filtr statusu",
     "searchSims": "Szukaj: case_id, email, plik…",
@@ -1114,7 +1131,15 @@
       "nip": "NIP",
       "phone": "Telefon",
       "address": "Adres",
-      "updated": "Zaktualizowano"
+      "updated": "Zaktualizowano",
+      "buyerType": "Typ nabywcy",
+      "addressBlock": "Blok adresowy faktury",
+      "buyer": {
+        "company": "Firma w Polsce",
+        "person": "Osoba prywatna",
+        "eu": "Firma z UE",
+        "nonEu": "Firma spoza UE"
+      }
     },
     "csv": {
       "caseId": "Case ID",
@@ -1231,6 +1256,62 @@
       "open": "Otwórz",
       "deleting": "Usuwanie…",
       "delete": "Usuń zlecenie"
+    },
+    "margin": {
+      "noData": "Brak zleceń z przypisaną maszyną — nie ma czego rozliczać.",
+      "verdictTitle": "Marża wobec celu",
+      "target": "cel {x}×",
+      "verdictOk": "Realna krotność {realized} — cel osiągnięty. Na samych zleceniach zafakturowanych wychodzi {billed}; maszyny spalone na biegach zakończonych błędem kosztowały {burn} ({share}% kosztu).",
+      "verdictBelow": "Realna krotność {realized}, a na samych zleceniach zafakturowanych {billed}. Różnicę robią maszyny spalone na biegach zakończonych błędem: {burn}, czyli {share}% całego kosztu. To one, a nie cennik, zjadają marżę.",
+      "revenue": "Przychód",
+      "costBilled": "Koszt zafakturowanych",
+      "costBurned": "Koszt spalony",
+      "burnedJobs": "{n} biegów bez zapłaty",
+      "grossMargin": "Zysk brutto",
+      "multiplier": "Krotność cennikowa",
+      "multiplierSub": "przychód / koszt zafakturowanych",
+      "realized": "Krotność realna",
+      "realizedSub": "z kosztem biegów błędnych",
+      "bySizeTitle": "Marża wg wielkości modelu",
+      "bySizeLead": "Cennik zakłada {max}× na zleceniach drobnych i {min}× na największych. Ta tabela pokazuje, co z tego wyszło na realnych zleceniach.",
+      "colSize": "Wielkość",
+      "colJobs": "Zleceń",
+      "colRevenue": "Przychód",
+      "colCost": "Koszt",
+      "colMargin": "Zysk",
+      "colMultiplier": "Krotność",
+      "targetLine": "Pionowa kreska na pasku = cel 4× (narzut 300%)",
+      "size": {
+        "xs": "do 50 tys. komórek",
+        "sm": "50–300 tys.",
+        "md": "300–900 tys.",
+        "lg": "0,9–2 mln",
+        "xl": "powyżej 2 mln"
+      },
+      "methodTitle": "Skąd te liczby",
+      "method1": "Koszt maszyny = czas od jej utworzenia do zakończenia zlecenia × stawka godzinowa dostawcy, po kursie 4,30 zł/€.",
+      "method2": "Koszt magazynu szacowany tak samo jak w wycenie — z liczby komórek i czasu symulacji.",
+      "method3": "Zlecenia bez przypisanej maszyny są pomijane po obu stronach rachunku; anulowane i błędne liczą się wyłącznie po stronie kosztu."
+    },
+    "invoiceMissing": "Niekompletne dane",
+    "invoiceReady": "Gotowe do faktury",
+    "invoiceIncomplete": "Dane niekompletne",
+    "invoiceNone": "Brak danych",
+    "access": {
+      "none": "Bez dostępu",
+      "requested": "Prosi o dostęp",
+      "granted": "Może uruchamiać",
+      "blocked": "Zablokowany",
+      "grant": "Przyznaj",
+      "revoke": "Cofnij",
+      "block": "Zablokuj",
+      "saving": "Zapisuję…",
+      "failed": "Nie udało się zapisać decyzji.",
+      "noteLabel": "Uzasadnienie prośby",
+      "requestedAt": "Poproszono",
+      "pendingOne": "1 konto czeka na decyzję o dostępie",
+      "pendingMany": "{n} kont czeka na decyzję o dostępie",
+      "showPending": "Pokaż"
     }
   },
   "charts": {
@@ -1260,21 +1341,21 @@
     "emptyCta": "Wyślij zlecenie",
     "kpiTotal": "Symulacje łącznie",
     "kpiTotalSub": "{n} zakończone",
-    "kpiCost": "Łączny koszt netto",
+    "kpiCost": "Łączna kwota netto",
     "kpiTime": "Łączny czas obliczeń",
-    "kpiAvg": "Śr. koszt / sym.",
+    "kpiAvg": "Śr. cena / sym.",
     "doneSub": "zakończone",
-    "costByMonth": "Koszty netto po miesiącach (zł)",
-    "cost": "Koszt",
+    "costByMonth": "Wydatki netto po miesiącach (zł)",
+    "cost": "Cena",
     "simsAndTime": "Symulacje i czas obliczeń po miesiącach",
     "sims": "Symulacje",
     "statusSplit": "Rozkład statusów",
     "serverType": "Typ serwera obliczeniowego"
   },
   "billing": {
-    "kicker": "FDSRUN // KOSZTY I FAKTURY",
+    "kicker": "FDSRUN // PŁATNOŚCI I FAKTURY",
     "title": "Rozliczenia",
-    "lead": "Historia kosztów obliczeń FDS powiązanych z Twoim kontem.",
+    "lead": "Historia płatności za obliczenia FDS powiązane z Twoim kontem.",
     "back": "Pulpit",
     "exportCsv": "Eksport CSV",
     "invoiceData": "Dane do faktury",
@@ -1283,13 +1364,9 @@
     "signIn": "Zaloguj się",
     "noJobs": "Brak zleconych symulacji.",
     "firstJob": "Wyślij pierwsze zlecenie",
-    "kpiTotal": "Łączna kwota (zakończone)",
-    "kpiDone": "Zakończone symulacje",
-    "kpiActive": "Symulacje w toku",
+    "kpiTotal": "Suma netto",
     "net": "netto",
     "jobsCount": "{n, plural, one {zlecenie} few {zlecenia} other {zleceń}}",
-    "active": "aktywne",
-    "noActive": "brak aktywnych",
     "filterLabel": "Filtr rozliczeń",
     "noneForFilter": "Brak wyników dla tego filtru.",
     "cells": "{n} komórek",
@@ -1306,8 +1383,27 @@
       "server": "Serwer",
       "cells": "Komórki",
       "time": "Czas obliczeń",
-      "amount": "Kwota netto (PLN)"
-    }
+      "amount": "Kwota netto (PLN)",
+      "vatRate": "Stawka VAT",
+      "gross": "Kwota brutto (PLN)"
+    },
+    "kpiVat": "VAT {rate}%",
+    "kpiVatNone": "VAT",
+    "kpiGross": "Razem brutto",
+    "kpiToPay": "Do zapłaty",
+    "gross": "brutto",
+    "allPaid": "wszystko opłacone",
+    "activeNote": "{n, plural, one {Jedno zlecenie jest} few {# zlecenia są} other {# zleceń jest}} w toku — kwota końcowa pojawi się po zakończeniu obliczeń.",
+    "vatNote": {
+      "standard": "doliczany do ceny netto",
+      "reverseCharge": "odwrotne obciążenie",
+      "outOfScope": "poza zakresem polskiego VAT"
+    },
+    "invoiceIncompleteTitle": "Uzupełnij dane do faktury",
+    "invoiceIncompleteLead": "Masz zlecenia w rozliczeniu, ale dane nabywcy są niekompletne — bez nich nie wystawimy faktury.",
+    "invoiceIncompleteCta": "Uzupełnij dane",
+    "payNow": "Zapłać",
+    "paying": "Przekierowanie…"
   },
   "status": {
     "pending": "Oczekuje",
@@ -1364,7 +1460,7 @@
   "cloudFeatures": {
     "metadata": {
       "title": "Funkcje — obliczenia CFD/FDS w chmurze | FDSRun",
-      "description": "FDS na dedykowanych serwerach, automatyczny dobór mocy, estymator kosztu, podgląd wyników na żywo i pobieranie kompletu plików. Wszystko bez własnej infrastruktury."
+      "description": "FDS na dedykowanych serwerach, automatyczny dobór mocy, wycena przed startem, podgląd wyników na żywo i pobieranie kompletu plików. Wszystko bez własnej infrastruktury."
     },
     "badge": "Funkcje",
     "title": "Wszystko, czego trzeba, by policzyć CFD",
@@ -1374,8 +1470,8 @@
       "f1Desc": "Uruchamiasz solver Fire Dynamics Simulator na dedykowanych serwerach — bez instalacji, konfiguracji MPI i limitu mocy własnego sprzętu.",
       "f2Title": "Automatyczny dobór serwera",
       "f2Desc": "System czyta liczbę siatek i rdzeni z pliku .fds i dobiera maszynę o odpowiedniej mocy. Nie przepłacasz za niewykorzystane rdzenie.",
-      "f3Title": "Estymator kosztu",
-      "f3Desc": "Zanim cokolwiek ruszy, wgraj plik i w kilka sekund poznaj szacowany czas i koszt. Wycena liczy się w przeglądarce, bez zakładania konta.",
+      "f3Title": "Wycena przed startem",
+      "f3Desc": "Zanim cokolwiek ruszy, wgraj plik i w kilka sekund poznaj szacowany czas i cenę. Wycena liczy się w przeglądarce, bez zakładania konta.",
       "f4Title": "Podgląd wyników na żywo",
       "f4Desc": "Wykresy DEVC/HRR i przekroje aktualizują się w trakcie obliczeń — widzisz, czy scenariusz idzie w dobrą stronę, zanim policzy się do końca.",
       "f5Title": "Komplet wyników do pobrania",
@@ -1387,32 +1483,32 @@
   "cloudPricing": {
     "metadata": {
       "title": "Cennik — płatność za zużycie | FDSRun",
-      "description": "Bez abonamentu. Koszt symulacji CFD liczymy z czasu obliczeń i mocy dobranego serwera. Dokładną cenę dla Twojego pliku .fds poznasz w estymatorze, bez konta."
+      "description": "Bez abonamentu. Cenę symulacji CFD poznajesz przed startem — zależy od wielkości modelu i czasu obliczeń. Dokładną wycenę dla Twojego pliku .fds dostaniesz bez konta."
     },
     "badge": "Cennik",
     "title": "Płacisz za rzeczywiste zużycie",
-    "lead": "Bez abonamentu i opłat stałych. Koszt liczymy z czasu obliczeń i mocy dobranego serwera — dokładnie tyle, ile zajęła Twoja symulacja.",
-    "modelHeading": "Jak liczymy koszt",
+    "lead": "Bez abonamentu i opłat stałych. Cena zależy od wielkości modelu i czasu obliczeń — płacisz dokładnie za tę jedną symulację.",
+    "modelHeading": "Od czego zależy cena",
     "model": {
-      "m1Title": "Moc serwera",
-      "m1Desc": "Im więcej siatek i rdzeni w pliku, tym mocniejsza maszyna i wyższa stawka godzinowa. Dobór jest automatyczny.",
+      "m1Title": "Wielkość modelu",
+      "m1Desc": "Im więcej komórek i siatek, tym większą maszynę dobieramy i tym wyższa cena. Dobór jest automatyczny — nic nie konfigurujesz.",
       "m2Title": "Czas obliczeń",
-      "m2Desc": "Płacisz za faktyczny czas liczenia — od startu do zakończenia — a nie za dobę wynajmu serwera.",
+      "m2Desc": "Płacisz za faktyczny czas liczenia — od startu do zakończenia. Krótsza symulacja to niższa cena.",
       "m3Title": "Bez abonamentu",
       "m3Desc": "Zero opłat stałych i zobowiązań. Nie liczysz — nie płacisz. Idealne przy nieregularnych projektach."
     },
     "examplesHeading": "Przykładowe wyceny",
-    "examplesNote": "Orientacyjnie — dokładną cenę dla Twojego pliku poznasz w estymatorze.",
+    "examplesNote": "Orientacyjnie, dla wariantu oszczędnego i najszybszego — dokładną cenę dla Twojego pliku poznasz w wycenie.",
     "examples": {
       "e1Name": "Klatka schodowa",
-      "e1Spec": "~3 mln komórek · T_END 900 s",
-      "e1Price": "~80–120 zł",
+      "e1Spec": "~0,8 mln komórek · T_END 1200 s",
+      "e1Price": "~25–60 zł",
       "e2Name": "Garaż podziemny",
-      "e2Spec": "~8 mln komórek · T_END 1200 s",
-      "e2Price": "~250–400 zł",
+      "e2Spec": "~2,5 mln komórek · T_END 1500 s",
+      "e2Price": "~120–270 zł",
       "e3Name": "Duży obiekt",
-      "e3Spec": "~20 mln komórek · T_END 1800 s",
-      "e3Price": "~600–900 zł"
+      "e3Spec": "~5 mln komórek · T_END 1200 s",
+      "e3Price": "~190–570 zł"
     },
     "includedHeading": "W cenie",
     "included": {
@@ -1423,8 +1519,8 @@
       "i5": "Powiadomienia e-mail o statusie",
       "i6": "Historia i dane do faktury"
     },
-    "ctaTitle": "Poznaj dokładny koszt swojego pliku",
-    "ctaLead": "Wgraj .fds — estymator policzy czas i cenę w kilka sekund, bez konta i bez zobowiązań."
+    "ctaTitle": "Poznaj dokładną cenę swojego pliku",
+    "ctaLead": "Wgraj .fds — wycena policzy czas i cenę w kilka sekund, bez konta i bez zobowiązań."
   },
   "features": {
     "eyebrow": "Zakres usług",
@@ -1558,7 +1654,7 @@
   "symulacje": {
     "badge": "CFD Cloud",
     "title": "Symulacje FDS w chmurze",
-    "lead": "Wgraj plik wejściowy FDS — pokażemy szacunkowy koszt i uruchomimy obliczenia. Płacisz wyłącznie za rzeczywisty czas obliczeń i przechowywanie wyników, bez abonamentu.",
+    "lead": "Wgraj plik wejściowy FDS — pokażemy szacunkową cenę i uruchomimy obliczenia. Płacisz wyłącznie za rzeczywisty czas obliczeń i przechowywanie wyników, bez abonamentu.",
     "historyLink": "Historia symulacji",
     "trust": {
       "vm": "Dedykowany VM per zlecenie",
@@ -1602,8 +1698,8 @@
       "heading": "Najczęstsze pytania",
       "q1": "Jakie pliki są obsługiwane?",
       "a1": "Pliki wejściowe FDS z rozszerzeniem .fds. Sekcje &MESH, &TIME, &REAC oraz elementy modelu (&OBST, &VENT, &DEVC) odczytujemy bezpośrednio w Twojej przeglądarce.",
-      "q2": "Ile to kosztuje i kiedy płacę?",
-      "a2": "Płacisz za rzeczywisty czas obliczeń oraz przechowywanie wyników — bez abonamentu i opłat stałych. Szacunkowy koszt widzisz przed uruchomieniem, a płatność (Stripe, BLIK, Przelewy24) następuje po zakończeniu obliczeń. Faktura VAT jest dostępna w panelu.",
+      "q2": "Jaka jest cena i kiedy płacę?",
+      "a2": "Cena zależy od wielkości modelu i rzeczywistego czasu obliczeń — bez abonamentu i opłat stałych. Szacunkową cenę widzisz przed uruchomieniem, a płatność (Stripe, BLIK, Przelewy24) następuje po zakończeniu obliczeń. Faktura VAT jest dostępna w panelu.",
       "q3": "Jak długo trwają obliczenia?",
       "a3": "Zależnie od liczby komórek i czasu symulacji. Szacunek czasu pokazujemy przy wycenie na podstawie warunku CFL i wydajności ~240 000 cell-timesteps/s na rdzeń. Każde zlecenie dostaje własny, dedykowany serwer obliczeniowy.",
       "q4": "Czy mogę uruchomić kilka symulacji naraz?",
@@ -1640,7 +1736,7 @@
       "dt": "Krok czasowy Δt",
       "dtFromFile": "z pliku (dx={dx} cm)",
       "dtAssumed": "założono dx = 10 cm",
-      "costLabel": "Koszt szacunkowy",
+      "costLabel": "Cena szacunkowa",
       "costSub": "netto · płatność po obliczeniach",
       "note": "To wstępny szacunek. Ostateczną cenę naliczamy po zakończeniu obliczeń — na podstawie faktycznego zużycia serwera i przestrzeni na wyniki. Zapłacisz dopiero za gotowe rezultaty.",
       "serverSubPending": "dobieramy maszynę…",
@@ -1657,7 +1753,8 @@
       "back": "Wróć",
       "genericError": "Wystąpił błąd. Spróbuj ponownie.",
       "networkError": "Brak połączenia z serwerem. Spróbuj ponownie.",
-      "fallbackName": "Użytkownik"
+      "fallbackName": "Użytkownik",
+      "invoiceRequired": "Uzupełnij i zapisz dane do faktury, żeby złożyć zlecenie."
     },
     "done": {
       "title": "Zlecenie przyjęte",
@@ -1672,15 +1769,6 @@
       "zakonczone": "Zakończone",
       "blad": "Błąd"
     },
-    "restricted": {
-      "badge": "Już wkrótce",
-      "title": "Symulacje CFD w chmurze — już wkrótce",
-      "lead": "Uruchamianie obliczeń CFD/FDS bezpośrednio z panelu jest na finiszu przygotowań. Udostępnimy je już wkrótce.",
-      "body": "Chcesz uzyskać dostęp wcześniej? Napisz lub zadzwoń, a włączymy Twoje konto.",
-      "emailCta": "Napisz do nas",
-      "phoneCta": "Zadzwoń",
-      "back": "← Wróć do Pulpitu"
-    },
     "parseErrors": {
       "unreadable": "Nie można odczytać struktury pliku FDS.",
       "noNamelists": "Plik nie zawiera sekcji FDS (namelists). Sprawdź czy plik jest poprawny.",
@@ -1689,7 +1777,7 @@
     },
     "picker": {
       "heading": "Tryb obliczeń",
-      "lead": "Ten sam model policzymy szybciej na większej maszynie albo taniej na mniejszej. Wybierz, co jest dla Ciebie ważniejsze — wynik będzie identyczny, różni się tylko czas i koszt.",
+      "lead": "Ten sam model policzymy szybciej na większej maszynie albo taniej na mniejszej. Wybierz, co jest dla Ciebie ważniejsze — wynik będzie identyczny, różni się tylko czas i cena.",
       "meshes": "{count} siatek w modelu",
       "tier": {
         "eco": "Ekonomiczny",
@@ -1710,9 +1798,39 @@
         "hardware": "Maszyna",
         "split": "Podział pracy",
         "time": "Czas",
-        "cost": "Koszt szacunkowy"
+        "cost": "Cena szacunkowa"
       },
       "allNote": "Lista obejmuje każdą dostępną maszynę, która pomieści ten model — nie tylko polecane warianty powyżej. Czas jest szacunkiem — rozliczamy rzeczywisty czas obliczeń."
+    },
+    "gate": {
+      "anon": {
+        "title": "Wycena gotowa — zostało założyć konto",
+        "lead": "Obliczenia uruchamiamy z konta: to do niego trafiają wyniki, historia zleceń i faktury. Założenie zajmuje minutę, a płacisz dopiero po obliczeniach, według realnego zużycia.",
+        "signUp": "Załóż konto",
+        "signIn": "Mam już konto",
+        "keep": "Wycena zostanie na ekranie — po zalogowaniu wrócisz w to samo miejsce."
+      },
+      "request": {
+        "title": "Poproś o dostęp do uruchamiania",
+        "lead": "Każde zlecenie uruchamia osobną maszynę obliczeniową, a rozliczenie następuje po obliczeniach — dlatego dostęp włączamy ręcznie. Napisz w dwóch zdaniach, nad czym pracujesz; zwykle odpowiadamy tego samego dnia.",
+        "noteLabel": "Nad czym pracujesz? (nieobowiązkowe)",
+        "notePlaceholder": "Np. oddymianie garażu podziemnego, 2,1 mln komórek, termin do piątku.",
+        "submit": "Poproś o dostęp",
+        "sending": "Wysyłam…",
+        "error": "Nie udało się wysłać prośby. Spróbuj ponownie lub napisz na biuro@fp-solutions.pl."
+      },
+      "pending": {
+        "title": "Prośba czeka na rozpatrzenie",
+        "lead": "Mamy Twoje zgłoszenie. Odezwiemy się mailem, gdy tylko włączymy uruchamianie na tym koncie — zwykle tego samego dnia roboczego.",
+        "hint": "W tym czasie możesz spokojnie wyceniać kolejne modele: analiza pliku działa bez ograniczeń."
+      },
+      "blocked": {
+        "title": "Uruchamianie niedostępne na tym koncie",
+        "lead": "Skontaktuj się z nami, a wyjaśnimy sytuację i ustalimy dalsze kroki."
+      },
+      "emailCta": "Napisz do nas",
+      "phoneCta": "Zadzwoń",
+      "back": "Wróć"
     }
   },
   "symHistory": {
@@ -1784,7 +1902,7 @@
       "billingTitle": "Rozliczenia",
       "billingDesc": "Faktury i historia płatności za symulacje.",
       "statsTitle": "Statystyki",
-      "statsDesc": "Zużycie zasobów i podsumowanie kosztów."
+      "statsDesc": "Zużycie zasobów i podsumowanie wydatków."
     },
     "billing": {
       "title": "Model rozliczeń",
@@ -1795,23 +1913,104 @@
       "cta": "Rozliczenia →"
     },
     "invoice": {
-      "title": "Dane do faktur",
-      "subtitle": "Wykorzystywane automatycznie przy wystawianiu faktur za symulacje.",
+      "title": "Dane do faktury",
+      "subtitle": "Wystawiamy na nie faktury za symulacje. Zakres pól wynika z art. 106e ustawy o VAT — bez kompletu nie da się wystawić dokumentu.",
+      "completeness": "Kompletność danych",
+      "completeYes": "Komplet do faktury",
+      "completeNo": "Wypełnione {filled} z {total}",
+      "buyerType": "Kto jest nabywcą",
+      "buyer": {
+        "company": "Firma w Polsce",
+        "person": "Osoba prywatna",
+        "eu": "Firma z Unii Europejskiej",
+        "nonEu": "Firma spoza Unii"
+      },
+      "buyerDesc": {
+        "company": "Faktura z NIP-em i 23% VAT.",
+        "person": "Bez NIP-u, faktura na żądanie.",
+        "eu": "Numer VAT-UE, odwrotne obciążenie.",
+        "nonEu": "Poza zakresem polskiego VAT."
+      },
+      "company": "Nazwa firmy",
       "fullName": "Imię i nazwisko",
-      "company": "Firma",
+      "contactPerson": "Osoba kontaktowa",
       "nip": "NIP",
-      "nipHint": "Bez myślników, tylko cyfry.",
+      "nipHint": "10 cyfr. Sprawdzamy sumę kontrolną, więc literówka nie przejdzie.",
+      "vatId": "Numer VAT-UE",
+      "vatIdHint": "Z prefiksem kraju, np. DE123456789.",
+      "addressSection": "Adres",
+      "street": "Ulica i numer",
+      "postalCode": "Kod pocztowy",
+      "city": "Miejscowość",
+      "country": "Kraj",
       "phone": "Telefon",
-      "address": "Adres",
+      "optional": "(opcjonalnie)",
+      "phCompany": "Fire Protection Sp. z o.o.",
+      "phFullName": "Jan Kowalski",
+      "phNip": "123-456-32-18",
+      "phVatId": "DE123456789",
+      "phStreet": "ul. Przykładowa 1/2",
+      "phPostal": "Kod pocztowy",
+      "phCity": "Warszawa",
+      "phPhone": "+48 600 100 200",
+      "err": {
+        "required": "To pole jest wymagane na fakturze.",
+        "nipInvalid": "Niepoprawny NIP — sprawdź cyfry.",
+        "vatIdInvalid": "Niepoprawny numer VAT-UE. Podaj go z prefiksem kraju.",
+        "postalInvalid": "Kod pocztowy w formacie 00-000."
+      },
+      "vatTitle": "Rozliczenie VAT",
+      "vat": {
+        "standard": "Do ceny netto doliczamy 23% VAT.",
+        "reverseCharge": "Odwrotne obciążenie — VAT rozlicza nabywca w swoim kraju (art. 28b ustawy o VAT). Wystawiamy fakturę bez VAT.",
+        "outOfScope": "Usługa poza zakresem polskiego VAT — faktura bez podatku."
+      },
+      "preview": "Tak zobaczysz to na fakturze",
+      "legalBasis": "Dane są widoczne tylko dla Ciebie i księgowości.",
+      "incomplete": "Uzupełnij zaznaczone pola — bez nich faktura nie może zostać wystawiona.",
       "save": "Zapisz dane",
       "saving": "Zapisywanie…",
       "savedOk": "Dane zostały zapisane.",
       "saveErr": "Błąd zapisu. Spróbuj ponownie.",
-      "phFullName": "Jan Kowalski",
-      "phCompany": "Fire Protection Sp. z o.o.",
-      "phNip": "0000000000",
-      "phPhone": "+48 000 000 000",
-      "phAddress": "ul. Przykładowa 1, 00-000 Warszawa"
+      "country_": {
+        "PL": "Polska",
+        "DE": "Niemcy",
+        "CZ": "Czechy",
+        "SK": "Słowacja",
+        "LT": "Litwa",
+        "LV": "Łotwa",
+        "EE": "Estonia",
+        "AT": "Austria",
+        "NL": "Holandia",
+        "BE": "Belgia",
+        "FR": "Francja",
+        "ES": "Hiszpania",
+        "IT": "Włochy",
+        "SE": "Szwecja",
+        "DK": "Dania",
+        "FI": "Finlandia",
+        "IE": "Irlandia",
+        "PT": "Portugalia",
+        "RO": "Rumunia",
+        "BG": "Bułgaria",
+        "HR": "Chorwacja",
+        "HU": "Węgry",
+        "SI": "Słowenia",
+        "GR": "Grecja",
+        "CY": "Cypr",
+        "LU": "Luksemburg",
+        "MT": "Malta",
+        "GB": "Wielka Brytania",
+        "NO": "Norwegia",
+        "CH": "Szwajcaria",
+        "UA": "Ukraina",
+        "US": "Stany Zjednoczone",
+        "AE": "Zjedn. Emiraty Arabskie"
+      },
+      "gateRequired": "Wymagane do faktury",
+      "gateEdit": "Zmień dane",
+      "gateHide": "Zwiń",
+      "gateLead": "Uzupełnij dane nabywcy — bez nich nie wystawimy faktury za to zlecenie. Podajesz je raz, kolejne zamówienia korzystają z tych samych."
     },
     "security": {
       "title": "Bezpieczeństwo",
@@ -2030,9 +2229,14 @@
       "awaiting": "Oczekuje na płatność",
       "toPay": "Do zapłaty:",
       "gross": "brutto",
-      "note": "Kwota naliczona wg faktycznego zużycia serwera i przestrzeni na wyniki.",
+      "note": "Kwota naliczona wg rzeczywistego czasu obliczeń i przechowywania wyników.",
       "pay": "Zapłać {amount}",
-      "redirecting": "Przekierowanie…"
+      "redirecting": "Przekierowanie…",
+      "vat": {
+        "standard": "z VAT",
+        "reverseCharge": "odwrotne obciążenie",
+        "outOfScope": "poza zakresem VAT"
+      }
     },
     "cancelled": {
       "title": "Obliczenia anulowane.",
@@ -2050,7 +2254,7 @@
         },
         "watchdog": {
           "title": "Obliczenia przerwał nasz nadzorca, a nie błąd FDS.",
-          "bodyStall": "W logu nie ma ani jednego błędu, ale obliczenia stanęły w miejscu: przez {stalled} h nie przybył ani jeden krok (ostatni czas symulacji: {at} s). Zwolniliśmy maszynę, żeby nie naliczała kosztów za obliczenia, które i tak nie postępowały. Pliki policzone do tej chwili znajdziesz niżej.",
+          "bodyStall": "W logu nie ma ani jednego błędu, ale obliczenia stanęły w miejscu: przez {stalled} h nie przybył ani jeden krok (ostatni czas symulacji: {at} s). Zatrzymaliśmy je, żeby nie naliczać opłat za obliczenia, które i tak nie postępowały. Pliki policzone do tej chwili znajdziesz niżej.",
           "body": "W logu nie ma ani jednego błędu — FDS liczył poprawnie do końca. Obliczenia zatrzymał nasz ówczesny nadzorca czasu pracy: trwały {elapsed} h przy limicie {limit} h, czyli trzykrotności szacowanego czasu {estimated} h. Dziś taka symulacja nie zostałaby przerwana — nadzorca reaguje wyłącznie na brak postępu."
         },
         "interrupted": {
@@ -2133,7 +2337,7 @@
       "estWall": "szacowany czas obliczeń: {v}",
       "totalTime": "CZAS CAŁKOWITY",
       "finishedAt": "zakończono {time}",
-      "cost": "KOSZT SZACUNKOWY",
+      "cost": "CENA SZACUNKOWA",
       "costNote": "netto · rozliczenie po rzeczywistym czasie obliczeń",
       "cellsNote": "{v} komórek",
       "meshesNote": "{n} siatek",

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { planRuns, type PlanInput } from "@/lib/fds/planner";
+import { planId, toPublicPlan } from "@/lib/fds/publicPlan";
 import { getCalibration } from "@/lib/fds/calibration";
 import { fetchLiveCatalog } from "@/lib/hetzner/client";
 import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
@@ -37,6 +38,11 @@ function sanitize(body: unknown): PlanInput | null {
     .filter((c): c is number => c !== null && c > 0)
     .slice(0, MAX_MESHES);
 
+  // Intensywnosc pozaru z pliku — kreator analizuje go w przegladarce.
+  // Wartosc sluzy WYLACZNIE do pokazania wyboru; submit parsuje plik od nowa.
+  const hrrpuaRaw = num(b.hrrpua);
+  const hrrpua = hrrpuaRaw !== null && hrrpuaRaw > 0 && hrrpuaRaw < 1e7 ? hrrpuaRaw : null;
+
   const omp = num(b.ompThreads);
   const forced = num(b.forcedProcs);
 
@@ -47,6 +53,7 @@ function sanitize(body: unknown): PlanInput | null {
     tEnd: num(b.tEnd),
     minCellDim: num(b.minCellDim),
     domainVolume: num(b.domainVolume),
+    hrrpua,
     ompThreads: omp && omp >= 1 ? Math.round(omp) : 1,
     forcedProcs: forced && forced >= 1 ? Math.round(forced) : null,
   };
@@ -80,13 +87,16 @@ export async function POST(req: NextRequest) {
       calibration,
     });
 
+    // Warianty wychodzą WYŁĄCZNIE przez toPublicPlan(): bez stawek w euro,
+    // bez kosztu magazynu i bez symbolu maszyny dostawcy. Endpoint jest
+    // publiczny, więc wszystko, co tu wpiszemy, jest jawne.
     return NextResponse.json({
-      plans: result.plans,
-      allPlans: result.allPlans,
+      plans: result.plans.map(toPublicPlan),
+      allPlans: result.allPlans.map(toPublicPlan),
       tiers: {
-        eco: result.eco?.serverType ?? null,
-        balanced: result.balanced?.serverType ?? null,
-        fast: result.fast?.serverType ?? null,
+        eco: result.eco ? planId(result.eco.serverType) : null,
+        balanced: result.balanced ? planId(result.balanced.serverType) : null,
+        fast: result.fast ? planId(result.fast.serverType) : null,
       },
       dtEstimate: result.dtEstimate,
       steps: result.steps,

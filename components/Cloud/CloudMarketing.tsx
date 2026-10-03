@@ -33,7 +33,7 @@ export default function CloudMarketing() {
               key={d.title}
               className="flex items-start gap-3.5 rounded-panel border border-hairline bg-panel p-4 transition-colors hover:border-primary/30"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-primary/20 bg-primary/10 text-accent">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={d.icon} />
                 </svg>
@@ -53,7 +53,7 @@ export default function CloudMarketing() {
         <div className="divide-y divide-hairline-soft overflow-hidden rounded-panel border border-hairline bg-panel">
           {faqs.map((f) => (
             <details key={f.q} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-fr-body font-medium text-ink transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-fr-body font-medium text-ink transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <svg className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

@@ -27,7 +27,7 @@ export function Section({
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <span className="mb-2 flex items-center gap-2 font-mono text-fr-label uppercase text-muted">
-            {index && <span className="text-primary">{index}</span>}
+            {index && <span className="text-accent">{index}</span>}
             {kicker}
           </span>
           <h2 className="font-heading text-fr-h3 text-ink">{title}</h2>
@@ -104,7 +104,7 @@ export function Tabs({
               key={tab.id}
               onClick={() => setActive(tab.id)}
               className={`flex items-center gap-2 rounded-chip border px-3 py-1.5 font-mono text-fr-label uppercase transition-colors ${
-                on ? "border-primary/40 bg-primary/10 text-primary" : "border-hairline text-muted hover:text-ink"
+                on ? "border-primary/40 bg-primary/10 text-accent" : "border-hairline text-muted hover:text-ink"
               }`}
             >
               {tab.label}

@@ -27,7 +27,7 @@ export default function StageStrip() {
               <div className="px-1">
                 <div
                   className={`mb-1 font-mono text-fr-micro uppercase ${
-                    i === 0 ? "text-primary" : "text-muted"
+                    i === 0 ? "text-accent" : "text-muted"
                   }`}
                 >
                   {t(`${k}Meta`)}

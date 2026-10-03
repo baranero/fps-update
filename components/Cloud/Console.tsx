@@ -98,7 +98,7 @@ export function ConsoleMetric({
         {label}
       </span>
       <div className="flex items-end justify-between gap-2">
-        <span className={`fr-num font-mono text-[20px] leading-none ${tone}`}>{value}</span>
+        <span className={`fr-num font-mono text-fr-readout ${tone}`}>{value}</span>
         {unit && <span className="font-mono text-fr-label text-muted">{unit}</span>}
       </div>
       {sub && <span className="mt-2 block font-mono text-fr-sm leading-snug text-muted">{sub}</span>}
@@ -127,7 +127,7 @@ export function ConsoleProgress({
         {label}
       </span>
       <div className="mb-2.5 flex items-end justify-between gap-2">
-        <span className={`fr-num font-mono text-[28px] leading-none ${done ? "text-signal" : "text-ink"}`}>
+        <span className={`fr-num font-mono text-fr-readout-lg ${done ? "text-signal" : "text-ink"}`}>
           {pct === null ? "—" : pct.toFixed(0)}
         </span>
         {pct !== null && <span className="font-mono text-fr-label text-muted">%</span>}
@@ -238,7 +238,7 @@ export function ConsoleRow({
       </div>
       <span
         className={`shrink-0 font-mono text-fr-sm ${
-          state === "ok" ? "text-signal" : state === "warn" ? "text-primary" : "text-muted"
+          state === "ok" ? "text-signal" : state === "warn" ? "text-accent" : "text-muted"
         }`}
       >
         {value}

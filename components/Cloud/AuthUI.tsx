@@ -146,7 +146,7 @@ export function AuthError({ children }: { children: ReactNode }) {
       role="alert"
       className="flex items-start gap-2.5 rounded-panel border border-primary/40 bg-primary/[0.07] px-4 py-3 text-fr-sm text-ink"
     >
-      <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="mt-0.5 h-4 w-4 shrink-0 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       {children}

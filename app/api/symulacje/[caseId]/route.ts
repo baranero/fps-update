@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { listResults, signedResultUrl, deleteResults, isInternalResult } from "@/lib/hetzner/storage";
 import { deleteServer } from "@/lib/hetzner/client";
+import { serverLabel } from "@/lib/hetzner/catalog";
 import { requireCaseAccess } from "@/lib/utils/caseAccess";
 import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
@@ -100,7 +101,9 @@ async function handleGet(caseId: string) {
     vcpuHours: data.vcpu_hours,
     wallHours: data.wall_hours,
     price: data.price,
-    serverType: data.server_type,
+    // Opis sprzętu zamiast symbolu maszyny dostawcy — patrz lib/fds/publicPlan.ts.
+    serverLabel: data.server_type ? serverLabel(data.server_type).label : null,
+    serverCores: data.server_type ? serverLabel(data.server_type).cores : null,
     dispatchedAt: data.dispatched_at,
     startedAt: data.started_at,
     completedAt: data.completed_at,

@@ -49,18 +49,58 @@ export function cloudHomePath(): string {
   return SITE_MODE === "cloud" ? "/" : "/chmura";
 }
 
-// Cała przestrzeń konta mieszka pod /symulacje/* (pulpit, kreator, historia,
-// rozliczenia, statystyki, profil, raporty, admin). Pod /narzedzia zostały
-// wyłącznie stuby przekierowań po starych adresach — trzymamy je na liście
-// chmury, żeby na fdsrun.com wykonały redirect zamiast wypaść 301 na
-// fp-solutions.pl, gdzie docelowe strony nie istnieją.
-const CLOUD_PATHS = [
+// ─── Mapa ścieżek: co należy do chmury, a co do witryny usługowej ────────────
+//
+// JEDYNE źródło prawdy. Middleware importuje stąd te same listy — wcześniej
+// miał własną kopię i przy każdej zmianie ścieżek trzeba było pamiętać o dwóch
+// miejscach (komentarz w obu plikach o tym ostrzegał, co samo w sobie było
+// znakiem, że reguła mieszka w złym miejscu).
+
+/** Cała przestrzeń konta i witryna produktu FDSRun. Root „/" obsługiwany osobno. */
+export const CLOUD_PATHS = [
   "/chmura", "/funkcje", "/cennik", "/baza-wiedzy",
   "/symulacje", "/signin", "/signup", "/auth",
-  "/narzedzia/admin", "/narzedzia/profil", "/narzedzia/raporty",
-];
+] as const;
 
+/**
+ * Stare adresy konta pod /narzedzia → ich dzisiejsze miejsce w chmurze.
+ *
+ * Wcześniej każdy z nich był osobnym komponentem klienckim, który po
+ * zamontowaniu robił `router.replace(...)`: pusta klatka przed przeskokiem,
+ * pobrany bundle i — co ważniejsze — robot dostawał 200 na adresie, który ma
+ * zniknąć. Teraz przekierowuje middleware (301), a strony zostają wyłącznie
+ * jako zapas, gdyby żądanie go ominęło (lib/legacyRedirect.ts).
+ */
+export const LEGACY_PATHS: Record<string, string> = {
+  "/narzedzia/admin": "/symulacje/admin",
+  "/narzedzia/profil": "/symulacje/profil",
+  "/narzedzia/raporty": "/symulacje/raporty",
+  "/narzedzia/rozliczenia": "/symulacje/rozliczenia",
+  "/narzedzia/statystyki": "/symulacje/statystyki",
+  "/narzedzia/symulacje": "/symulacje",
+};
+
+/**
+ * Docelowa ścieżka dla starego adresu — albo null, gdy adres nie jest stary.
+ * Obsługuje też segmenty pod spodem, np. /narzedzia/symulacje/FDS-X → /symulacje/FDS-X.
+ */
+export function legacyTarget(pathname: string): string | null {
+  for (const [from, to] of Object.entries(LEGACY_PATHS)) {
+    if (pathname === from) return to;
+    if (pathname.startsWith(from + "/")) return to + pathname.slice(from.length);
+  }
+  return null;
+}
+
+/**
+ * Czy ścieżka należy do serwisu chmurowego (fdsrun.com).
+ *
+ * Stare adresy /narzedzia/* też liczą się do chmury: ich przekierowanie
+ * wykonuje projekt chmurowy, więc gość nie odbija się najpierw na
+ * fp-solutions.pl, gdzie strony docelowej nie ma.
+ */
 export function isCloudPath(pathname: string): boolean {
+  if (legacyTarget(pathname)) return true;
   return CLOUD_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 

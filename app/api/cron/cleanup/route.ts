@@ -6,8 +6,11 @@ import { deleteResults } from "@/lib/hetzner/storage";
 import { caseModelPaths } from "@/lib/fds/runFile";
 import { getServer, deleteServer } from "@/lib/hetzner/client";
 import { DISPATCH_TIMEOUT_H, STALL_HOURS, hasAdvanced, progressMark } from "@/lib/fds/watchdog";
+import { failJob, logEvent } from "@/lib/observability";
 
 const RETENTION_DAYS = 60;
+/** Ile trzymamy dziennik zdarzeń — dłużej i tak nie diagnozujemy. */
+const EVENT_RETENTION_DAYS = 90;
 
 // Progi zawisu żyją w lib/fds/watchdog.ts — korzysta z nich także strona
 // zlecenia, żeby tłumaczyć przerwanie tą samą regułą, która je wywołała.
@@ -73,35 +76,42 @@ export async function POST(req: NextRequest) {
 
   for (const row of hungDispatched ?? []) {
     try {
-      if (row.server_id) {
-        const server = await getServer(row.server_id);
-        if (!server) {
-          // VM już nie istnieje — oznacz jako failed
-          await supabase
-            .from("fds_submissions")
-            .update({ status: "failed", completed_at: now.toISOString() })
-            .eq("case_id", row.case_id);
-          results.hung_resolved++;
-        }
-        // Jeśli VM istnieje ale boot trwa > 2h — coś poważnego, usuń VM
-        else {
-          await deleteServer(row.server_id).catch(() => {});
-          await supabase
-            .from("fds_submissions")
-            .update({ status: "failed", completed_at: now.toISOString() })
-            .eq("case_id", row.case_id);
-          results.hung_resolved++;
-        }
-      } else {
-        // Brak server_id — dispatch nie zadziałał, zamknij job
-        await supabase
-          .from("fds_submissions")
-          .update({ status: "failed", completed_at: now.toISOString() })
-          .eq("case_id", row.case_id);
+      if (!row.server_id) {
+        // Dispatch w ogóle nie utworzył maszyny.
+        await failJob({
+          caseId: row.case_id, reason: "vm_boot_failed", stage: "watchdog",
+          detail: `brak server_id po ${HUNG_DISPATCHED_H} h od wysyłki`,
+          at: now,
+        });
         results.hung_resolved++;
+        continue;
       }
+
+      const server = await getServer(row.server_id);
+      if (!server) {
+        // Maszyny już nie ma — nie ma czego ubijać, ale trzeba to odnotować.
+        await failJob({
+          caseId: row.case_id, reason: "vm_missing", stage: "watchdog",
+          detail: "maszyna zniknęła przed przejściem w obliczenia",
+          meta: { serverId: row.server_id }, at: now,
+        });
+      } else {
+        // Maszyna żyje, ale po HUNG_DISPATCHED_H nadal nie liczy — boot padł.
+        await deleteServer(row.server_id).catch(() => {});
+        await failJob({
+          caseId: row.case_id, reason: "dispatch_timeout", stage: "watchdog",
+          detail: `maszyna nie zgłosiła startu obliczeń przez ${HUNG_DISPATCHED_H} h`,
+          meta: { serverId: row.server_id }, at: now,
+        });
+      }
+      results.hung_resolved++;
     } catch (err) {
       results.errors.push(`hung dispatched ${row.case_id}: ${String(err)}`);
+      await logEvent({
+        caseId: row.case_id, level: "error", stage: "watchdog",
+        message: "Wyjątek przy rozwiązywaniu zawieszonej wysyłki",
+        meta: { error: String(err) },
+      });
     }
   }
 
@@ -162,14 +172,53 @@ export async function POST(req: NextRequest) {
         await deleteServer(row.server_id).catch(() => {});
       }
 
-      await supabase
-        .from("fds_submissions")
-        .update({ status: "failed", completed_at: now.toISOString() })
-        .eq("case_id", row.case_id);
+      // Rozróżnienie, którego brakowało: czy solver stanął przy żywej maszynie
+      // (zawis), czy maszyna zniknęła nam spod obliczeń (awaria infrastruktury).
+      // Obie sytuacje wyglądały dotąd identycznie: status `failed` i pusty log.
+      await failJob({
+        caseId: row.case_id,
+        reason: row.server_id && !server ? "vm_missing" : "stalled",
+        stage: "watchdog",
+        detail:
+          row.server_id && !server
+            ? `maszyna zniknęła; ostatni postęp ${stalledH.toFixed(1)} h temu`
+            : `brak postępu przez ${stalledH.toFixed(1)} h (próg ${STALL_HOURS} h)`,
+        meta: {
+          serverId: row.server_id,
+          stalledHours: Number(stalledH.toFixed(2)),
+          lastSimTime: row.last_sim_time,
+          logBytes: mark.logBytes,
+        },
+        at: now,
+      });
       results.hung_resolved++;
     } catch (err) {
       results.errors.push(`hung running ${row.case_id}: ${String(err)}`);
+      await logEvent({
+        caseId: row.case_id, level: "error", stage: "watchdog",
+        message: "Wyjątek przy nadzorze obliczeń",
+        meta: { error: String(err) },
+      });
     }
+  }
+
+  // ── 3. Retencja dziennika zdarzeń ───────────────────────────────────────────
+  const eventCutoff = new Date(now.getTime() - EVENT_RETENTION_DAYS * 24 * 3600 * 1000).toISOString();
+  const { error: eventsErr } = await supabase.from("job_events").delete().lt("at", eventCutoff);
+  if (eventsErr && !/does not exist|schema cache/i.test(eventsErr.message)) {
+    results.errors.push(`job_events retention: ${eventsErr.message}`);
+  }
+
+  // Ślad każdego przebiegu — bez niego nie wiadomo nawet, czy cron w ogóle
+  // chodzi. Przy pustym przebiegu nie zaśmiecamy dziennika.
+  const touched = results.cleaned + results.hung_resolved + results.errors.length;
+  if (touched > 0) {
+    await logEvent({
+      level: results.errors.length ? "warn" : "info",
+      stage: "cleanup",
+      message: `Przebieg crona: wyczyszczono ${results.cleaned}, zamknięto zawieszonych ${results.hung_resolved}, błędów ${results.errors.length}`,
+      meta: results,
+    });
   }
 
   console.log("Cron cleanup:", results);

@@ -10,7 +10,7 @@ export type Tone = "ink" | "muted" | "primary" | "signal" | "warn" | "ok";
 export const TONE_CHIP: Record<Tone, string> = {
   ink: "border-hairline bg-panel-deep text-ink",
   muted: "border-hairline-soft bg-panel-deep text-muted",
-  primary: "border-primary/30 bg-primary/10 text-primary",
+  primary: "border-primary/30 bg-primary/10 text-accent",
   signal: "border-signal/30 bg-signal/10 text-signal",
   warn: "border-warn/30 bg-warn/10 text-warn",
   ok: "border-ok/30 bg-ok/10 text-ok",
@@ -19,7 +19,7 @@ export const TONE_CHIP: Record<Tone, string> = {
 export const TONE_TEXT: Record<Tone, string> = {
   ink: "text-ink",
   muted: "text-muted",
-  primary: "text-primary",
+  primary: "text-accent",
   signal: "text-signal",
   warn: "text-warn",
   ok: "text-ok",

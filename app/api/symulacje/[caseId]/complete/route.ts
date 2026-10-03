@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { deleteServer } from "@/lib/hetzner/client";
 import { listResults } from "@/lib/hetzner/storage";
 import { computeFinalPrice } from "@/lib/fds/parser";
+import { logEvent, type FailureReason } from "@/lib/observability";
 import { MAIL_FROM, caseUrl, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
 import { Resend } from "resend";
 
@@ -188,19 +189,68 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
     updates.status = status;
     updates.completed_at = new Date().toISOString();
     updates.fds_exit_code = exitCode ?? null;
+
+    if (status === "failed") {
+      // Skąd wiemy, co się stało: FDS przy błędzie pliku wejściowego wypisuje
+      // „ERROR: ... FDS stopped" i kończy się w kilka sekund. Niezerowy kod
+      // wyjścia BEZ takiej linii to awaria po naszej stronie (pamięć, MPI,
+      // maszyna) i tak ją liczymy w statystykach jakości usługi.
+      const logText = typeof updates.fds_log === "string" ? updates.fds_log : "";
+      const reason: FailureReason = /ERROR[:(]/i.test(logText) ? "fds_error" : "fds_exit";
+      const firstError = logText.split("\n").find((l) => /ERROR[:(]/i.test(l))?.trim();
+
+      updates.failure_reason = reason;
+      updates.failure_detail = (firstError ?? `kod wyjścia ${exitCode ?? "nieznany"}`).slice(0, 500);
+    }
   }
 
-  const { data: row, error: updateError } = await supabase
+  const SELECT_COLS =
+    "email, name, file_name, price, wall_hours, server_type, server_id, dispatched_at, started_at, completed_at, stop_requested, locale";
+
+  let { data: row, error: updateError } = await supabase
     .from("fds_submissions")
     .update(updates)
     .eq("case_id", caseId)
-    .select("email, name, file_name, price, wall_hours, server_type, server_id, dispatched_at, started_at, completed_at, stop_requested, locale")
+    .select(SELECT_COLS)
     .single();
+
+  // Kolumny powodu przybywają z migration_job_events.sql. Gdy jej jeszcze nie
+  // ma, NIE WOLNO stracić całego zapisu — status zlecenia jest ważniejszy niż
+  // diagnostyka. Wycinamy pola powodu i ponawiamy.
+  if (updateError && /column .* does not exist|could not find the .* column|schema cache/i.test(updateError.message)) {
+    delete updates.failure_reason;
+    delete updates.failure_detail;
+    ({ data: row, error: updateError } = await supabase
+      .from("fds_submissions")
+      .update(updates)
+      .eq("case_id", caseId)
+      .select(SELECT_COLS)
+      .single());
+    console.error(`complete webhook [${caseId}]: brak kolumn powodu — uruchom supabase/migration_job_events.sql`);
+  }
 
   // Nie połykaj błędu zapisu — najczęściej brak kolumny (nieuruchomiona migracja
   // migration_devc_stream.sql) blokuje zapis devc_csv/hrr_csv/stop_requested.
   if (updateError) {
     console.error(`complete webhook: update error [${caseId}] (uruchom migration_devc_stream.sql?):`, updateError.message);
+  }
+
+  if (status === "failed") {
+    await logEvent({
+      caseId, level: "error", stage: "complete",
+      message: `Obliczenia zakończone niepowodzeniem: ${updates.failure_reason}`,
+      meta: {
+        reason: updates.failure_reason,
+        detail: updates.failure_detail,
+        exitCode: exitCode ?? null,
+        serverType: (row as { server_type?: string } | null)?.server_type ?? null,
+      },
+    });
+  } else if (status === "done") {
+    await logEvent({
+      caseId, stage: "complete", message: "Obliczenia zakończone powodzeniem",
+      meta: { exitCode: exitCode ?? null },
+    });
   }
 
   // Ustaw started_at tylko jeśli jeszcze nie ustawiony (pierwsze "running")
@@ -234,9 +284,12 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
   }
 
   // Safety net: usuń VM Hetzner przy failed (na wypadek gdy cloud-init nie zdążył się sam usunąć)
-  if (status === "failed" && row?.server_id) {
-    await deleteServer(row.server_id).catch((err) => {
-      console.error(`complete webhook: deleteServer(${row.server_id}) error:`, err);
+  // `row` jest teraz `let` (ponowienie zapisu bez kolumn powodu), więc bierzemy
+  // identyfikator do stałej — inaczej domknięcie nie zawęża typu.
+  const serverId = row?.server_id ?? null;
+  if (status === "failed" && serverId) {
+    await deleteServer(serverId).catch((err) => {
+      console.error(`complete webhook: deleteServer(${serverId}) error:`, err);
     });
   }
 
@@ -290,6 +343,38 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
     await resend.emails.send(emailPayload).catch((err) => {
       console.error(`Email ${status} send error [${caseId}]:`, err);
     });
+
+    // Kopia do administratora przy KAŻDEJ awarii. Bez niej o nieudanym biegu
+    // dowiadujemy się dopiero z listy zleceń — przy awaryjności, która w
+    // pewnym momencie sięgnęła połowy biegów, to za późno na reakcję.
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (status === "failed" && adminEmail) {
+      const reason = String(updates.failure_reason ?? "unknown");
+      const detail = String(updates.failure_detail ?? "");
+      await resend.emails
+        .send({
+          from: MAIL_FROM,
+          to: adminEmail,
+          subject: `[FDSRun] Zlecenie nieudane: ${caseId} (${reason})`,
+          html: `
+<div style="font-family:system-ui,sans-serif;max-width:560px;color:#111">
+  <p style="font-size:15px;margin:0 0 12px"><strong>Zlecenie zakończone niepowodzeniem.</strong></p>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Numer</td><td style="font-family:monospace">${caseId}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Plik</td><td>${row.file_name}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Klient</td><td>${row.email}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Maszyna</td><td>${row.server_type ?? "—"}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Powód</td><td><strong>${reason}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Szczegół</td><td>${detail || "—"}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Kod wyjścia</td><td>${exitCode ?? "brak"}</td></tr>
+  </table>
+  <p style="font-size:12px;color:#888;margin:16px 0 0">
+    Powód „fds_error" oznacza błąd w pliku klienta. Każdy inny obciąża nas.
+  </p>
+</div>`,
+        })
+        .catch((err) => console.error(`Email awarii do admina [${caseId}]:`, err));
+    }
   }
 
   // Odpowiedź czytana przez maszynę liczącą — sygnał łagodnego zatrzymania (plik CHID.stop)

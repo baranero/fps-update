@@ -2,23 +2,24 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { createServer, resolveServerLocation, fetchLiveCatalog } from "@/lib/hetzner/client";
 import { generateCloudInit } from "@/lib/hetzner/cloud-init";
 import { parseFds, planToEstimate, toPlanInput, type FdsParseResult } from "@/lib/fds/parser";
 import { findPlan, planRuns, type RunPlan } from "@/lib/fds/planner";
+import { findPlanById } from "@/lib/fds/publicPlan";
 import { getCalibration } from "@/lib/fds/calibration";
 import { injectMpiProcess } from "@/lib/fds/mpi";
 import { runFilePathFor } from "@/lib/fds/runFile";
 import { serverLabel } from "@/lib/hetzner/catalog";
-import { isSimAllowed } from "@/lib/utils/adminCheck";
+import { currentAccess } from "@/lib/utils/simAccess";
 import { MAIL_FROM, caseUrl, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
 
 const BUCKET = "fds-files";
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB — twardy limit rozmiaru pliku .fds
 // Ani liczby równoległych zleceń, ani ich liczby na godzinę nie ograniczamy:
 // każde zlecenie dostaje własną maszynę, więc symulacje nie konkurują ze sobą
-// o zasoby, a dostęp do uruchamiania i tak przechodzi przez `isSimAllowed`.
+// o zasoby, a dostęp do uruchamiania i tak przechodzi przez bramkę `currentAccess`.
 
 function sanitizeFileName(name: string): string {
   return name
@@ -251,18 +252,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Plik jest za duży (maks. 25 MB)." }, { status: 400 });
     }
 
-    // Zlecenie uruchamia płatny serwer w chmurze → wymagane logowanie
-    const userClient = await createClient();
-    const { data: { user } } = await userClient.auth.getUser();
+    // Zlecenie uruchamia płatny serwer w chmurze → wymagane logowanie i zgoda
+    // właściciela na uruchamianie (rozliczenie następuje PO obliczeniach, więc
+    // maszyna startuje na kredyt — patrz supabase/migration_sim_access.sql).
+    const { user, state: access } = await currentAccess();
     if (!user) {
       return NextResponse.json({ error: "Wymagane logowanie." }, { status: 401 });
     }
 
-    // Dostęp do uruchamiania symulacji tymczasowo ograniczony — zanim wdrożymy
-    // płatności, płatny serwer w chmurze może odpalić wyłącznie zaufany użytkownik.
-    if (!isSimAllowed(user.email)) {
+    if (!access.canRun) {
       return NextResponse.json(
-        { error: "Uruchamianie symulacji jest obecnie dostępne wyłącznie dla wybranych klientów. Skontaktuj się z nami: biuro@fp-solutions.pl" },
+        {
+          error:
+            access.access === "requested"
+              ? "Prośba o dostęp czeka na rozpatrzenie. Odezwiemy się mailem, gdy tylko ją zatwierdzimy."
+              : "Uruchamianie symulacji wymaga zgody na odpalanie maszyn obliczeniowych. Poproś o dostęp w kreatorze — zwykle odpowiadamy tego samego dnia.",
+          access: access.access,
+        },
         { status: 403 }
       );
     }
@@ -298,8 +304,13 @@ export async function POST(req: NextRequest) {
       calibration,
     });
 
-    const requestedType = (form.get("serverType") as string | null)?.trim().toLowerCase() || null;
-    const plan = findPlan(planResult, requestedType) ?? planResult.balanced;
+    // Klient odsyła nieprzezroczysty identyfikator wariantu (lib/fds/publicPlan.ts).
+    // `serverType` przyjmujemy jeszcze ze względu na kreatory otwarte przed
+    // zmianą — i tak jest tylko wskazówką, bo plan liczy się tu od nowa.
+    const requestedId = (form.get("planId") as string | null)?.trim() || null;
+    const legacyType = (form.get("serverType") as string | null)?.trim().toLowerCase() || null;
+    const plan =
+      findPlanById(planResult, requestedId) ?? findPlan(planResult, legacyType) ?? planResult.balanced;
 
     if (!plan) {
       // Model nie mieści się na żadnej dostępnej maszynie — mówimy o tym wprost,
@@ -349,6 +360,7 @@ export async function POST(req: NextRequest) {
       total_cells: parsed.totalCells,
       t_end: parsed.tEnd,
       fuel: parsed.fuel ?? null,
+      hrrpua: parsed.hrrpua,
       obst_count: parsed.obstCount,
       vent_count: parsed.ventCount,
       devc_count: parsed.devcCount,
