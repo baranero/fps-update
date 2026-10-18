@@ -148,8 +148,22 @@ zdarzenia — nie da się przypadkiem oznaczyć zlecenia jako opłaconego.
 
 ## Krok 5. Cron sprzątający
 
-Kasuje wyniki starsze niż 60 dni i zamyka zlecenia, które zawisły. Wymaga
-`CRON_SECRET`. Harmonogram jest w `vercel.json` (co 10 min, Vercel wysyła `GET` z `Authorization: Bearer <CRON_SECRET>`); ręcznie albo z zewnętrznego harmonogramu — `POST` z nagłówkiem `x-cron-secret`:
+Kasuje wyniki starsze niż 60 dni, zamyka zlecenia, które zawisły, i zwalnia
+maszyny, które przeżyły zamknięcie zlecenia. Wymaga `CRON_SECRET`.
+
+**Dwa harmonogramy, bo plan Vercela ogranicza cron do raz na dobę** — wdrożenie
+z gęstszym harmonogramem w `vercel.json` jest odrzucane w całości („Deployment
+failed", link do strony o limitach cron jobs):
+
+- `vercel.json` — raz na dobę o 3:00 UTC (retencja wyników),
+- **zewnętrzny harmonogram co 10 min** (nadzorca zawieszonych zleceń
+  i osieroconych maszyn — bez niego zawieszona maszyna liczy godzinami).
+  Darmowo: [cron-job.org](https://cron-job.org) → Create cronjob → URL poniżej,
+  metoda `POST`, co 10 minut, w zakładce Advanced nagłówek
+  `x-cron-secret: <wartość CRON_SECRET z Vercela>`.
+
+Vercel wysyła `GET` z `Authorization: Bearer <CRON_SECRET>`; zewnętrzny
+harmonogram — `POST` z nagłówkiem `x-cron-secret`:
 
 ```
 POST https://fdsrun.com/api/cron/cleanup
