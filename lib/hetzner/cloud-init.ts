@@ -627,21 +627,33 @@ command -v python3 >/dev/null 2>&1 || { log "ERROR: brak python3 — bez niego n
 # zlecenia) i wysyła bajty curl-em wprost do magazynu. Python robi tylko JSON
 # i jedno żądanie HTTP; wielogigabajtowy .s3d nie przechodzi przez interpreter.
 cat > "$WORKDIR/upload_urls.py" <<'PYEOF'
-import sys, json, urllib.request
+import sys, json, urllib.request, urllib.error, urllib.parse
 app, case, token = sys.argv[1], sys.argv[2], sys.argv[3]
 files = [l.strip() for l in sys.stdin if l.strip()]
 urls = {}
-for i in range(0, len(files), 500):
-    chunk = files[i:i + 500]
+
+# urllib nie idzie za przekierowaniem POST (308 z fdsrun.com na www.), a curl
+# tak — dlatego log dochodził, a adresy uploadu nie. Przekierowanie obsługujemy
+# sami, z zachowaniem metody, ciała i nagłówka z tokenem.
+def post(url, body, hops=3):
     req = urllib.request.Request(
-        app + "/api/symulacje/" + case + "/upload-urls",
-        data=json.dumps({"files": chunk}).encode(),
-        headers={"Content-Type": "application/json", "x-job-token": token},
-        method="POST",
+        url, data=body, method="POST",
+        headers={"Content-Type": "application/json", "x-job-token": token, "User-Agent": "fdsrun-runner/1"},
     )
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
-            urls.update(json.load(r).get("urls", {}))
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        loc = e.headers.get("Location")
+        if e.code in (301, 302, 303, 307, 308) and loc and hops > 0:
+            return post(urllib.parse.urljoin(url, loc), body, hops - 1)
+        raise
+
+for i in range(0, len(files), 500):
+    chunk = files[i:i + 500]
+    try:
+        res = post(app + "/api/symulacje/" + case + "/upload-urls", json.dumps({"files": chunk}).encode())
+        urls.update(res.get("urls", {}))
     except Exception as e:
         print("upload-urls: " + str(e), file=sys.stderr)
 for f in files:
@@ -671,7 +683,8 @@ put_files() {
 
 upload_diag() {
   [ -s "$UPLOAD_ERR" ] || return 0
-  log "upload: $(tail -c 300 "$UPLOAD_ERR" | tr '\\n' ' ')"
+  # Przyczyna (pierwsze linie) jest cenniejsza niż lista nazw plików na końcu.
+  log "upload: $(grep -v '^brak adresu' "$UPLOAD_ERR" | head -c 300 | tr '\\n' ' ') [plikow bez adresu: $(grep -c '^brak adresu' "$UPLOAD_ERR")]"
   : > "$UPLOAD_ERR"
 }
 
