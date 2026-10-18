@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminCalibration from "./AdminCalibration";
+import AdminDashboard, { type DashboardStats } from "./AdminDashboard";
 import AdminInfra from "./AdminInfra";
 import AdminMargin from "./AdminMargin";
 import SimDrawer from "./SimDrawer";
@@ -14,7 +15,7 @@ import { EUR_PLN } from "@/lib/fds/parser";
 import { addressLines, formatNip, type InvoiceData } from "@/lib/invoice";
 import { type SimAccess } from "@/lib/access";
 import {
-  Btn, Chip, FilterTabs, Kpi, Notice, PageHead, SectionLabel, Shell, Skeleton,
+  Btn, Chip, FilterTabs, PageHead, Shell, Skeleton,
   btnCls, cardCls, iconBtnCls, inputSmCls, tableCls, tdCls, tdNumCls, thCls, theadRowCls, trCls,
 } from "@/components/Cloud/ui";
 
@@ -64,10 +65,7 @@ function DetailField({ label, value, wide }: { label: string; value: string; wid
     </div>
   );
 }
-type Stats = {
-  counts: { total: number; pending: number; running: number; done: number; failed: number; revenue: number; unpaid: number; users: number; accessRequests?: number };
-  recent: Sim[];
-};
+type Stats = DashboardStats;
 
 /* ── CSV eksport ── */
 // `t` i `ts` wstrzykiwane z komponentu: eksport nagłówków i statusów idzie w
@@ -392,7 +390,6 @@ export default function AdminPage() {
     );
   }
 
-  const c = stats!.counts;
   const filteredUsers = usersSearch
     ? users.filter(u => {
         const q = usersSearch.toLowerCase();
@@ -437,82 +434,8 @@ export default function AdminPage() {
       />
 
       {/* ── PULPIT ── */}
-      {tab === "pulpit" && (
-        <div className="space-y-6">
-
-          {/* Wymaga uwagi */}
-          {(c.pending > 0 || c.failed > 0 || c.unpaid > 0 || (c.accessRequests ?? 0) > 0) && (
-            <Notice tone="warn" title={t("attention.title")}>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {c.pending > 0 && (
-                  <Btn variant="secondary" size="sm" onClick={() => jumpToSims("pending")}>
-                    {t("attention.pending", { n: c.pending })} <span aria-hidden>→</span>
-                  </Btn>
-                )}
-                {c.failed > 0 && (
-                  <Btn variant="secondary" size="sm" onClick={() => jumpToSims("failed")}>
-                    {t("attention.failed", { n: c.failed })} <span aria-hidden>→</span>
-                  </Btn>
-                )}
-                {c.unpaid > 0 && (
-                  <Btn variant="secondary" size="sm" onClick={() => jumpToSims("done")}>
-                    {t("attention.unpaid", { amount: f.fmtPrice(c.unpaid) })} <span aria-hidden>→</span>
-                  </Btn>
-                )}
-                {/* Prośba o dostęp bez odpowiedzi = klient gotowy zapłacić,
-                    który nie może uruchomić. Najdroższa z rzeczy czekających. */}
-                {(c.accessRequests ?? 0) > 0 && (
-                  <Btn variant="secondary" size="sm" onClick={() => setTab("uzytkownicy")}>
-                    {t("attention.accessRequests", { n: c.accessRequests ?? 0 })} <span aria-hidden>→</span>
-                  </Btn>
-                )}
-              </div>
-            </Notice>
-          )}
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
-            <Kpi label={t("kpi.all")} value={c.total} />
-            <Kpi label={t("kpi.pending")} value={c.pending} tone="warn" />
-            <Kpi label={t("kpi.running")} value={c.running} tone="signal" />
-            <Kpi label={t("kpi.done")} value={c.done} tone="ok" />
-            <Kpi label={t("kpi.failed")} value={c.failed} tone="primary" />
-            <Kpi label={t("kpi.revenue")} value={f.fmtPrice(c.revenue)} tone="primary" />
-            <Kpi label={t("kpi.unpaid")} value={f.fmtPrice(c.unpaid)} tone={c.unpaid > 0 ? "warn" : "ink"} />
-            <Kpi label={t("kpi.users")} value={c.users} />
-          </div>
-
-          <div>
-            <SectionLabel className="mb-3 block">{t("recent")}</SectionLabel>
-            <div className={`${cardCls} overflow-hidden overflow-x-auto`}>
-              <table className={`${tableCls} min-w-[720px]`}>
-                <thead>
-                  <tr className={theadRowCls}>
-                    {[t("cols.status"), t("cols.caseId"), t("cols.email"), t("cols.file"), t("cols.server"), t("cols.price"), t("cols.date")].map(h => (
-                      <th key={h} className={thCls}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline-soft">
-                  {stats!.recent.map(r => (
-                    <tr key={r.case_id} className={trCls}>
-                      <td className="px-3 py-2">
-                        <span className={statusMeta(r.status).cls}>{ts(statusMeta(r.status).key)}</span>
-                      </td>
-                      <td className="px-3 py-2 font-mono text-muted">
-                        <Link href={`/symulacje/${r.case_id}`} className="transition-colors hover:text-accent">{r.case_id}</Link>
-                      </td>
-                      <td className={`${tdCls} max-w-[140px] truncate`}>{r.email}</td>
-                      <td className={`${tdCls} max-w-[120px] truncate`}>{r.file_name}</td>
-                      <td className={`${tdCls} font-mono uppercase`}>{r.server_type ?? "—"}</td>
-                      <td className={`${tdNumCls} text-ink`}>{f.fmtPrice(r.price)}</td>
-                      <td className={`${tdCls} whitespace-nowrap`}>{f.fmtDateTime(r.created_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      {tab === "pulpit" && stats && (
+        <AdminDashboard stats={stats} onJump={jumpToSims} onUsers={() => setTab("uzytkownicy")} />
       )}
 
       {/* ── ANALITYKA ── */}
@@ -530,7 +453,7 @@ export default function AdminPage() {
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             <FilterTabs
-              tabs={(["all", "pending", "running", "done", "failed"] as const).map((s) => ({
+              tabs={(["all", "pending", "dispatched", "running", "done", "failed", "cancelled"] as const).map((s) => ({
                 id: s,
                 label: s === "all" ? ts("all") : ts(statusMeta(s).key),
               }))}

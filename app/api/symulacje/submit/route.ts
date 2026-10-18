@@ -13,7 +13,9 @@ import { injectMpiProcess } from "@/lib/fds/mpi";
 import { runFilePathFor } from "@/lib/fds/runFile";
 import { serverLabel } from "@/lib/hetzner/catalog";
 import { currentAccess } from "@/lib/utils/simAccess";
-import { MAIL_FROM, caseUrl, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
+import { jobToken } from "@/lib/jobToken";
+import { MAIL_FROM, caseUrl, escapeHtml, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
 
 const BUCKET = "fds-files";
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB — twardy limit rozmiaru pliku .fds
@@ -77,7 +79,10 @@ function generateCaseId(): string {
   return `FDS-${ts}-${rnd}`;
 }
 
-function emailUser(to: string, name: string, caseId: string, fileName: string, price: number, wallHours: number, serverType: string, appUrl: string, locale: MailLocale) {
+function emailUser(to: string, rawName: string, caseId: string, rawFileName: string, price: number, wallHours: number, serverType: string, appUrl: string, locale: MailLocale) {
+  // Treść od klienta wchodzi do HTML wyłącznie po escapowaniu.
+  const name = escapeHtml(rawName);
+  const fileName = escapeHtml(rawFileName);
   const statusUrl = caseUrl(appUrl, caseId, locale);
   const wallStr = formatHours(wallHours, locale);
   const c = mailCopy(locale);
@@ -135,6 +140,15 @@ function emailAdmin(
 ) {
   const serverType = plan.serverType;
   const statusUrl = `${appUrl}/symulacje/${caseId}`;
+  // Pola od klienta (imię, uwagi, nazwa pliku) idą do skrzynki właściciela —
+  // bez escapowania `<script>` w uwagach byłby wykonywalny w jego kliencie poczty.
+  name = escapeHtml(name);
+  email = escapeHtml(email);
+  notes = notes ? escapeHtml(notes) : null;
+  fileName = escapeHtml(fileName);
+  filePath = escapeHtml(filePath);
+  const chid = escapeHtml(parsed.chid ?? "—");
+  const fuel = escapeHtml(parsed.fuel ?? "—");
   return {
     from: MAIL_FROM,
     to: adminEmail,
@@ -158,13 +172,13 @@ function emailAdmin(
     <table style="font-size:13px;border-collapse:collapse;margin-bottom:20px">
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Nazwa</td><td style="font-family:monospace">${fileName}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Ścieżka (Storage)</td><td style="font-family:monospace;font-size:11px">${filePath}</td></tr>
-      <tr><td style="padding:4px 16px 4px 0;color:#64748b">CHID</td><td>${parsed.chid ?? "—"}</td></tr>
+      <tr><td style="padding:4px 16px 4px 0;color:#64748b">CHID</td><td>${chid}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Siatki</td><td>${parsed.meshCount}${parsed.forcedProcs ? ` (MPI_PROCESS → ${parsed.forcedProcs} proc.)` : ""}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Procesy MPI</td><td>${plan.mpiProcs} × ${plan.ompThreads} OMP — po ${plan.meshesPerProc} ${plan.meshesPerProc === 1 ? "siatce" : "siatki"} na proces</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Balans obciążenia</td><td>${(plan.balance * 100).toFixed(0)}%${plan.warnings.includes("unbalanced") ? " ⚠ nierówny podział" : ""}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">Komórki</td><td>${parsed.totalCells.toLocaleString("pl-PL")}</td></tr>
       <tr><td style="padding:4px 16px 4px 0;color:#64748b">T_END</td><td>${parsed.tEnd} s</td></tr>
-      <tr><td style="padding:4px 16px 4px 0;color:#64748b">Paliwo</td><td>${parsed.fuel ?? "—"}</td></tr>
+      <tr><td style="padding:4px 16px 4px 0;color:#64748b">Paliwo</td><td>${fuel}</td></tr>
     </table>
 
     <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;margin:0 0 10px">Wycena</h3>
@@ -191,25 +205,28 @@ async function dispatchHetzner(
   const serverType = plan.serverType;
   const location = await resolveServerLocation(serverType);
 
+  // Maszyna dostaje podpisany adres pliku wejściowego zamiast klucza do
+  // magazynu plików. Dwie godziny z zapasem na start maszyny i instalację
+  // solvera, gdyby obraz go nie miał.
+  const { data: signed, error: signError } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(filePath, 2 * 3600);
+  if (signError || !signed?.signedUrl) {
+    throw new Error(`podpis pliku wejściowego nieudany: ${signError?.message ?? "brak adresu"}`);
+  }
+
   const userData = generateCloudInit({
     caseId,
-    filePath,
     fileName,
     // Procesów MPI tyle, ile wynika z planu — NIE tyle, ile siatek. Gdy siatek
     // jest więcej niż procesów, FDS rozdziela je między procesy sam.
     ncores: plan.mpiProcs,
     ompThreads: plan.ompThreads,
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
-    webhookSecret: process.env.WEBHOOK_SECRET ?? "",
-    hetznerToken: process.env.HETZNER_API_TOKEN ?? "",
+    appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com",
+    // Jedyny sekret na maszynie: token TEGO zlecenia (lib/jobToken.ts).
+    jobToken: jobToken(caseId),
+    inputUrl: signed.signedUrl,
     fdsDownloadUrl: process.env.FDS_DOWNLOAD_URL ?? "",
-    storageAccessKey: process.env.HETZNER_STORAGE_ACCESS_KEY ?? "",
-    storageSecretKey: process.env.HETZNER_STORAGE_SECRET_KEY ?? "",
-    storageBucket: process.env.HETZNER_STORAGE_BUCKET ?? "",
-    storageEndpoint: process.env.HETZNER_STORAGE_ENDPOINT ?? "",
-    storageRegion: process.env.HETZNER_STORAGE_REGION ?? "eu-central-003",
   });
 
   const server = await createServer(caseId, serverType, location, userData);
@@ -237,7 +254,7 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
 
     const file = form.get("file") as File | null;
-    const notes = (form.get("notes") as string | null)?.trim() || null;
+    const notes = (form.get("notes") as string | null)?.trim().slice(0, 2000) || null;
     // Język zlecenia — decyduje o języku maili (także tego wysyłanego później
     // przez maszynę liczącą, która nie zna sesji ani nagłówków przeglądarki).
     const locale = mailLocale(form.get("locale"));
@@ -273,9 +290,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const limited = rateLimit(req, { scope: "submit", identity: user.id, ...LIMITS.submit });
+    if (limited) return limited;
+
     const userId = user.id;
-    const name = (form.get("name") as string | null)?.trim() || user.email?.split("@")[0] || "Użytkownik";
-    const email = (form.get("email") as string | null)?.trim() || user.email || "";
+    const name = (form.get("name") as string | null)?.trim().slice(0, 120) || user.email?.split("@")[0] || "Użytkownik";
+    // Adres zlecenia = adres KONTA. Wcześniej brał się z formularza, więc dało
+    // się wysłać potwierdzenie (z własną treścią w „uwagach”) na dowolny cudzy
+    // adres, a bramka własności dopasowywała zlecenia także po tym adresie.
+    const email = user.email ?? "";
+    if (!email) {
+      return NextResponse.json({ error: "Konto nie ma adresu e-mail." }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
 

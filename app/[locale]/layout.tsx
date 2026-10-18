@@ -26,7 +26,6 @@ import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/manrope";
 
 // Style CSS
-import "node_modules/react-modal-video/css/modal-video.css";
 import "../../styles/index.css";
 
 export const metadata: Metadata = {

@@ -2,7 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { parseDevcCsv, parseHrrCsv } from "@/lib/fds/devc";
+import { parseFdsCsv } from "@/lib/fds/devc";
 import { keyReadings, formatReading, type FdsReading } from "@/lib/fds/readings";
 import { ConsolePane, ConsoleReading } from "@/components/Cloud/Console";
 import type { FdsDevc } from "@/lib/fds/parser";
@@ -32,7 +32,7 @@ export default function ConsoleReadings({
   const numLocale = locale === "en" ? "en-GB" : "pl-PL";
 
   const readings = useMemo<FdsReading[]>(
-    () => keyReadings(parseHrrCsv(hrrCsv), parseDevcCsv(devcCsv), setpoints, 3),
+    () => keyReadings(parseFdsCsv(hrrCsv), parseFdsCsv(devcCsv), setpoints, 3),
     [hrrCsv, devcCsv, setpoints]
   );
 

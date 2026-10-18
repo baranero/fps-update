@@ -4,8 +4,8 @@ import { isAdmin } from "@/lib/utils/adminCheck";
 
 // Jedna bramka własności zlecenia dla wszystkich endpointów /api/symulacje/[caseId]/*.
 //
-// Wcześniej regułę „czy to moje zlecenie" powielały u siebie DELETE, /stop i
-// /cancel, a odczytowe GET-y (szczegół, /results, /download, /download-zip)
+// Wcześniej regułę „czy to moje zlecenie" powielały u siebie DELETE i /stop,
+// a odczytowe GET-y (szczegół, /results, /download, /download-zip)
 // nie sprawdzały jej wcale — szły prosto przez service_role, czyli z pominięciem
 // RLS. Wystarczył numer zlecenia, żeby obcy zobaczył e-mail i nazwisko klienta,
 // cenę, cały log FDS i podpisane odnośniki do wszystkich plików wynikowych.
@@ -67,7 +67,11 @@ export async function requireCaseAccess<T = Record<string, unknown>>(
 
   const row = submission as unknown as { user_id: string | null; email: string | null };
   const isAdminUser = isAdmin(user.email);
-  const owns = row.user_id === user.id || row.email === user.email || isAdminUser;
+  // Własność rozstrzyga WYŁĄCZNIE konto, które złożyło zlecenie. Dopasowanie po
+  // adresie e-mail wypadło: adres w zleceniu pochodził z formularza, więc
+  // wpisanie cudzego adresu dawało temu komuś wgląd w zlecenie — a każde
+  // zlecenie i tak ma `user_id`, bo bez logowania nie da się go złożyć.
+  const owns = row.user_id === user.id || isAdminUser;
 
   if (!owns) {
     // Świadomie 404, nie 403: 403 potwierdza, że taki numer zlecenia istnieje,

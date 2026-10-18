@@ -6,6 +6,50 @@ function headers() {
   return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
 
+// ─── Firewall maszyn liczących ───────────────────────────────────────────────
+//
+// Maszyna niczego nie nasłuchuje: wyniki, log i podgląd WYPYCHA sama (HTTPS do
+// serwisu i do magazynu). Nie ma więc powodu, by jakikolwiek port był otwarty
+// z internetu — a bez firewalla Hetzner zakłada maszynę z hasłem roota i SSH
+// na porcie 22. Firewall bez żadnej reguły przychodzącej odrzuca cały ruch
+// przychodzący; ruch wychodzący pozostaje dozwolony.
+//
+// Identyfikator wolno podać w HETZNER_FIREWALL_ID (np. firewall założony
+// ręcznie w panelu). Bez niego szukamy firewalla po nazwie, a gdy go nie ma —
+// zakładamy. Wynik trzymamy w pamięci instancji; firewall nie zmienia się
+// między zleceniami.
+const FIREWALL_NAME = "fdsrun-compute";
+let firewallIdCache: number | null = null;
+
+export async function ensureFirewall(): Promise<number> {
+  const fromEnv = Number(process.env.HETZNER_FIREWALL_ID);
+  if (Number.isInteger(fromEnv) && fromEnv > 0) return fromEnv;
+  if (firewallIdCache) return firewallIdCache;
+
+  const list = await fetch(`${API}/firewalls?name=${encodeURIComponent(FIREWALL_NAME)}`, { headers: headers() });
+  if (list.ok) {
+    const { firewalls } = (await list.json()) as { firewalls?: Array<{ id: number; name: string }> };
+    const hit = firewalls?.find((f) => f.name === FIREWALL_NAME);
+    if (hit?.id) {
+      firewallIdCache = hit.id;
+      return hit.id;
+    }
+  }
+
+  const res = await fetch(`${API}/firewalls`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ name: FIREWALL_NAME, rules: [], labels: { app: "fdsrun" } }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Hetzner firewall error ${res.status}: ${JSON.stringify(err)}`);
+  }
+  const { firewall } = (await res.json()) as { firewall: { id: number } };
+  firewallIdCache = firewall.id;
+  return firewall.id;
+}
+
 export interface HetznerServer {
   id: number;
   name: string;
@@ -21,11 +65,12 @@ interface HetznerServerTypeRaw {
   architecture: string;   // "x86" | "arm"
   deprecated: boolean;
   prices: Array<{ location: string; price_hourly: { net: string }; price_monthly?: { net: string } }>;
-}
-
-interface HetznerDatacenter {
-  location: { name: string };
-  server_types: { available: number[] };
+  /**
+   * Dostępność typu per lokalizacja. Od 2026-06 jedyne źródło — wcześniej
+   * braliśmy ją z GET /datacenters, który Hetzner wycofał (410 Gone,
+   * changelog 2026-06-02 „datacenters deprecated").
+   */
+  locations?: Array<{ name: string; available?: boolean; deprecation?: unknown | null }>;
 }
 
 // Lokalizacje w Unii — kolejność decyduje o tym, gdzie szukamy najpierw.
@@ -48,36 +93,30 @@ const CATALOG_TTL_MS = 5 * 60 * 1000;
 /**
  * Żywy obraz oferty dostawcy: co jest dostępne i po ile.
  *
- * Dostępność bierzemy z GET /datacenters (pole server_types.available), bo
- * prices[] w /server_types potrafi wymieniać typy, których i tak nie da się
- * utworzyć. Cache 5 min — kreator odpytuje to przy każdej analizie pliku.
+ * Dostępność bierzemy z `server_types[].locations[].available`, a nie z samego
+ * prices[] — cennik potrafi wymieniać typy, których i tak nie da się utworzyć.
+ * Cache 5 min — kreator odpytuje to przy każdej analizie pliku.
  */
 export async function fetchLiveCatalog(force = false): Promise<LiveCatalog> {
   if (!force && catalogCache && Date.now() - catalogCache.fetchedAt < CATALOG_TTL_MS) {
     return catalogCache;
   }
 
-  const [stRes, dcRes] = await Promise.all([
-    fetch(`${API}/server_types?per_page=100`, { headers: headers() }),
-    fetch(`${API}/datacenters?per_page=50`, { headers: headers() }),
-  ]);
+  const stRes = await fetch(`${API}/server_types?per_page=100`, { headers: headers() });
   if (!stRes.ok) throw new Error(`Hetzner server_types error: ${stRes.status}`);
-  if (!dcRes.ok) throw new Error(`Hetzner datacenters error: ${dcRes.status}`);
-
   const { server_types }: { server_types: HetznerServerTypeRaw[] } = await stRes.json();
-  const { datacenters }: { datacenters: HetznerDatacenter[] } = await dcRes.json();
 
   const locationByType: Record<string, string> = {};
   const priceByType: Record<string, number> = {};
 
   for (const loc of euLocations()) {
-    const availableIds = new Set<number>(
-      datacenters.filter((dc) => dc.location.name === loc).flatMap((dc) => dc.server_types.available)
-    );
-
     for (const t of server_types) {
       // Binarka FDS jest zbudowana na x86_64 — ARM odpada niezależnie od ceny.
-      if (t.deprecated || t.architecture !== "x86" || !availableIds.has(t.id)) continue;
+      if (t.deprecated || t.architecture !== "x86") continue;
+      // Typ wycofywany w danej lokalizacji też odpada — maszyna mogłaby zniknąć
+      // z oferty w trakcie obliczeń.
+      const at = t.locations?.find((l) => l.name === loc);
+      if (!at || at.available === false || at.deprecation) continue;
       if (locationByType[t.name]) continue; // pierwsza lokalizacja z listy wygrywa
 
       const price = t.prices.find((p) => p.location === loc)?.price_hourly.net;
@@ -113,6 +152,10 @@ export async function createServer(
   location: string,
   userData: string
 ): Promise<HetznerServer> {
+  // Bez firewalla maszyna nie powstaje — lepiej nieudane zlecenie (widoczne,
+  // do powtórzenia) niż maszyna z sekretami otwarta na świat.
+  const firewallId = await ensureFirewall();
+
   const res = await fetch(`${API}/servers`, {
     method: "POST",
     headers: headers(),
@@ -125,6 +168,8 @@ export async function createServer(
       location,
       user_data: userData,
       public_net: { enable_ipv4: true, enable_ipv6: false },
+      firewalls: [{ firewall: firewallId }],
+      labels: { app: "fdsrun", case: caseId.replace(/[^A-Za-z0-9_.-]/g, "-").slice(0, 63) },
     }),
   });
 
@@ -178,6 +223,8 @@ interface HetznerServerRaw {
   status: string;
   created: string;
   public_net?: { ipv4?: { ip?: string } };
+  /** Nowy kształt (po wycofaniu datacenters) i stary — czytamy oba. */
+  location?: { name?: string };
   datacenter?: { location?: { name?: string } };
   server_type?: {
     name?: string;
@@ -250,7 +297,7 @@ export async function listServersDetailed(): Promise<HetznerServerDetail[]> {
     const json = await res.json();
     const servers: HetznerServerRaw[] = json.servers ?? [];
     for (const s of servers) {
-      const loc = s.datacenter?.location?.name ?? "";
+      const loc = s.location?.name ?? s.datacenter?.location?.name ?? "";
       const prices = s.server_type?.prices ?? [];
       const priceRow = prices.find((p) => p.location === loc) ?? prices[0];
       out.push({

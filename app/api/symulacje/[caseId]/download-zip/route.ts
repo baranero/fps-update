@@ -7,7 +7,7 @@ export const maxDuration = 300;
 import { NextRequest, NextResponse } from "next/server";
 import { PassThrough, Readable } from "stream";
 import archiverDefault, { type Archiver } from "archiver";
-import { listResults, signedResultUrl, isInternalResult } from "@/lib/hetzner/storage";
+import { listResults, signedResultUrl, isInternalResult, resultRelPath } from "@/lib/hetzner/storage";
 import { PACKAGE_MAX_BYTES } from "@/lib/fds/download-limits";
 import { requireCaseAccess } from "@/lib/utils/caseAccess";
 import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
@@ -50,14 +50,14 @@ export async function GET(req: NextRequest, props: { params: Promise<{ caseId: s
   try {
     const objects = await listResults(caseId);
     entries = objects
-      .filter((o) => o.Key)
+      .filter((o) => o.Key && !isInternalResult(resultRelPath(caseId, o.Key)))
       .map((o) => ({
         key: o.Key as string,
         name: (o.Key as string).split("/").pop() as string,
         size: o.Size ?? 0,
       }))
       // Pliki służbowe (manifest migawki) nigdy nie trafiają do paczki.
-      .filter((e) => e.name && !isInternalResult(e.name) && (!wanted || wanted.has(e.name)));
+      .filter((e) => e.name && (!wanted || wanted.has(e.name)));
   } catch (err) {
     console.error(`download-zip listResults [${caseId}]:`, err);
     return NextResponse.json({ error: "Błąd magazynu." }, { status: 502 });

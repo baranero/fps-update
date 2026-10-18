@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { parseDevcCsv, parseHrrCsv, type FdsCsvSeries } from "@/lib/fds/devc";
+import { parseFdsCsv, type FdsCsvSeries } from "@/lib/fds/devc";
 import { chartTheme, fmtT, fmtVal, useIsDark, OVERFLOW_DASH } from "@/components/Cloud/chartTheme";
 
 // Wykres w środkowym panelu konsoli zlecenia. Pokazuje JEDEN zestaw naraz —
@@ -27,8 +27,8 @@ export default function ConsoleChart({
   const dark = useIsDark();
   const { ramp, axis, grid, tooltip } = chartTheme(dark);
 
-  const devc = useMemo(() => parseDevcCsv(devcCsv), [devcCsv]);
-  const hrr = useMemo(() => parseHrrCsv(hrrCsv), [hrrCsv]);
+  const devc = useMemo(() => parseFdsCsv(devcCsv), [devcCsv]);
+  const hrr = useMemo(() => parseFdsCsv(hrrCsv), [hrrCsv]);
 
   const tabs = useMemo<Tab[]>(() => {
     const out: Tab[] = [];

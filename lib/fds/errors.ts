@@ -182,8 +182,6 @@ export function watchdogLimitH(wallHours: number | null): number {
   return Math.max(LEGACY_WATCHDOG_MIN_H, (wallHours ?? 1) * LEGACY_WATCHDOG_MULT);
 }
 
-export { lastSimulationTime };
-
 export function diagnoseFailure(
   input: {
     log: string | null;

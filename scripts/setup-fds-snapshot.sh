@@ -75,6 +75,15 @@ echo "OK: FDS binary: $FDS_BIN"
 # Weryfikacja — uruchom FDS --version
 "$FDS_BIN" --version 2>&1 | head -3 || true
 
+# Weryfikacja Smokeview bez ekranu — podgląd na stronie zlecenia z niego korzysta.
+SMV_BIN=$(find "$INSTALL_DIR" -maxdepth 4 -type f -name 'smokeview*' -perm /111 | grep -v '\.sh$' | head -1 || true)
+if [ -n "$SMV_BIN" ] && command -v xvfb-run >/dev/null 2>&1; then
+  echo "OK: Smokeview: $SMV_BIN"
+  timeout 20 xvfb-run -a "$SMV_BIN" -version 2>&1 | head -3 || true
+else
+  echo "UWAGA: brak Smokeview albo xvfb-run — podgląd Smokeview nie zadziała"
+fi
+
 # Cleanup
 rm -f /tmp/fds_installer.sh
 apt-get clean

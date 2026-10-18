@@ -12,8 +12,10 @@ import {
   Console, ConsoleHead, ConsoleLog, ConsoleMetric, ConsoleNote, ConsolePane, ConsoleProgress, ConsoleRow,
 } from "@/components/Cloud/Console";
 import SliceView from "./SliceView";
+import SmokeviewView from "./SmokeviewView";
+import AnalysisPanel from "./AnalysisPanel";
 import {
-  Btn, BtnLink, Notice, Shell, Skeleton,
+  Btn, BtnLink, FilterTabs, Notice, Shell, Skeleton,
 } from "@/components/Cloud/ui";
 import { type FdsDevc } from "@/lib/fds/parser";
 import type { FdsSliceJson } from "@/lib/fds/slice";
@@ -105,6 +107,13 @@ const STATUS_STYLE: Record<string, { color: string; bg: string; border: string; 
   cancelled:  { color: "text-muted",  bg: "bg-panel-deep",     border: "border-hairline",     dot: "bg-muted" },
 };
 
+// Zakładki karty zlecenia. Wcześniej wszystko stało na jednej stronie długiej na
+// kilkanaście ekranów, a postęp był pokazany dwa razy (konsola i sekcja 03).
+// Zakładka siedzi w adresie (?tab=), żeby dało się podesłać link wprost do
+// podglądu albo analizy.
+type CaseTab = "overview" | "preview" | "analysis" | "results" | "log" | "details";
+const CASE_TABS: CaseTab[] = ["overview", "preview", "analysis", "results", "log", "details"];
+
 // Zapis plików wprost do folderu wskazanego przez użytkownika (File System Access
 // API — Chrome/Edge). Typy nie ma w lib.dom tej wersji TS, więc minimalny kontrakt.
 interface DirHandle {
@@ -135,6 +144,18 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
   const router = useRouter();
   const searchParams = useSearchParams();
   const platnosc = searchParams.get("platnosc");
+  const [tabRaw, setTabRaw] = useState<CaseTab>(() => {
+    const q = searchParams.get("tab");
+    return CASE_TABS.includes(q as CaseTab) ? (q as CaseTab) : "overview";
+  });
+  const pickTab = (next: CaseTab) => {
+    setTabRaw(next);
+    // Bez nawigacji routera — sama podmiana adresu, bez przeładowania danych.
+    const url = new URL(window.location.href);
+    if (next === "overview") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", next);
+    window.history.replaceState(window.history.state, "", url.toString());
+  };
   const [job, setJob] = useState<JobData | null>(null);
   const [error, setError] = useState<"not_found" | "connection" | null>(null);
   const [, setTick] = useState(0);
@@ -283,6 +304,15 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
     const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Wejście w zakładkę „Wyniki” w trakcie biegu = jedno pobranie listy (dalej
+  // już tylko na żądanie — patrz niżej). Klient, który tam wchodzi, chce ją zobaczyć.
+  useEffect(() => {
+    if (tabRaw === "results" && partialAt == null && (job?.status === "running" || job?.status === "dispatched")) {
+      void loadPartial();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabRaw, job?.status]);
 
   // Lista wyników częściowych powstaje WYŁĄCZNIE na żądanie (przycisk
   // „Synchronizuj"). Wcześniej odpytywaliśmy magazyn co 60 s przez cały czas
@@ -639,6 +669,24 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
 
   const cLog = consoleLogEntries(job.fdsLog);
 
+  // Dostępne zakładki zależą od etapu: przed startem FDS nie ma czego podglądać.
+  const hasRunData = job.status === "running" || job.status === "done" || job.status === "failed";
+  const hasCsv = !!(finalCsv.devc ?? job.devcCsv ?? finalCsv.hrr ?? job.hrrCsv);
+  const available: Record<CaseTab, boolean> = {
+    overview: true,
+    preview: hasRunData,
+    analysis: hasRunData && hasCsv,
+    results: hasRunData || job.status === "dispatched",
+    log: hasRunData,
+    details: true,
+  };
+  const tab: CaseTab = available[tabRaw] ? tabRaw : "overview";
+  const tabList = CASE_TABS.filter((k) => available[k]).map((k) => ({
+    id: k,
+    label: t(`tabs.${k}`),
+    count: k === "results" ? (finished ? job.results?.length ?? 0 : partial.length) : undefined,
+  }));
+
   return (
     <Shell width="xl">
       <div className="space-y-8" suppressHydrationWarning>
@@ -678,6 +726,9 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             </div>
           </div>
 
+          <FilterTabs tabs={tabList} active={tab} onPick={pickTab} label={t("tabs.label")} />
+
+          {tab === "overview" && (<>
           {/* ── Konsola zlecenia ──────────────────────────────────────────
               Ten sam komponent, którym strona główna pokazuje, jak wygląda
               praca z FDSRun — tu wypełniony realnymi danymi zlecenia. */}
@@ -895,9 +946,10 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
           )}
 
 
+          </>)}
+          {tab === "details" && (<>
           {/* ── 01 · Plik wejściowy i wycena ───────────────────────────── */}
           <Section
-            index="01"
             kicker={t("sec.inputKicker")}
             title={t("sec.inputTitle")}
             hint={t("sec.inputHint")}
@@ -914,7 +966,6 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
 
           {/* ── 02 · Dobrana maszyna ───────────────────────────────────── */}
           <Section
-            index="02"
             kicker={t("sec.machineKicker")}
             title={t("sec.machineTitle")}
             hint={t("sec.machineHint")}
@@ -943,6 +994,8 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             </Plate>
           </Section>
 
+          </>)}
+          {tab === "log" && (<>
           {/* Postęp i logi */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (() => {
             // Postęp, procent i prognoza pochodzą z modelu policzonego raz, na
@@ -965,7 +1018,6 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
 
             return (
               <Section
-                index="03"
                 kicker={t("sec.progressKicker")}
                 title={t("progress.title")}
                 hint={t("sec.progressHint")}
@@ -1068,10 +1120,12 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             );
           })()}
 
+          </>)}
+          {tab === "preview" && (<>
+          <SmokeviewView caseId={job.caseId} running={isRunning && !fatalErr} finished={finished} />
           {/* ── 04 · Wykresy i podgląd ─────────────────────────────────── */}
           {(job.status === "running" || job.status === "done" || job.status === "failed") && (
             <Section
-              index="04"
               kicker={t("sec.chartsKicker")}
               title={t("sec.chartsTitle")}
               hint={t("sec.chartsHint")}
@@ -1082,6 +1136,8 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
               </div>
             </Section>
           )}
+          </>)}
+          {tab === "results" && (<>
           {/* Wyniki częściowe — pobieranie W TRAKCIE obliczeń, bez zatrzymywania */}
           {(job.status === "running" || job.status === "dispatched") && (() => {
             const snapPct = snapshot && job.tEnd > 0
@@ -1211,6 +1267,8 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             );
           })()}
 
+          </>)}
+          {tab === "overview" && (<>
           {/* Gotowe, ale w logu FDS są błędy */}
           {job.status === "done" && (() => {
             const explained = explainFdsErrors(job.fdsLog, errLocale);
@@ -1227,11 +1285,12 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             );
           })()}
 
+          </>)}
+          {tab === "results" && (<>
           {/* ── 05 · Wyniki ────────────────────────────────────────────── */}
           {/* Także po błędzie — pliki policzone do momentu przerwania czekają w magazynie. */}
           {finished && job.results && job.results.length > 0 && (
             <Section
-              index="05"
               kicker={t("sec.resultsKicker")}
               title={`${t("results.title")} (${job.results.length}${allSize ? ` · ${allSize.label}` : ""})`}
               hint={job.status === "failed" ? t("sec.resultsHintFailed") : t("sec.resultsHint")}
@@ -1407,6 +1466,8 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             </div>
           )}
 
+          </>)}
+          {tab === "overview" && (<>
           {/* Płatność */}
           {job.status === "done" && (
             <div className={`rounded-card border p-5 ${job.paymentStatus === "paid" ? "border-signal/30 bg-signal/[0.07]" : "border-warn/30 bg-warn/[0.07]"}`}>
@@ -1561,6 +1622,18 @@ export default function JobStatusPage(props: { params: Promise<{ caseId: string 
             );
           })()}
 
+          </>)}
+
+          {tab === "analysis" && (
+            <AnalysisPanel
+              caseId={job.caseId}
+              devcCsv={finalCsv.devc ?? job.devcCsv}
+              hrrCsv={finalCsv.hrr ?? job.hrrCsv}
+              setpoints={job.devcSetpoints}
+              fullData={!!(finalCsv.devc || finalCsv.hrr)}
+              running={isRunning && !fatalErr}
+            />
+          )}
       </div>
     </Shell>
   );

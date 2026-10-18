@@ -1,26 +1,61 @@
 export interface CloudInitParams {
   caseId: string;
-  filePath: string;
   fileName: string;
   /** Liczba procesów MPI z planu — może być MNIEJSZA niż liczba siatek.
    *  FDS rozdziela wtedy siatki między procesy sam (o ile plik nie ustawia
    *  MPI_PROCESS), co pozwala policzyć duży model na mniejszej maszynie. */
   ncores: number;
   ompThreads: number;    // = OMP_NUM_THREADS (wątki OpenMP na proces)
-  supabaseUrl: string;
-  supabaseServiceKey: string;
   appUrl: string;
-  webhookSecret: string;
-  hetznerToken: string;
+  /**
+   * Token TEGO zlecenia (lib/jobToken.ts) — jedyny sekret, jaki maszyna zna.
+   * Uprawnia wyłącznie do raportowania o tym zleceniu i proszenia o podpisane
+   * adresy zapisu pod jego katalogiem w magazynie. Maszyna NIE dostaje klucza
+   * service_role, tokenu Hetznera ani kluczy magazynu.
+   */
+  jobToken: string;
+  /** Podpisany, krótkotrwały adres pliku wejściowego (Supabase Storage). */
+  inputUrl: string;
   fdsDownloadUrl: string;
-  storageAccessKey: string;
-  storageSecretKey: string;
-  storageBucket: string;
-  storageEndpoint: string;
-  storageRegion: string;
 }
 
+import { gzipSync } from "zlib";
+import { SMV_PREVIEW_PY } from "./smvPreview";
+
+/**
+ * Limit Hetznera na `user_data` (znaki). Przekroczenie = 422 przy tworzeniu
+ * maszyny, czyli KAŻDE uruchomienie kończy się błędem — pilnuje tego test.
+ */
+export const USER_DATA_LIMIT = 32768;
+
+/**
+ * Odchudza skrypt przed wysłaniem jako user_data:
+ *  - heredoki z Pythonem (`cat > PLIK <<'PYEOF' … PYEOF`) jadą jako gzip+base64
+ *    rozpakowywany na maszynie — sam tekst skryptów to ponad połowa objętości,
+ *  - linie zawierające wyłącznie komentarz basha wypadają (zostają w źródle TS,
+ *    maszynie do niczego nie służą, a polskie znaki liczą się podwójnie).
+ * Shebang zostaje. Treść heredoków jest już spakowana, więc ich `#` nie ruszamy.
+ */
+export function compactUserData(script: string): string {
+  const packed = script.replace(
+    /^cat > ("[^"\n]+") <<'PYEOF'\n([\s\S]*?)\nPYEOF$/gm,
+    (_m, path: string, body: string) =>
+      `echo '${gzipSync(Buffer.from(body + "\n", "utf8"), { level: 9 }).toString("base64")}' | base64 -d | gunzip > ${path}`
+  );
+  return packed
+    .split("\n")
+    .filter((line, i) => i === 0 || !/^\s*#/.test(line))
+    .join("\n");
+}
+
+/** Co ile sekund zegara maszyna renderuje podgląd Smokeview w trakcie biegu. */
+export const SMV_LIVE_INTERVAL_S = 300;
+
 export function generateCloudInit(p: CloudInitParams): string {
+  return compactUserData(cloudInitScript(p));
+}
+
+function cloudInitScript(p: CloudInitParams): string {
   const useSnapshot = !!process.env.HETZNER_SNAPSHOT_ID;
   const fdsBin = "/opt/fds6/bin/fds";
 
@@ -29,30 +64,51 @@ set -euo pipefail
 exec > >(tee /var/log/fds-runner.log) 2>&1
 
 CASE_ID="${p.caseId}"
-FILE_PATH="${p.filePath}"
 FILE_NAME="${p.fileName}"
 NCORES="${p.ncores}"
 OMP_THREADS="${p.ompThreads}"
-SUPABASE_URL="${p.supabaseUrl}"
-SUPABASE_KEY="${p.supabaseServiceKey}"
 APP_URL="${p.appUrl}"
-WEBHOOK_SECRET="${p.webhookSecret}"
-HETZNER_TOKEN="${p.hetznerToken}"
-STORAGE_ACCESS_KEY="${p.storageAccessKey}"
-STORAGE_SECRET_KEY="${p.storageSecretKey}"
-STORAGE_BUCKET="${p.storageBucket}"
-STORAGE_ENDPOINT="${p.storageEndpoint}"
-STORAGE_REGION="${p.storageRegion}"
+JOB_TOKEN="${p.jobToken}"
+INPUT_URL="${p.inputUrl}"
 WORKDIR="/opt/fds_job"
 STOP_HANDLED=0
+UPLOAD_ERR=/tmp/upload_err.log
 
 log() { echo "[$(date '+%H:%M:%S')] $1"; }
+
+# ── Maszyna nie przyjmuje połączeń ───────────────────────────────────────────
+# Firewall Hetznera odcina cały ruch przychodzący (lib/hetzner/client.ts).
+# Tu druga warstwa: bez logowania hasłem i bez hasła roota, gdyby ktoś kiedyś
+# otworzył port w panelu do diagnostyki — wtedy wchodzi się wyłącznie kluczem.
+passwd -l root 2>/dev/null || true
+if [ -f /etc/ssh/sshd_config ]; then
+  sed -i -e 's/^#\\?PasswordAuthentication .*/PasswordAuthentication no/' \\
+         -e 's/^#\\?PermitRootLogin .*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
+fi
 
 notify() {
   curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
-    -H "x-webhook-secret: $WEBHOOK_SECRET" \\
+    -H "x-job-token: $JOB_TOKEN" \\
     -d "$1" -o /dev/null || true
+}
+
+# Zgłoszenie KOŃCOWE — po nim serwis kasuje maszynę. Gdy serwis chwilowo nie
+# odpowiada, ponawiamy przez kilkanaście minut; jeśli i to zawiedzie, zlecenie
+# zamknie nadzorca (brak postępu), a z nim zwolni maszynę. Maszyna nie ma już
+# tokenu Hetznera, więc nie kasuje się sama.
+notify_final() {
+  local i
+  for i in $(seq 1 15); do
+    if curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
+      -H "Content-Type: application/json" \\
+      -H "x-job-token: $JOB_TOKEN" \\
+      -d "$1" -o /dev/null; then return 0; fi
+    sleep 60
+  done
+  log "nie udalo sie zglosic zakonczenia — maszyne zwolni nadzorca"
+  return 0
 }
 
 on_exit() {
@@ -60,12 +116,7 @@ on_exit() {
   if [ $code -ne 0 ]; then
     log "=== Script exited with error: $code ==="
     send_log 2>/dev/null || true
-    notify "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
-    local inst
-    inst=$(curl -sf http://169.254.169.254/hetzner/v1/metadata/instance-id 2>/dev/null || echo "")
-    [ -n "$inst" ] && curl -sf -X DELETE \\
-      "https://api.hetzner.cloud/v1/servers/$inst" \\
-      -H "Authorization: Bearer $HETZNER_TOKEN" > /dev/null 2>&1 || true
+    notify_final "{\\\"status\\\":\\\"failed\\\",\\\"exitCode\\\":$code}" || true
   fi
 }
 trap on_exit EXIT
@@ -133,7 +184,7 @@ send_log() {
   # Body przez stdin (printf to builtin) — omija limit ARG_MAX na argument curl
   if resp=$(printf '{"status":"running","logChunk":"%s"}' "$chunk" | curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
-    -H "x-webhook-secret: $WEBHOOK_SECRET" \\
+    -H "x-job-token: $JOB_TOKEN" \\
     --data-binary @- 2>/dev/null); then
     commit_log_offset
   else
@@ -188,7 +239,7 @@ send_data() {
   if resp=$(printf '{"status":"running","logChunk":"%s","devcCsv":"%s","hrrCsv":"%s","sliceJson":"%s"}' "$chunk" "$devc" "$hrr" "$slice" | \\
     curl -sfL -X POST "$APP_URL/api/symulacje/$CASE_ID/complete" \\
     -H "Content-Type: application/json" \\
-    -H "x-webhook-secret: $WEBHOOK_SECRET" \\
+    -H "x-job-token: $JOB_TOKEN" \\
     --data-binary @- 2>/dev/null); then
     [ -n "$chunk" ] && commit_log_offset
   else
@@ -237,11 +288,9 @@ log "FDS installed: $FDS_BIN"
 
 # ── Pobierz plik FDS ──────────────────────────────────────────────────────────
 mkdir -p "$WORKDIR" && cd "$WORKDIR"
-log "Downloading: $FILE_PATH"
-curl -sLf \\
-  -H "Authorization: Bearer $SUPABASE_KEY" \\
-  "$SUPABASE_URL/storage/v1/object/fds-files/$FILE_PATH" \\
-  -o "$FILE_NAME"
+log "Downloading input: $FILE_NAME"
+# Adres jest podpisany i krótkotrwały — maszyna nie zna klucza do magazynu plików.
+curl -sLf "$INPUT_URL" -o "$FILE_NAME"
 log "Input ready: $(wc -c < "$FILE_NAME") bytes"
 
 # ── Skrypt podglądu przekroju (.sf → JSON) — „na żywo jak Smokeview" ──────────
@@ -565,31 +614,83 @@ def main():
 main()
 PYEOF
 
-# Zapewnij python3 do podglądu przekroju (także na obrazie snapshot) — best-effort
-command -v python3 >/dev/null 2>&1 || { log "Instaluję python3 (podgląd przekroju)..."; apt-get update -qq 2>/dev/null && apt-get install -y python3 2>/dev/null || true; }
+# python3 jest potrzebny do podglądu przekroju I do wysyłki wyników (poniżej),
+# więc jego brak to błąd zlecenia, nie degradacja.
+command -v python3 >/dev/null 2>&1 || { log "Instaluję python3..."; apt-get update -qq 2>/dev/null && apt-get install -y python3 2>/dev/null || true; }
+command -v python3 >/dev/null 2>&1 || { log "ERROR: brak python3 — bez niego nie wysle wynikow"; exit 1; }
 
 # ── Magazyn wyników (Object Storage) ──────────────────────────────────────────
 # Konfigurowany PRZED startem FDS, bo migawki wyników lecą już w trakcie obliczeń.
-RESULTS_PREFIX="results/$CASE_ID"
-export AWS_ACCESS_KEY_ID="$STORAGE_ACCESS_KEY"
-export AWS_SECRET_ACCESS_KEY="$STORAGE_SECRET_KEY"
+#
+# Maszyna NIE MA kluczy magazynu. Dla każdej partii plików prosi serwis o
+# podpisane adresy PUT (ważne kilkanaście minut, wyłącznie pod katalogiem tego
+# zlecenia) i wysyła bajty curl-em wprost do magazynu. Python robi tylko JSON
+# i jedno żądanie HTTP; wielogigabajtowy .s3d nie przechodzi przez interpreter.
+cat > "$WORKDIR/upload_urls.py" <<'PYEOF'
+import sys, json, urllib.request
+app, case, token = sys.argv[1], sys.argv[2], sys.argv[3]
+files = [l.strip() for l in sys.stdin if l.strip()]
+urls = {}
+for i in range(0, len(files), 500):
+    chunk = files[i:i + 500]
+    req = urllib.request.Request(
+        app + "/api/symulacje/" + case + "/upload-urls",
+        data=json.dumps({"files": chunk}).encode(),
+        headers={"Content-Type": "application/json", "x-job-token": token},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            urls.update(json.load(r).get("urls", {}))
+    except Exception as e:
+        print("upload-urls: " + str(e), file=sys.stderr)
+for f in files:
+    u = urls.get(f)
+    if u:
+        print(f + "\t" + u)
+    else:
+        print("brak adresu: " + f, file=sys.stderr)
+PYEOF
 
-if ! command -v aws &>/dev/null; then
-  log "Instaluję awscli (upload wyników)..."
-  apt-get update -qq 2>/dev/null || true
-  apt-get install -y awscli 2>/dev/null || true
-fi
+# $@ = ścieżki względem WORKDIR. Wypisuje liczbę wysłanych plików; błędy idą do
+# UPLOAD_ERR (upload_diag pokazuje je w logu zlecenia).
+put_files() {
+  local n=0 rel url
+  [ "$#" -gt 0 ] || { echo 0; return 0; }
+  while IFS=$'\\t' read -r rel url; do
+    [ -n "$rel" ] && [ -n "$url" ] || continue
+    [ -f "$WORKDIR/$rel" ] || continue
+    if curl -sf -X PUT -T "$WORKDIR/$rel" "$url" -o /dev/null 2>>"$UPLOAD_ERR"; then
+      n=$((n + 1))
+    else
+      echo "upload nieudany: $rel" >> "$UPLOAD_ERR"
+    fi
+  done < <(printf '%s\\n' "$@" | python3 "$WORKDIR/upload_urls.py" "$APP_URL" "$CASE_ID" "$JOB_TOKEN" 2>>"$UPLOAD_ERR")
+  echo "$n"
+}
 
-upload_file() {
-  local f="$1"
-  [ -f "$f" ] || return 0
-  local bname
-  bname=$(basename "$f")
-  log "  → $bname"
-  aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$bname" \\
-    --endpoint-url "$STORAGE_ENDPOINT" \\
-    --region "$STORAGE_REGION" \\
-    --quiet 2>/dev/null || true
+upload_diag() {
+  [ -s "$UPLOAD_ERR" ] || return 0
+  log "upload: $(tail -c 300 "$UPLOAD_ERR" | tr '\\n' ' ')"
+  : > "$UPLOAD_ERR"
+}
+
+# Pliki wynikowe = wszystko z prefiksem CHID (.smv, .sf, .bf, .iso, .s3d, .bnd,
+# .end, .ge, .prt5, *_devc.csv…) plus log. Wcześniej lista rozszerzeń była
+# zamknięta i gubiła m.in. izopowierzchnie (.iso/.viso) oraz pliki .bnd/.end —
+# paczka nie otwierała się wtedy w Smokeview w całości. Pomijamy plik wejściowy
+# (klient go ma) i nasze pliki pomocnicze.
+result_files() {
+  local chid f
+  chid=$(ls -1 *.smv 2>/dev/null | head -1 | sed 's/\\.smv$//' || true)
+  for f in *; do
+    [ -f "$f" ] || continue
+    case "$f" in
+      *.ssf|*.ini|smv_preview.py|slice_frame.py|_snapshot.json|"$FILE_NAME") continue ;;
+    esac
+    if [ -n "$chid" ] && [ "\${f#"$chid"}" != "$f" ]; then echo "$f"; continue; fi
+    case "$f" in *.csv|*.out|fds_output.log) echo "$f" ;; esac
+  done
 }
 
 # Migawka wyników W TRAKCIE obliczeń — użytkownik pobiera częściowe wyniki BEZ
@@ -598,16 +699,11 @@ upload_file() {
 # nadpisze je kompletnymi wersjami. Best-effort: pliki są dopisywane przez FDS,
 # więc migawka bywa ucięta na ostatnim rekordzie — to akceptowalne dla podglądu.
 snapshot_results() {
-  command -v aws >/dev/null 2>&1 || return 0
-  local n=0
-  for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do
-    [ -f "$f" ] || continue
-    aws s3 cp "$f" "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/$(basename "$f")" \\
-      --endpoint-url "$STORAGE_ENDPOINT" \\
-      --region "$STORAGE_REGION" \\
-      --quiet 2>/dev/null || true
-    n=$((n + 1))
-  done
+  local n files
+  mapfile -t files < <(result_files)
+  [ "\${#files[@]}" -gt 0 ] || return 0
+  n=$(put_files "\${files[@]}")
+  upload_diag
   if [ "$n" -eq 0 ]; then
     return 0
   fi
@@ -621,12 +717,75 @@ snapshot_results() {
     ''|*[!0-9.eE+-]*) simt="-1" ;;
   esac
   printf '{"t":%s,"at":"%s"}' "$simt" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _snapshot.json
-  aws s3 cp _snapshot.json "s3://$STORAGE_BUCKET/$RESULTS_PREFIX/_snapshot.json" \\
-    --endpoint-url "$STORAGE_ENDPOINT" \\
-    --region "$STORAGE_REGION" \\
-    --quiet 2>/dev/null || true
+  put_files _snapshot.json >/dev/null
   log "migawka wynikow: wyslano $n plikow, t=$simt s (pobieranie w trakcie obliczen)"
   return 0
+}
+
+# ── Podgląd Smokeview (render bez ekranu) ─────────────────────────────────────
+# Prawdziwy Smokeview z pakietu FDS renderuje przez Xvfb + Mesa (programowy
+# OpenGL) przekroje i dym 3D z bieżącego stanu plików. Obrazy lądują w magazynie
+# pod _preview/ razem z manifestem; strona zlecenia je wyświetla. Wszystko
+# best-effort: brak programu, bibliotek czy błąd renderu NIE dotyka obliczeń.
+cat > "$WORKDIR/smv_preview.py" <<'PYEOF'
+${SMV_PREVIEW_PY}
+PYEOF
+
+PREVIEW_STATE=/tmp/smv-preview-bin
+SMV_PKGS="xvfb xauth libgl1 libgl1-mesa-dri libglu1-mesa libxmu6 libxi6"
+
+preview_setup() {
+  [ -s "$PREVIEW_STATE" ] && return 0
+  [ -f "$PREVIEW_STATE.failed" ] && return 1
+  local bin
+  bin=$(find /opt/fds6 -maxdepth 4 -type f -name 'smokeview*' -perm /111 2>/dev/null | grep -v '\\.sh$' | head -1 || true)
+  if [ -z "$bin" ]; then
+    log "smokeview: brak programu w instalacji FDS — podglad wylaczony"
+    touch "$PREVIEW_STATE.failed"; return 1
+  fi
+  if ! command -v xvfb-run >/dev/null 2>&1; then
+    log "smokeview: instaluje Xvfb i Mesa (render bez ekranu)..."
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $SMV_PKGS >/dev/null 2>&1 \\
+      || { apt-get update -qq >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $SMV_PKGS >/dev/null 2>&1; } \\
+      || true
+  fi
+  if ! command -v xvfb-run >/dev/null 2>&1; then
+    log "smokeview: brak xvfb-run — podglad wylaczony"
+    touch "$PREVIEW_STATE.failed"; return 1
+  fi
+  echo "$bin" > "$PREVIEW_STATE"
+  log "smokeview: gotowy ($bin)"
+}
+
+sim_time_now() {
+  grep -a "Simulation Time:" "$WORKDIR/fds_output.log" 2>/dev/null | tail -1 \\
+    | sed -e "s/.*Simulation Time:[ ]*//" -e "s/[ ]*s.*//" | tr -d "[:space:]" || true
+}
+
+# $1 = live (bieżąca chwila) | report (seria co stały krok czasu — ryciny do raportu)
+render_preview() {
+  local kind="$1" t chid limit n=0 rels
+  preview_setup || return 0
+  t=$(sim_time_now)
+  case "$t" in ''|*[!0-9.eE+-]*) return 0 ;; esac
+  if ! chid=$(cd "$WORKDIR" && python3 smv_preview.py plan "$WORKDIR" "$kind" "$t" 2>/tmp/smv_plan.err); then
+    [ "$kind" = "report" ] && log "smokeview: brak ujec do renderowania ($(head -c 160 /tmp/smv_plan.err | tr '\\n' ' '))"
+    return 0
+  fi
+  limit=240; [ "$kind" = "report" ] && limit=900
+  ( cd "$WORKDIR" && LP_NUM_THREADS=2 timeout "$limit" nice -n 19 \\
+      xvfb-run -a -s "-screen 0 1280x720x24" "$(cat "$PREVIEW_STATE")" -runscript "$chid" > /tmp/smv_run.log 2>&1 ) \\
+    || log "smokeview: render z bledem ($(tail -c 200 /tmp/smv_run.log | tr '\\n' ' '))"
+  mapfile -t rels < <(cd "$WORKDIR" && python3 smv_preview.py collect "$WORKDIR" 2>/tmp/smv_collect.err | grep -v '^$')
+  [ "\${#rels[@]}" -gt 0 ] && n=$(put_files "\${rels[@]}")
+  upload_diag
+  if [ "$n" -gt 0 ]; then
+    # Manifest na końcu — jego nowa wersja oznacza, że obrazy już są w magazynie.
+    put_files _preview/manifest.json >/dev/null
+    log "smokeview: $kind t=$t s — wyslano $n ujec"
+  else
+    log "smokeview: $kind t=$t s — brak obrazow ($(head -c 200 /tmp/smv_collect.err | tr '\\n' ' '))"
+  fi
 }
 
 # ── Uruchom FDS ───────────────────────────────────────────────────────────────
@@ -659,6 +818,17 @@ LOG_PID=$!
 ) &
 SNAP_PID=$!
 
+# Podgląd Smokeview co ${SMV_LIVE_INTERVAL_S} s — pierwszy po 90 s, gdy FDS zapisze .smv
+# i pierwsze klatki. nice 19 + 2 wątki Mesa: solver traci na tym ułamek procenta.
+(
+  sleep 90
+  while true; do
+    render_preview live || true
+    sleep ${SMV_LIVE_INTERVAL_S}
+  done
+) &
+PREVIEW_PID=$!
+
 export OMP_NUM_THREADS="$OMP_THREADS"
 set +eo pipefail
 mpiexec -n "\${NCORES}" "$FDS_BIN" "$FILE_NAME" 2>&1 | tee fds_output.log
@@ -675,9 +845,16 @@ fi
 
 kill $LOG_PID 2>/dev/null || true
 kill $SNAP_PID 2>/dev/null || true
+kill $PREVIEW_PID 2>/dev/null || true
+pkill -f xvfb-run 2>/dev/null || true
+pkill -x smokeview 2>/dev/null || true
 log "FDS finished (exit: $FDS_EXIT)"
 send_log
 send_data
+
+# Ryciny do raportu: seria ujęć co stały krok czasu symulacji (≤ ~25 klatek
+# na ujęcie). Także po błędzie — policzony fragment też bywa potrzebny.
+render_preview report || true
 
 # ── Upload wyników do Hetzner Object Storage ──────────────────────────────────
 # Magazyn, RESULTS_PREFIX i upload_file skonfigurowane wyżej (przed startem FDS),
@@ -685,21 +862,23 @@ send_data
 # nadpisuje je kompletnymi plikami.
 log "Uploading results to Hetzner Object Storage..."
 
-for f in *.csv *.smv *.s3d *.q *.sf *.bf *.prt5 *.out fds_output.log; do
-  upload_file "$f"
-done
+mapfile -t FINAL_FILES < <(result_files)
+FINAL_SENT=0
+[ "\${#FINAL_FILES[@]}" -gt 0 ] && FINAL_SENT=$(put_files "\${FINAL_FILES[@]}")
+upload_diag
+log "  → wyslano \${FINAL_SENT} z \${#FINAL_FILES[@]} plikow"
+# Niekompletny upload to awaria po naszej stronie — klient nie dostanie wyników,
+# za które miałby zapłacić. Zlecenie idzie w „failed” zamiast udawać „done”.
+if [ "$FDS_EXIT" -eq 0 ] && [ "\${FINAL_SENT}" -lt "\${#FINAL_FILES[@]}" ]; then
+  log "ERROR: nie wszystkie wyniki trafily do magazynu — oznaczam jako failed"
+  FDS_EXIT=75
+fi
 
-# ── Powiadomienie ─────────────────────────────────────────────────────────────
+# ── Powiadomienie końcowe — po nim serwis kasuje maszynę ─────────────────────
 STATUS="done"
 [ "$FDS_EXIT" -ne 0 ] && STATUS="failed"
 log "=== Job $STATUS ==="
 send_log
-notify "{\\\"status\\\":\\\"$STATUS\\\",\\\"exitCode\\\":$FDS_EXIT}"
-
-# ── Self-delete ───────────────────────────────────────────────────────────────
-INSTANCE_ID=$(curl -sf http://169.254.169.254/hetzner/v1/metadata/instance-id || echo "")
-[ -n "$INSTANCE_ID" ] && curl -sf -X DELETE \\
-  "https://api.hetzner.cloud/v1/servers/$INSTANCE_ID" \\
-  -H "Authorization: Bearer $HETZNER_TOKEN" > /dev/null || true
+notify_final "{\\\"status\\\":\\\"$STATUS\\\",\\\"exitCode\\\":$FDS_EXIT}"
 `;
 }

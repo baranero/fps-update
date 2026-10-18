@@ -1,19 +1,8 @@
 {
-  "language": {
-    "label": "Język",
-    "pl": "Polski",
-    "en": "English"
-  },
   "tools": {
     "title": "Narzędzia",
-    "signIn": "Zaloguj się",
-    "signUp": "Zarejestruj się",
-    "signOut": "Wyloguj",
-    "profile": "Profil",
     "sections": {
-      "calculators": "Kalkulatory",
-      "account": "Konto",
-      "admin": "Admin"
+      "calculators": "Kalkulatory"
     },
     "calc": {
       "cnbop": "CNBOP W-0003:2016",
@@ -24,16 +13,8 @@
       "tools": "Narzędzia",
       "cnbop": "CNBOP",
       "pn": "Klatki PN-B",
-      "quick": "Szybki Aᴄz",
-      "reports": "Raporty",
-      "billing": "Rozliczenia",
-      "stats": "Statystyki",
-      "admin": "Admin"
+      "quick": "Szybki Aᴄz"
     },
-    "adminPanel": "Panel admina",
-    "reportsHistory": "Historia raportów",
-    "billing": "Rozliczenia",
-    "stats": "Statystyki",
     "cfdCloud": "CFD Cloud"
   },
   "cfdNav": {
@@ -43,8 +24,6 @@
     "history": "Historia",
     "billing": "Rozliczenia",
     "stats": "Statystyki",
-    "toTools": "Narzędzia",
-    "profile": "Profil",
     "signOut": "Wyloguj",
     "admin": "Admin"
   },
@@ -461,8 +440,6 @@
     "homeKicker": "Blog",
     "authorName": "Jakub Baran",
     "authorRole": "Inżynier Bezpieczeństwa Pożarowego",
-    "publishedLabel": "Data publikacji",
-    "readMore": "Czytaj więcej",
     "crumbBack": "Powrót do bloga",
     "tagsLabel": "Popularne tagi",
     "posts": {
@@ -798,16 +775,13 @@
     "cfdCloud": "CFD Cloud",
     "forDesigner": "Dla projektanta",
     "calculators": "Kalkulatory",
-    "reports": "Raporty",
     "blog": "Blog",
     "contact": "Kontakt",
     "account": {
       "menu": "Menu konta",
-      "profile": "Twój profil",
       "signOut": "Wyloguj się",
       "signIn": "Zaloguj się",
       "signUp": "Zarejestruj się",
-      "toolsPanel": "Panel narzędzi",
       "myProfile": "Profil"
     },
     "loading": "Ładowanie strony…"
@@ -899,10 +873,7 @@
       "title": "FDSRun — symulacje pożarowe FDS w chmurze",
       "description": "Wgraj plik wejściowy FDS, poznaj cenę w kilka sekund i uruchom obliczenia na serwerach w chmurze. Wycena bez zakładania konta, płatność za rzeczywiste zużycie."
     },
-    "panelCaption": "Poglądowe zlecenie · płatność po zakończeniu obliczeń",
     "finalCta": {
-      "title": "Policz i uruchom pierwszą symulację",
-      "lead": "Wgraj plik .fds — cenę poznasz w kilka sekund, bez zakładania konta. Płacisz za rzeczywisty czas obliczeń.",
       "line1": "Poznaj cenę.",
       "line2": "Uruchom symulację.",
       "contact": "Napisz do nas"
@@ -1061,18 +1032,9 @@
     },
     "attention": {
       "title": "Wymaga uwagi",
-      "pending": "{n, plural, one {# oczekujące} few {# oczekujące} other {# oczekujących}}",
-      "failed": "{n, plural, one {# z błędem} other {# z błędem}}",
-      "unpaid": "{amount} do zapłaty",
       "accessRequests": "{n, plural, one {# prośba o dostęp} few {# prośby o dostęp} other {# próśb o dostęp}}"
     },
     "kpi": {
-      "all": "Wszystkie",
-      "pending": "Oczekujące",
-      "running": "W toku",
-      "done": "Zakończone",
-      "failed": "Błędy",
-      "revenue": "Przychód",
       "unpaid": "Do zapłaty",
       "users": "Użytkownicy"
     },
@@ -1130,7 +1092,6 @@
       "company": "Firma",
       "nip": "NIP",
       "phone": "Telefon",
-      "address": "Adres",
       "updated": "Zaktualizowano",
       "buyerType": "Typ nabywcy",
       "addressBlock": "Blok adresowy faktury",
@@ -1312,6 +1273,46 @@
       "pendingOne": "1 konto czeka na decyzję o dostępie",
       "pendingMany": "{n} kont czeka na decyzję o dostępie",
       "showPending": "Pokaż"
+    },
+    "dash": {
+      "allClearTitle": "Nic nie czeka",
+      "allClear": "Brak próśb o dostęp, zawieszonych obliczeń, starych należności i problemów z automatyką.",
+      "stalled": "{n, plural, one {# zlecenie} few {# zlecenia} other {# zleceń}} bez postępu od {h} h",
+      "stuckQueue": "{n, plural, one {# zlecenie} few {# zlecenia} other {# zleceń}} w kolejce dłużej niż {min} min",
+      "unpaidOld": "{amount} do zapłaty, najstarsze od {days} dni",
+      "cronNever": "Nadzorca (cron) nie przeszedł ani razu — maszyny nie są zwalniane automatycznie",
+      "cronStale": "Nadzorca (cron) nie przeszedł od {min} min",
+      "kpiRunning": "W toku (maszyny)",
+      "kpiQueue": "W kolejce",
+      "last30": "Ostatnie 30 dni",
+      "kpiRevenue30": "Przychód",
+      "kpiDone30": "Zakończone",
+      "kpiSuccess": "Skuteczność usługi",
+      "kpiFailedSplit": "Awarie: nasze / plik klienta",
+      "successHint": "Skuteczność = zakończone / (zakończone + awarie po naszej stronie). Błędy w pliku klienta i anulowania jej nie obniżają.",
+      "liveTitle": "Teraz na maszynach",
+      "liveEmpty": "Nic się teraz nie liczy.",
+      "colProgress": "Postęp",
+      "colRuntime": "Czas pracy / wycena",
+      "colQuiet": "Bez postępu",
+      "justNow": "przed chwilą",
+      "liveHint": "„Bez postępu” liczone od ostatniego odczytu czasu symulacji. Nadzorca przerywa bieg po {stall} h ciszy.",
+      "cronTitle": "Ostatni przebieg nadzorcy",
+      "cronUnknown": "brak dziennika zdarzeń",
+      "cronNeverShort": "nigdy",
+      "cronHint": "Cron co 10 min: nadzór postępu, zwalnianie maszyn, retencja wyników.",
+      "errorsTitle": "Ostatnie błędy w dzienniku",
+      "errorsEmpty": "Brak błędów."
+    },
+    "reasons": {
+      "fds_error": "Błąd w pliku klienta",
+      "fds_exit": "Niezerowy kod wyjścia FDS",
+      "stalled": "Brak postępu",
+      "dispatch_timeout": "Maszyna nie ruszyła",
+      "vm_missing": "Maszyna zniknęła",
+      "vm_boot_failed": "Nie utworzono maszyny",
+      "cancelled_by_user": "Anulowane przez klienta",
+      "unknown": "Nieustalony"
     }
   },
   "charts": {
@@ -1372,7 +1373,6 @@
     "cells": "{n} komórek",
     "completedOn": "ukończono {date}",
     "paid": "Opłacone",
-    "unpaid": "Do zapłaty",
     "openJob": "Otwórz zlecenie",
     "sum": "Suma ({filter})",
     "csv": {
@@ -1523,7 +1523,6 @@
     "ctaLead": "Wgraj .fds — wycena policzy czas i cenę w kilka sekund, bez konta i bez zobowiązań."
   },
   "features": {
-    "eyebrow": "Zakres usług",
     "new": "Nowa",
     "sectionTitle": "Zakres usług ppoż.",
     "sectionLead": "Zapewniam kompleksowe wsparcie z zakresu inżynierii bezpieczeństwa pożarowego – od przygotowania wymaganej przepisami dokumentacji, przez zaawansowane analizy inżynierskie, aż po audyty obiektów.",
@@ -1652,7 +1651,6 @@
     }
   },
   "symulacje": {
-    "badge": "CFD Cloud",
     "title": "Symulacje FDS w chmurze",
     "lead": "Wgraj plik wejściowy FDS — pokażemy szacunkową cenę i uruchomimy obliczenia. Płacisz wyłącznie za rzeczywisty czas obliczeń i przechowywanie wyników, bez abonamentu.",
     "historyLink": "Historia symulacji",
@@ -1829,8 +1827,7 @@
         "lead": "Skontaktuj się z nami, a wyjaśnimy sytuację i ustalimy dalsze kroki."
       },
       "emailCta": "Napisz do nas",
-      "phoneCta": "Zadzwoń",
-      "back": "Wróć"
+      "phoneCta": "Zadzwoń"
     }
   },
   "symHistory": {
@@ -2157,9 +2154,7 @@
       "thType": "Typ",
       "thCreated": "Utworzono",
       "thSize": "Rozmiar",
-      "totalSizeHint": "Łączny rozmiar wszystkich plików wynikowych (tyle waży cała paczka ZIP)",
       "download": "Pobierz",
-      "zipError": "Nie udało się pobrać spakowanych plików. Spróbuj pobrać je pojedynczo przyciskiem „Pobierz” przy pliku.",
       "downloadingSeq": "Pobieram plik {i} z {n}…",
       "downloadedSeq": "Zlecono pobranie {n, plural, one {# pliku} few {# plików} many {# plików} other {# pliku}} — sprawdź folder pobierania przeglądarki.",
       "savingToFolder": "Zapisuję plik {i} z {n} do folderu „{name}”…",
@@ -2375,6 +2370,90 @@
       "resultsHint": "Pliki dostępne przez 60 dni od zakończenia obliczeń. Zaznaczenie i pobieranie działają na całym zbiorze, niezależnie od wyświetlanej strony.",
       "resultsHintFailed": "Pliki policzone do momentu przerwania obliczeń — dostępne przez 60 dni. Zaznaczenie i pobieranie działają na całym zbiorze, niezależnie od wyświetlanej strony.",
       "coresSplitHint": "{procs} równoległych procesów, po {meshes} siatki"
+    },
+    "tabs": {
+      "label": "Sekcje zlecenia",
+      "overview": "Przegląd",
+      "preview": "Podgląd",
+      "analysis": "Analiza do raportu",
+      "results": "Wyniki",
+      "log": "Log",
+      "details": "Szczegóły"
+    },
+    "smv": {
+      "title": "Smokeview",
+      "lead": "Ujęcia renderowane przez Smokeview na maszynie liczącej, z bieżących plików wyników.",
+      "modeLive": "Na żywo",
+      "modeReport": "Ryciny do raportu",
+      "smoke3d": "Dym 3D (SOOT DENSITY)",
+      "renderedAt": "wyrenderowano {time}",
+      "play": "Odtwórz",
+      "pause": "Pauza",
+      "latest": "Najnowsze",
+      "timeline": "Oś czasu ujęć",
+      "downloadFrame": "Pobierz ujęcie",
+      "downloadReport": "Pobierz ryciny ({n}) jako ZIP",
+      "zipping": "Pakuję ryciny {i}/{n}…",
+      "zipped": "Zapisano {n} rycin.",
+      "zipFailed": "Nie udało się spakować rycin — spróbuj ponownie.",
+      "emptyRunning": "Pierwsze ujęcie pojawi się kilka minut po starcie obliczeń — Smokeview renderuje je co ok. 5 minut, gdy FDS zapisze pierwsze klatki przekrojów i dymu 3D.",
+      "emptyDone": "Dla tego zlecenia nie ma ujęć Smokeview. Powstają dla modeli z przekrojami SLCF lub dymem 3D, liczonych po wdrożeniu podglądu.",
+      "noteLive": "Podgląd jest odświeżany co ok. 5 minut pracy maszyny. Barwy i zakresy skali są domyślne dla Smokeview.",
+      "noteReport": "Seria ujęć co {step} s czasu symulacji, wykonana po zakończeniu obliczeń — gotowa do wstawienia do raportu."
+    },
+    "analysis": {
+      "empty": "Brak danych z urządzeń pomiarowych (DEVC) i mocy pożaru dla tego zlecenia.",
+      "emptyRunning": "Analiza pojawi się, gdy FDS zapisze pierwsze wyniki urządzeń pomiarowych.",
+      "sampledNote": "Obliczenia trwają — analiza korzysta z podglądu na żywo (co któraś próbka), więc czasy są przybliżone. Po zakończeniu przeliczy się z pełnego pliku _devc.csv.",
+      "pActivation": "Uruchomienie systemu",
+      "pThreshold": "Próg transmitancji",
+      "pDelta": "Obciążenie modelu",
+      "pSigma": "Odchylenie modelu",
+      "paramsHint": "Domyślnie: uruchomienie w 360 s i próg 95 %/m (wytyczne CNBOP-PIB W-0003:2016, p. 7.3.3 i 7.3.6); δ = 1,24 i σ̃ = 0,26 dla przesłonięcia dymem wg FDS Validation Guide (tab. 16.1). Zmiany zapamiętuje ta przeglądarka.",
+      "paramsLine": "uruchomienie {act} s, próg {thr} %/m",
+      "pointTitle": "Punkt pomiarowy",
+      "pointReach": "Transmitancja osiągnęła próg w",
+      "pointTodd": "Czas oddymiania od {act} s",
+      "pointTracks": "Tory w punkcie:",
+      "pointHint": "Miarodajny jest późniejszy z wybranych torów. Domyślnie wybrane są tory zadymione już przed uruchomieniem systemu.",
+      "pointNeverBelow": "Część wybranych torów w ogóle nie spadła poniżej progu — nie wpływają na wynik.",
+      "notReached": "nie osiągnięto",
+      "notReachedLong": "nie osiągnięto do {end}",
+      "neverBelow": "nie spadła poniżej progu",
+      "toEnd": "koniec",
+      "none": "brak",
+      "lastReal": "Stan na koniec zapisu (model → wartość rzeczywista wg niepewności modelu): {list}.",
+      "noTransmission": "W wynikach nie ma urządzeń mierzących transmitancję lub przesłonięcie (TRANSMISSION, PATH OBSCURATION, jednostka %/m).",
+      "colTrack": "Tor",
+      "colMin": "Minimum",
+      "colBelow": "Poniżej progu",
+      "colReach": "Osiągnięcie progu po uruchomieniu",
+      "colStable": "Trwale od",
+      "uncTitle": "Czas oddymiania z uwzględnieniem niepewności modelu",
+      "colLevel": "Poziom",
+      "colModelThr": "Próg w wyniku modelu",
+      "colConfidence": "Pewność",
+      "colTodd": "t_odd",
+      "unc": {
+        "expected": "Wartość oczekiwana",
+        "criterion": "Kryterium wytycznych",
+        "conf2s": "Ufność 2σ"
+      },
+      "uncHint": "Wartość rzeczywista ma rozkład normalny o średniej M/δ i odchyleniu σ̃·M/δ, gdzie M to przesłonięcie z modelu (100 − T). Statystyki walidacyjne dla przesłonięcia dymem pochodzą z zakresu ok. 20–100 %/m — w pobliżu progu 5 %/m to ekstrapolacja.",
+      "flowTitle": "Strumienie objętościowe po uruchomieniu ({act} s)",
+      "colDevice": "Urządzenie",
+      "colMean": "Średnia",
+      "colVolume": "Objętość",
+      "colReal": "Wartość rzeczywista",
+      "flowHint": "Znak jak w modelu. Wartość rzeczywista wg statystyk prędkości przepływu: δ = {delta}, σ̃ = {sigma}%.",
+      "hrrTitle": "Moc źródła",
+      "hrrPlateau": "Faza ustalona (średnia)",
+      "hrrMax": "Maksimum",
+      "hrrEnergy": "Energia wydzielona",
+      "copy": "Kopiuj tabele do Worda",
+      "copied": "Skopiowano",
+      "csv": "Pobierz CSV",
+      "noVerdict": "Liczby bez oceny — kryterium i wniosek formułuje projektant."
     }
   },
   "cloudFooter": {

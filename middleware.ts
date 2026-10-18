@@ -37,8 +37,6 @@ export async function middleware(request: NextRequest) {
   // 2a. Stare adresy konta pod /narzedzia/* — 301 na ich dzisiejsze miejsce
   //     w chmurze. Mapa mieszka w jednym pliku (lib/cloud.ts → legacyTarget),
   //     a nie w sześciu komponentach klienckich robiących `router.replace`.
-  //     Strony pod tymi adresami zostają jako zapas (lib/legacyRedirect.ts),
-  //     ale w normalnym biegu żądanie kończy się tutaj.
   const legacy = legacyTarget(rest);
   if (legacy) {
     const url = request.nextUrl.clone();

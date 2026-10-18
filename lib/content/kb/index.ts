@@ -1,7 +1,7 @@
 import type { CourseLesson, KbPost } from "./types";
 import { post as srednicaDStar } from "./posts/srednica-d-star";
 
-export type { CourseLesson, KbBlock, KbContent, KbPost } from "./types";
+export type { KbBlock } from "./types";
 export { kbContent } from "./types";
 
 /** Baza artykułów — nowy tekst dopisujesz tutaj po zaimportowaniu modułu. */
@@ -21,12 +21,6 @@ export function kbPosts(locale: string): KbPost[] {
 
 export function getKbPost(slug: string): KbPost | undefined {
   return KB_POSTS.find((p) => p.slug === slug);
-}
-
-/** Unikalne tagi artykułów dostępnych w danym języku — filtr na liście. */
-export function kbTags(locale: string): string[] {
-  const tags = kbPosts(locale).flatMap((p) => (locale === "en" ? p.en?.tags ?? [] : p.pl.tags));
-  return Array.from(new Set(tags)).sort((a, b) => a.localeCompare(b, locale));
 }
 
 // Program kursu „FDS + PyroSim od zera". Lekcje bez `slug` są zapowiedziane, ale

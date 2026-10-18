@@ -13,5 +13,3 @@ export const routing = defineRouting({
   // nagłówku. Język zmienia się jawnie, przełącznikiem w belce (LocaleToggler).
   localeDetection: false,
 });
-
-export type Locale = (typeof routing.locales)[number];

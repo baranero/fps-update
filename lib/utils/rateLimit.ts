@@ -107,4 +107,14 @@ export const LIMITS = {
    * w życiu konta, a każda wysyła maila do właściciela.
    */
   accessRequest: { limit: 3, windowMs: 3_600_000 },
+  /**
+   * Złożenie zlecenia: każde uruchamia płatną maszynę i wysyła dwa maile.
+   * Dziesięć na godzinę z jednego konta to więcej, niż inżynier klika ręcznie,
+   * a wciąż zatrzymuje skrypt, który zakłada maszyny w pętli.
+   */
+  submit: { limit: 10, windowMs: 3_600_000 },
+  /** Tworzenie sesji płatności — każda to wywołanie Stripe. */
+  checkout: { limit: 10, windowMs: 600_000 },
+  /** Usunięcie konta: operacja jednorazowa, a kasuje pliki w magazynie. */
+  accountDelete: { limit: 3, windowMs: 3_600_000 },
 } as const;

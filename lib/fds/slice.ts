@@ -117,21 +117,3 @@ export function turboCss(t: number): string {
   const i = Math.max(0, Math.min(255, Math.round(t * 255)));
   return `rgb(${TURBO_LUT[i * 3]}, ${TURBO_LUT[i * 3 + 1]}, ${TURBO_LUT[i * 3 + 2]})`;
 }
-
-// Etykieta wielkości fizycznej po polsku (fallback: krótka nazwa / QUANTITY).
-export function quantityLabel(q: string, short: string): string {
-  const map: Record<string, string> = {
-    TEMPERATURE: "Temperatura",
-    VISIBILITY: "Widzialność",
-    "SOOT VISIBILITY": "Widzialność",
-    "SOOT DENSITY": "Stężenie dymu",
-    "SOOT MASS FRACTION": "Stężenie dymu",
-    "HRRPUV": "HRRPUV (gęstość mocy)",
-    VELOCITY: "Prędkość przepływu",
-    "U-VELOCITY": "Prędkość (u)",
-    "W-VELOCITY": "Prędkość (w)",
-    PRESSURE: "Ciśnienie",
-    "LAYER HEIGHT": "Wysokość warstwy dymu",
-  };
-  return map[q.toUpperCase()] ?? short ?? q;
-}

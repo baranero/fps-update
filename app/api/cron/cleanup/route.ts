@@ -6,7 +6,7 @@ import { deleteResults } from "@/lib/hetzner/storage";
 import { caseModelPaths } from "@/lib/fds/runFile";
 import { getServer, deleteServer } from "@/lib/hetzner/client";
 import { DISPATCH_TIMEOUT_H, STALL_HOURS, hasAdvanced, progressMark } from "@/lib/fds/watchdog";
-import { failJob, logEvent } from "@/lib/observability";
+import { CRON_HEARTBEAT, failJob, logEvent } from "@/lib/observability";
 
 const RETENTION_DAYS = 60;
 /** Ile trzymamy dziennik zdarzeń — dłużej i tak nie diagnozujemy. */
@@ -16,15 +16,34 @@ const EVENT_RETENTION_DAYS = 90;
 // zlecenia, żeby tłumaczyć przerwanie tą samą regułą, która je wywołała.
 const HUNG_DISPATCHED_H = DISPATCH_TIMEOUT_H;
 
+// Dwa sposoby wywołania, ten sam sekret:
+//  - Vercel Cron (vercel.json) → GET z nagłówkiem `Authorization: Bearer <CRON_SECRET>`,
+//  - zewnętrzny harmonogram / ręcznie → POST z nagłówkiem `x-cron-secret`.
+// Wcześniej działał wyłącznie drugi, więc harmonogram Vercela dostawał 401
+// i nadzorca, zwalnianie maszyn oraz retencja stały w miejscu bez śladu.
+function authorized(req: NextRequest): boolean {
+  const expected = process.env.CRON_SECRET;
+  if (!expected) return false;
+  const bearer = req.headers.get("authorization");
+  return req.headers.get("x-cron-secret") === expected || bearer === `Bearer ${expected}`;
+}
+
+export async function GET(req: NextRequest) {
+  return run(req);
+}
+
 export async function POST(req: NextRequest) {
-  const secret = req.headers.get("x-cron-secret");
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  return run(req);
+}
+
+async function run(req: NextRequest) {
+  if (!authorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const supabase = createAdminClient();
   const now = new Date();
-  const results = { cleaned: 0, hung_resolved: 0, errors: [] as string[] };
+  const results = { cleaned: 0, hung_resolved: 0, orphans_freed: 0, errors: [] as string[] };
 
   // ── 1. Cleanup plików starszych niż RETENTION_DAYS ──────────────────────────
   const cutoff = new Date(now.getTime() - RETENTION_DAYS * 24 * 3600 * 1000).toISOString();
@@ -202,6 +221,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ── 2c. Osierocone maszyny ──────────────────────────────────────────────────
+  //
+  // Maszyna nie kasuje się już sama — nie ma tokenu Hetznera (lib/jobToken.ts).
+  // Robi to serwis przy zgłoszeniu końcowym. Gdy to zgłoszenie nie doszło albo
+  // kasowanie się nie udało, maszyna liczyłaby puste godziny. Sprawdzamy więc
+  // zlecenia zamknięte w ostatniej dobie, które wciąż mają zapisaną maszynę.
+  const dayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+  const { data: closedRecently } = await supabase
+    .from("fds_submissions")
+    .select("case_id, server_id")
+    .in("status", ["done", "failed", "cancelled"])
+    .not("server_id", "is", null)
+    .gt("completed_at", dayAgo);
+
+  for (const row of closedRecently ?? []) {
+    if (!row.server_id) continue;
+    try {
+      const server = await getServer(row.server_id);
+      if (!server) continue;
+      await deleteServer(row.server_id);
+      results.orphans_freed++;
+      await logEvent({
+        caseId: row.case_id, level: "warn", stage: "cleanup",
+        message: "Zwolniono maszynę, która przeżyła zamknięcie zlecenia",
+        meta: { serverId: row.server_id, serverStatus: server.status },
+      });
+    } catch (err) {
+      results.errors.push(`orphan ${row.case_id}: ${String(err)}`);
+    }
+  }
+
   // ── 3. Retencja dziennika zdarzeń ───────────────────────────────────────────
   const eventCutoff = new Date(now.getTime() - EVENT_RETENTION_DAYS * 24 * 3600 * 1000).toISOString();
   const { error: eventsErr } = await supabase.from("job_events").delete().lt("at", eventCutoff);
@@ -210,13 +260,17 @@ export async function POST(req: NextRequest) {
   }
 
   // Ślad każdego przebiegu — bez niego nie wiadomo nawet, czy cron w ogóle
-  // chodzi. Przy pustym przebiegu nie zaśmiecamy dziennika.
-  const touched = results.cleaned + results.hung_resolved + results.errors.length;
-  if (touched > 0) {
+  // chodzi (pulpit admina pokazuje „ostatni przebieg nadzorcy”). Pusty przebieg
+  // zostawia jeden wpis, który nadpisuje poprzedni, więc dziennik nie puchnie.
+  const touched = results.cleaned + results.hung_resolved + results.orphans_freed + results.errors.length;
+  if (touched === 0) {
+    await supabase.from("job_events").delete().eq("stage", "cleanup").eq("message", CRON_HEARTBEAT);
+    await logEvent({ level: "info", stage: "cleanup", message: CRON_HEARTBEAT });
+  } else {
     await logEvent({
       level: results.errors.length ? "warn" : "info",
       stage: "cleanup",
-      message: `Przebieg crona: wyczyszczono ${results.cleaned}, zamknięto zawieszonych ${results.hung_resolved}, błędów ${results.errors.length}`,
+      message: `Przebieg crona: wyczyszczono ${results.cleaned}, zamknięto zawieszonych ${results.hung_resolved}, zwolniono osieroconych maszyn ${results.orphans_freed}, błędów ${results.errors.length}`,
       meta: results,
     });
   }

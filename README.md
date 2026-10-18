@@ -54,8 +54,9 @@ lib/
   cloud.ts            mapa ścieżek: chmura vs witryna usługowa + stare adresy
   env.ts              rejestr zmiennych środowiskowych (czyta go preflight)
   status.ts           statusy zleceń: tony, kolory, grupy
-  fds/                parser .fds, planer maszyn, cennik, kalibracja, czytanie logu
-  hetzner/            maszyny liczące i magazyn wyników
+  fds/                parser .fds, planer maszyn, cennik, kalibracja, czytanie logu,
+                      analiza do raportu (analysis.ts), manifest ujęć Smokeview (preview.ts)
+  hetzner/            maszyny liczące (cloud-init + render Smokeview) i magazyn wyników
   invoice.ts          dane nabywcy i VAT wg art. 106e ustawy o VAT / KSeF FA(2)
 components/Cloud/     system wizualny chmury (tokeny fr-*), wykresy, konsola
 supabase/             migracje SQL — uruchamiane ręcznie w SQL Editorze
@@ -80,3 +81,4 @@ messages/             tłumaczenia; EN scala się na PL (braki spadają na polsk
 Przebieg krok po kroku: **[`docs/wdrozenie.md`](docs/wdrozenie.md)**.
 Płatności: [`docs/platnosci-stripe.md`](docs/platnosci-stripe.md).
 Faktury: [`docs/fakturowanie-ing.md`](docs/fakturowanie-ing.md).
+Audyt i lista dalszych prac: [`docs/audyt-2026-10.md`](docs/audyt-2026-10.md).

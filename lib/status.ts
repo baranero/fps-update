@@ -48,7 +48,6 @@ export const ADMIN_STATUS_KEYS = ["pending", "running", "done", "failed", "cance
 
 // Grupy pomocnicze (filtry, statystyki).
 export const ACTIVE_STATUSES = new Set<string>(["pending", "dispatched", "running"]);
-export const isActive = (s: string) => ACTIVE_STATUSES.has(s);
 export const isFailed = (s: string) => s === "failed" || s === "error";
 
 // Kolory serii na wykresach (donut / rozkład statusów). Recharts przyjmuje

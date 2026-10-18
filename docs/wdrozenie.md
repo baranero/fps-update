@@ -70,8 +70,9 @@ Uruchom w Supabase SQL Editor, w tej kolejności — każdy plik jest idempotent
 | `migration_hrrpua.sql` | intensywność pożaru z pliku |
 | `migration_price_backup.sql`, `migration_clear_failed_price.sql` | porządki w cenach |
 | **`migration_sim_access.sql`** | **bramka uruchamiania obliczeń** |
+| **`migration_profiles.sql`** | **tabela profili + polityki RLS zapisane w repozytorium** (patrz [`bezpieczenstwo.md`](bezpieczenstwo.md)) |
 
-Ostatnia jest nowa i bez niej **nikt poza właścicielem nie uruchomi obliczeń** —
+Bez `migration_sim_access.sql` **nikt poza właścicielem nie uruchomi obliczeń** —
 kod schodzi wtedy na stan sprzed zmiany i wypisuje to w logu serwera.
 
 **Kolejność nie ma znaczenia.** `migration_sim_access.sql` rozszerza ograniczenie
@@ -148,7 +149,7 @@ zdarzenia — nie da się przypadkiem oznaczyć zlecenia jako opłaconego.
 ## Krok 5. Cron sprzątający
 
 Kasuje wyniki starsze niż 60 dni i zamyka zlecenia, które zawisły. Wymaga
-`CRON_SECRET` w nagłówku `x-cron-secret`:
+`CRON_SECRET`. Harmonogram jest w `vercel.json` (co 10 min, Vercel wysyła `GET` z `Authorization: Bearer <CRON_SECRET>`); ręcznie albo z zewnętrznego harmonogramu — `POST` z nagłówkiem `x-cron-secret`:
 
 ```
 POST https://fdsrun.com/api/cron/cleanup

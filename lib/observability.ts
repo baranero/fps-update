@@ -16,6 +16,12 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export type EventLevel = "info" | "warn" | "error";
 
+/**
+ * Treść śladu pustego przebiegu crona. Trzymany jest tylko najnowszy taki wpis;
+ * pulpit admina czyta go jako „ostatni przebieg nadzorcy”.
+ */
+export const CRON_HEARTBEAT = "Przebieg crona: bez zmian";
+
 /** Etap ścieżki zlecenia. Zgodny z CHECK w migration_job_events.sql. */
 export type EventStage =
   | "submit"
@@ -145,22 +151,6 @@ export async function failJob(opts: {
     meta: { reason: opts.reason, ...opts.meta },
   });
 }
-
-// ─── Opis powodu dla człowieka ───────────────────────────────────────────────
-//
-// Trzymane tutaj, a nie w i18n, bo czyta je panel admina i dziennik — to język
-// operacyjny, nie copy klienckie. Karta zlecenia tłumaczy przerwanie klientowi
-// osobno, przez lib/fds/errors.ts.
-export const FAILURE_LABEL: Record<FailureReason, string> = {
-  fds_error: "Błąd krytyczny FDS w logu",
-  fds_exit: "Niezerowy kod wyjścia FDS",
-  stalled: "Brak postępu — zatrzymane przez nadzorcę",
-  dispatch_timeout: "Maszyna nie ruszyła w wyznaczonym czasie",
-  vm_missing: "Maszyna zniknęła",
-  vm_boot_failed: "Nie udało się utworzyć maszyny",
-  cancelled_by_user: "Anulowane przez użytkownika",
-  unknown: "Nieustalony",
-};
 
 /** Czy powód obciąża nas, czy plik wejściowy klienta — po tym liczy się jakość usługi. */
 export const OUR_FAULT: Record<FailureReason, boolean> = {

@@ -3,11 +3,15 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { deleteServer } from "@/lib/hetzner/client";
-import { listResults } from "@/lib/hetzner/storage";
+import { listResults, isInternalResult, resultRelPath } from "@/lib/hetzner/storage";
 import { computeFinalPrice } from "@/lib/fds/parser";
 import { logEvent, type FailureReason } from "@/lib/observability";
-import { MAIL_FROM, caseUrl, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
+import { MAIL_FROM, caseUrl, escapeHtml, formatHours, formatMoney, mailCopy, mailLocale, type MailLocale } from "@/lib/mail";
+import { JOB_TOKEN_HEADER, verifyJobToken } from "@/lib/jobToken";
 import { Resend } from "resend";
+
+/** Stany, po których maszyna nie ma już prawa niczego dopisać. */
+const CLOSED_STATUSES = new Set(["done", "failed", "cancelled"]);
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fdsrun.com";
 
@@ -127,12 +131,31 @@ function emailFailed(
 
 export async function POST(req: NextRequest, props: { params: Promise<{ caseId: string }> }) {
   const params = await props.params;
-  const secret = req.headers.get("x-webhook-secret");
-  if (secret !== process.env.WEBHOOK_SECRET) {
+  const { caseId } = params;
+
+  // Token jest pochodną sekretu i numeru TEGO zlecenia (lib/jobToken.ts) —
+  // maszyna innego zlecenia, nawet przejęta, tu nie wejdzie.
+  if (!verifyJobToken(caseId, req.headers.get(JOB_TOKEN_HEADER))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { caseId } = params;
+  const supabase = createAdminClient();
+
+  // Zlecenie zamknięte (przez nadzorcę, anulowanie albo wcześniejsze zgłoszenie
+  // końcowe) nie przyjmuje już nic. Odpowiadamy 200 ze `stop`, żeby maszyna,
+  // która jeszcze liczy, grzecznie zakończyła FDS — zamiast ponawiać w kółko.
+  const { data: current } = await supabase
+    .from("fds_submissions")
+    .select("status")
+    .eq("case_id", caseId)
+    .maybeSingle();
+  if (!current) {
+    return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
+  }
+  if (CLOSED_STATUSES.has(current.status)) {
+    return NextResponse.json({ ok: false, closed: true, stop: true });
+  }
+
   const body = await req.json().catch(() => ({}));
   const { status, exitCode, log, logChunk, devcCsv, hrrCsv, sliceJson } = body as {
     status?: string;
@@ -144,7 +167,6 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
     sliceJson?: string;
   };
 
-  const supabase = createAdminClient();
   const updates: Record<string, unknown> = {};
 
   // Log przychodzi PRZYROSTOWO: maszyna dosyła tylko to, co dopisała od
@@ -283,11 +305,14 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
     } catch { /* ignore — niepoprawny payload przekroju */ }
   }
 
-  // Safety net: usuń VM Hetzner przy failed (na wypadek gdy cloud-init nie zdążył się sam usunąć)
-  // `row` jest teraz `let` (ponowienie zapisu bez kolumn powodu), więc bierzemy
+  // Maszynę kasuje SERWIS, nie ona sama — nie ma już tokenu Hetznera (patrz
+  // lib/jobToken.ts). Zgłoszenie końcowe („done”/„failed”) przychodzi po
+  // wysłaniu wyników, więc tu jest właściwy moment. Gdy kasowanie się nie uda,
+  // maszynę zwolni cron (sekcja „osierocone maszyny”).
+  // `row` jest `let` (ponowienie zapisu bez kolumn powodu), więc bierzemy
   // identyfikator do stałej — inaczej domknięcie nie zawęża typu.
   const serverId = row?.server_id ?? null;
-  if (status === "failed" && serverId) {
+  if ((status === "failed" || status === "done") && serverId) {
     await deleteServer(serverId).catch((err) => {
       console.error(`complete webhook: deleteServer(${serverId}) error:`, err);
     });
@@ -308,7 +333,11 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
       let storageGb = 0;
       try {
         const objects = await listResults(caseId);
-        storageGb = objects.reduce((sum, o) => sum + (o.Size ?? 0), 0) / 1024 ** 3;
+        // Ujęcia Smokeview i manifesty to nasze pliki służbowe — klient nie
+        // płaci za ich przechowywanie.
+        storageGb = objects
+          .filter((o) => o.Key && !isInternalResult(resultRelPath(caseId, o.Key)))
+          .reduce((sum, o) => sum + (o.Size ?? 0), 0) / 1024 ** 3;
       } catch (err) {
         console.error(`complete webhook: listResults(${caseId}) error:`, err);
       }
@@ -336,9 +365,12 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
   if (row && (status === "done" || status === "failed")) {
     const locale = mailLocale((row as { locale?: string }).locale);
     const resend = new Resend(process.env.RESEND_API_KEY);
+    // Imię i nazwa pliku pochodzą od klienta — do HTML wchodzą wyłącznie po escapowaniu.
+    const safeName = escapeHtml(row.name);
+    const safeFile = escapeHtml(row.file_name);
     const emailPayload = status === "done"
-      ? emailDone(row.email, row.name, caseId, row.file_name, finalPrice, actualWallHours, row.server_type, locale)
-      : emailFailed(row.email, row.name, caseId, row.file_name, locale);
+      ? emailDone(row.email, safeName, caseId, safeFile, finalPrice, actualWallHours, row.server_type, locale)
+      : emailFailed(row.email, safeName, caseId, safeFile, locale);
 
     await resend.emails.send(emailPayload).catch((err) => {
       console.error(`Email ${status} send error [${caseId}]:`, err);
@@ -361,11 +393,11 @@ export async function POST(req: NextRequest, props: { params: Promise<{ caseId: 
   <p style="font-size:15px;margin:0 0 12px"><strong>Zlecenie zakończone niepowodzeniem.</strong></p>
   <table style="width:100%;border-collapse:collapse;font-size:13px">
     <tr><td style="padding:4px 12px 4px 0;color:#666">Numer</td><td style="font-family:monospace">${caseId}</td></tr>
-    <tr><td style="padding:4px 12px 4px 0;color:#666">Plik</td><td>${row.file_name}</td></tr>
-    <tr><td style="padding:4px 12px 4px 0;color:#666">Klient</td><td>${row.email}</td></tr>
-    <tr><td style="padding:4px 12px 4px 0;color:#666">Maszyna</td><td>${row.server_type ?? "—"}</td></tr>
-    <tr><td style="padding:4px 12px 4px 0;color:#666">Powód</td><td><strong>${reason}</strong></td></tr>
-    <tr><td style="padding:4px 12px 4px 0;color:#666">Szczegół</td><td>${detail || "—"}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Plik</td><td>${safeFile}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Klient</td><td>${escapeHtml(row.email)}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Maszyna</td><td>${escapeHtml(row.server_type ?? "—")}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Powód</td><td><strong>${escapeHtml(reason)}</strong></td></tr>
+    <tr><td style="padding:4px 12px 4px 0;color:#666">Szczegół</td><td>${escapeHtml(detail) || "—"}</td></tr>
     <tr><td style="padding:4px 12px 4px 0;color:#666">Kod wyjścia</td><td>${exitCode ?? "brak"}</td></tr>
   </table>
   <p style="font-size:12px;color:#888;margin:16px 0 0">

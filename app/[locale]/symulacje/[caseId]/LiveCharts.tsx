@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
-import { parseDevcCsv, parseHrrCsv, computeActivations, type FdsCsvSeries } from "@/lib/fds/devc";
+import { parseFdsCsv, computeActivations, type FdsCsvSeries } from "@/lib/fds/devc";
 import type { FdsDevc } from "@/lib/fds/parser";
 import { chartTheme, fmtT, fmtVal, useIsDark, OVERFLOW_DASH } from "@/components/Cloud/chartTheme";
 
@@ -37,8 +37,8 @@ export default function LiveCharts({ devcCsv, hrrCsv, setpoints, running }: Live
   const dark = useIsDark();
   const { ramp, axis, grid, tooltip: tooltipStyle } = chartTheme(dark);
 
-  const devc = useMemo(() => parseDevcCsv(devcCsv), [devcCsv]);
-  const hrr = useMemo(() => parseHrrCsv(hrrCsv), [hrrCsv]);
+  const devc = useMemo(() => parseFdsCsv(devcCsv), [devcCsv]);
+  const hrr = useMemo(() => parseFdsCsv(hrrCsv), [hrrCsv]);
   const activations = useMemo(() => computeActivations(devc, setpoints), [devc, setpoints]);
 
   // Kolor przypisany na stałe do nazwy serii (po kolejności w pliku)

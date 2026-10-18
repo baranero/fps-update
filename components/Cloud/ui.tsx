@@ -4,8 +4,6 @@ import { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { CHIP_SHAPE, TONE_CHIP, TONE_DOT, TONE_SURFACE, TONE_TEXT, type Tone } from "@/lib/tone";
 
-export { TONE_CHIP, TONE_DOT, TONE_TEXT, chipCls } from "@/lib/tone";
-export type { Tone } from "@/lib/tone";
 
 // ── Prymitywy interfejsu FDSRun ───────────────────────────────────────────────
 // Jedno źródło prawdy dla przycisków, pól, chipów i nagłówków stron chmury.
@@ -152,10 +150,6 @@ export const cardCls = "rounded-card border border-hairline bg-panel";
 export const cardHoverCls =
   "rounded-card border border-hairline bg-panel transition-[color,background-color,border-color,box-shadow,transform] duration-200 " +
   "hover:-translate-y-px hover:border-primary/40 hover:shadow-fr-float";
-
-export function Card({ className = "", children }: { className?: string; children: ReactNode }) {
-  return <div className={`${cardCls} ${className}`}>{children}</div>;
-}
 
 /* ── Powłoka podstrony konta ─────────────────────────────────────────────── */
 const SHELL_WIDTH = {

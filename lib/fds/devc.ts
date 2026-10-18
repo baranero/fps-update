@@ -83,9 +83,6 @@ export function parseFdsCsv(text: string | null | undefined): FdsCsvData | null 
   return { time, series };
 }
 
-export const parseDevcCsv = parseFdsCsv;
-export const parseHrrCsv = parseFdsCsv;
-
 // Czas pierwszego przekroczenia setpointu (aktywacji) dla urządzeń DEVC z SETPOINT.
 // Aktywacja = pierwsza zmiana znaku (wartość − setpoint) względem stanu początkowego
 // (obejmuje zarówno wzrost powyżej, jak i spadek poniżej progu — bez zakładania kierunku).

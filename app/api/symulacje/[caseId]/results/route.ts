@@ -5,7 +5,7 @@ import { requireCaseAccess } from "@/lib/utils/caseAccess";
 import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 import {
   listResults, signedResultUrl, getResultText,
-  isInternalResult, SNAPSHOT_MANIFEST,
+  isInternalResult, resultRelPath, SNAPSHOT_MANIFEST,
 } from "@/lib/hetzner/storage";
 
 // Lista plików wynikowych dostępnych W DANEJ CHWILI w magazynie — również w trakcie
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ caseId: s
 
     const results = await Promise.all(
       files
-        .filter((f) => f.Key && !isInternalResult((f.Key as string).split("/").pop() ?? ""))
+        .filter((f) => f.Key && !isInternalResult(resultRelPath(caseId, f.Key as string)))
         .map(async (f) => ({
           name: (f.Key as string).split("/").pop() as string,
           url: await signedResultUrl(f.Key as string),

@@ -68,8 +68,7 @@ export const CLOUD_PATHS = [
  * Wcześniej każdy z nich był osobnym komponentem klienckim, który po
  * zamontowaniu robił `router.replace(...)`: pusta klatka przed przeskokiem,
  * pobrany bundle i — co ważniejsze — robot dostawał 200 na adresie, który ma
- * zniknąć. Teraz przekierowuje middleware (301), a strony zostają wyłącznie
- * jako zapas, gdyby żądanie go ominęło (lib/legacyRedirect.ts).
+ * zniknąć. Teraz przekierowuje middleware (301) — pod tymi adresami nie ma już stron.
  */
 export const LEGACY_PATHS: Record<string, string> = {
   "/narzedzia/admin": "/symulacje/admin",

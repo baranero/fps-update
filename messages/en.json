@@ -1,9 +1,4 @@
 {
-  "language": {
-    "label": "Language",
-    "pl": "Polski",
-    "en": "English"
-  },
   "nav": {
     "home": "Home",
     "about": "About",
@@ -19,16 +14,13 @@
     "cfdCloud": "CFD Cloud",
     "forDesigner": "For engineers",
     "calculators": "Calculators",
-    "reports": "Reports",
     "blog": "Blog",
     "contact": "Contact",
     "account": {
       "menu": "Account menu",
-      "profile": "Your profile",
       "signOut": "Sign out",
       "signIn": "Sign in",
       "signUp": "Sign up",
-      "toolsPanel": "Tools panel",
       "myProfile": "Profile"
     },
     "loading": "Loading page…"
@@ -40,8 +32,6 @@
     "history": "History",
     "billing": "Billing",
     "stats": "Statistics",
-    "toTools": "Tools",
-    "profile": "Profile",
     "signOut": "Sign out",
     "admin": "Admin"
   },
@@ -237,10 +227,7 @@
       "title": "FDSRun — FDS fire simulations in the cloud",
       "description": "Upload your FDS input file, see the price in seconds and run the computation on cloud servers. Quote without an account, pay for actual usage."
     },
-    "panelCaption": "Illustrative job · payment after the run completes",
     "finalCta": {
-      "title": "Price it and run your first simulation",
-      "lead": "Upload a .fds file — you will see the price in seconds, with no account needed. You pay for the actual computation time.",
       "line1": "See the price.",
       "line2": "Start the simulation.",
       "contact": "Write to us"
@@ -550,7 +537,6 @@
     }
   },
   "symulacje": {
-    "badge": "CFD Cloud",
     "title": "FDS simulations in the cloud",
     "lead": "Upload your FDS input file — we will show the estimated price and run the computation. You pay only for the actual computation time and result storage, with no subscription.",
     "historyLink": "Simulation history",
@@ -727,8 +713,7 @@
         "lead": "Get in touch and we will explain the situation and agree on next steps."
       },
       "emailCta": "Write to us",
-      "phoneCta": "Call us",
-      "back": "Back"
+      "phoneCta": "Call us"
     }
   },
   "profile": {
@@ -909,7 +894,6 @@
     "cells": "{n} cells",
     "completedOn": "completed {date}",
     "paid": "Paid",
-    "unpaid": "Due",
     "openJob": "Open job",
     "sum": "Total ({filter})",
     "csv": {
@@ -997,18 +981,9 @@
     },
     "attention": {
       "title": "Needs attention",
-      "pending": "{n, plural, one {# pending} other {# pending}}",
-      "failed": "{n, plural, one {# with an error} other {# with errors}}",
-      "unpaid": "{amount} due",
       "accessRequests": "{n, plural, one {# access request} other {# access requests}}"
     },
     "kpi": {
-      "all": "All",
-      "pending": "Pending",
-      "running": "Running",
-      "done": "Completed",
-      "failed": "Errors",
-      "revenue": "Revenue",
       "unpaid": "Due",
       "users": "Users"
     },
@@ -1066,7 +1041,6 @@
       "company": "Company",
       "nip": "VAT ID",
       "phone": "Phone",
-      "address": "Address",
       "updated": "Updated",
       "buyerType": "Buyer type",
       "addressBlock": "Invoice address block",
@@ -1248,6 +1222,46 @@
       "pendingOne": "1 account is waiting for an access decision",
       "pendingMany": "{n} accounts are waiting for an access decision",
       "showPending": "Show"
+    },
+    "dash": {
+      "allClearTitle": "Nothing waiting",
+      "allClear": "No access requests, stalled runs, overdue payments or automation problems.",
+      "stalled": "{n, plural, one {# job} other {# jobs}} without progress for {h} h",
+      "stuckQueue": "{n, plural, one {# job} other {# jobs}} queued for more than {min} min",
+      "unpaidOld": "{amount} unpaid, oldest for {days} days",
+      "cronNever": "The supervisor (cron) has never run — machines are not released automatically",
+      "cronStale": "The supervisor (cron) has not run for {min} min",
+      "kpiRunning": "Running (machines)",
+      "kpiQueue": "Queued",
+      "last30": "Last 30 days",
+      "kpiRevenue30": "Revenue",
+      "kpiDone30": "Completed",
+      "kpiSuccess": "Service success rate",
+      "kpiFailedSplit": "Failures: ours / client file",
+      "successHint": "Success rate = completed / (completed + failures on our side). Client file errors and cancellations do not lower it.",
+      "liveTitle": "On machines now",
+      "liveEmpty": "Nothing is running right now.",
+      "colProgress": "Progress",
+      "colRuntime": "Runtime / quote",
+      "colQuiet": "No progress",
+      "justNow": "just now",
+      "liveHint": "“No progress” counts from the last simulation-time reading. The supervisor stops a run after {stall} h of silence.",
+      "cronTitle": "Last supervisor run",
+      "cronUnknown": "no event log",
+      "cronNeverShort": "never",
+      "cronHint": "Cron every 10 min: progress supervision, machine release, result retention.",
+      "errorsTitle": "Latest errors in the log",
+      "errorsEmpty": "No errors."
+    },
+    "reasons": {
+      "fds_error": "Error in client file",
+      "fds_exit": "Non-zero FDS exit code",
+      "stalled": "No progress",
+      "dispatch_timeout": "Machine did not start",
+      "vm_missing": "Machine disappeared",
+      "vm_boot_failed": "Machine not created",
+      "cancelled_by_user": "Cancelled by client",
+      "unknown": "Unknown"
     }
   },
   "symDetail": {
@@ -1372,9 +1386,7 @@
       "thType": "Type",
       "thCreated": "Created",
       "thSize": "Size",
-      "totalSizeHint": "Total size of all result files (that is how large the whole ZIP is)",
       "download": "Download",
-      "zipError": "The zipped files could not be downloaded. Try downloading them one by one with the “Download” button next to each file.",
       "downloadingSeq": "Downloading file {i} of {n}…",
       "downloadedSeq": "Requested {n, plural, one {# file} other {# files}} — check your browser's download folder.",
       "savingToFolder": "Saving file {i} of {n} to the “{name}” folder…",
@@ -1590,6 +1602,90 @@
       "resultsHint": "Files stay available for 60 days after the run finishes. Selection and downloading work across the whole set, regardless of the page shown.",
       "resultsHintFailed": "Files computed up to the point the run was interrupted — available for 60 days. Selection and downloading work across the whole set, regardless of the page shown.",
       "coresSplitHint": "{procs} parallel processes, {meshes} meshes each"
+    },
+    "tabs": {
+      "label": "Job sections",
+      "overview": "Overview",
+      "preview": "Preview",
+      "analysis": "Report analysis",
+      "results": "Results",
+      "log": "Log",
+      "details": "Details"
+    },
+    "smv": {
+      "title": "Smokeview",
+      "lead": "Frames rendered by Smokeview on the compute machine from the current result files.",
+      "modeLive": "Live",
+      "modeReport": "Report figures",
+      "smoke3d": "3D smoke (SOOT DENSITY)",
+      "renderedAt": "rendered {time}",
+      "play": "Play",
+      "pause": "Pause",
+      "latest": "Latest",
+      "timeline": "Frame timeline",
+      "downloadFrame": "Download frame",
+      "downloadReport": "Download figures ({n}) as ZIP",
+      "zipping": "Packing figures {i}/{n}…",
+      "zipped": "Saved {n} figures.",
+      "zipFailed": "Could not pack the figures — please try again.",
+      "emptyRunning": "The first frame appears a few minutes after the run starts — Smokeview renders roughly every 5 minutes once FDS has written the first slice and 3D smoke frames.",
+      "emptyDone": "There are no Smokeview frames for this job. They are produced for models with SLCF slices or 3D smoke, run after the preview was introduced.",
+      "noteLive": "The preview refreshes about every 5 minutes of machine time. Colours and scale ranges are Smokeview defaults.",
+      "noteReport": "A series of frames every {step} s of simulation time, made after the run finished — ready to drop into a report."
+    },
+    "analysis": {
+      "empty": "No measurement device (DEVC) or heat release data for this job.",
+      "emptyRunning": "The analysis appears once FDS has written the first device results.",
+      "sampledNote": "The run is still going — the analysis uses the sampled live stream, so times are approximate. After completion it recalculates from the full _devc.csv file.",
+      "pActivation": "System activation",
+      "pThreshold": "Transmission threshold",
+      "pDelta": "Model bias",
+      "pSigma": "Model deviation",
+      "paramsHint": "Defaults: activation at 360 s and a 95 %/m threshold (CNBOP-PIB W-0003:2016 guidelines, 7.3.3 and 7.3.6); δ = 1.24 and σ̃ = 0.26 for smoke obscuration per the FDS Validation Guide (table 16.1). Changes are remembered by this browser.",
+      "paramsLine": "activation {act} s, threshold {thr} %/m",
+      "pointTitle": "Measurement point",
+      "pointReach": "Transmission reached the threshold at",
+      "pointTodd": "Smoke clearance time from {act} s",
+      "pointTracks": "Tracks in the point:",
+      "pointHint": "The later of the selected tracks governs. By default, tracks already smoke-logged before system activation are selected.",
+      "pointNeverBelow": "Some selected tracks never dropped below the threshold — they do not affect the result.",
+      "notReached": "not reached",
+      "notReachedLong": "not reached by {end}",
+      "neverBelow": "never below threshold",
+      "toEnd": "end",
+      "none": "none",
+      "lastReal": "State at the end of the record (model → actual value given model uncertainty): {list}.",
+      "noTransmission": "The results have no devices measuring transmission or obscuration (TRANSMISSION, PATH OBSCURATION, unit %/m).",
+      "colTrack": "Track",
+      "colMin": "Minimum",
+      "colBelow": "Below threshold",
+      "colReach": "Threshold reached after activation",
+      "colStable": "Stable from",
+      "uncTitle": "Smoke clearance time including model uncertainty",
+      "colLevel": "Level",
+      "colModelThr": "Threshold in model output",
+      "colConfidence": "Confidence",
+      "colTodd": "t_odd",
+      "unc": {
+        "expected": "Expected value",
+        "criterion": "Guideline criterion",
+        "conf2s": "2σ confidence"
+      },
+      "uncHint": "The actual value is normally distributed with mean M/δ and deviation σ̃·M/δ, where M is the modelled obscuration (100 − T). Validation statistics for smoke obscuration cover roughly 20–100 %/m — near the 5 %/m threshold this is an extrapolation.",
+      "flowTitle": "Volume flows after activation ({act} s)",
+      "colDevice": "Device",
+      "colMean": "Mean",
+      "colVolume": "Volume",
+      "colReal": "Actual value",
+      "flowHint": "Sign as in the model. Actual value per the flow velocity statistics: δ = {delta}, σ̃ = {sigma}%.",
+      "hrrTitle": "Source power",
+      "hrrPlateau": "Steady phase (mean)",
+      "hrrMax": "Maximum",
+      "hrrEnergy": "Energy released",
+      "copy": "Copy tables for Word",
+      "copied": "Copied",
+      "csv": "Download CSV",
+      "noVerdict": "Figures without a verdict — the criterion and conclusion are the designer's call."
     }
   },
   "legal": {

@@ -1,5 +1,4 @@
 import { planRuns, type PlanInput, type RunPlan } from "./planner";
-import { serverLabel } from "@/lib/hetzner/catalog";
 import { EUR_PLN, STORAGE_EUR_PER_GB, computeFinalPrice } from "./pricing";
 
 export interface FdsMeshDetail {
@@ -268,9 +267,6 @@ export function parseFds(content: string): FdsParseResult {
 // /api/symulacje/plan.
 
 export { EUR_PLN, STORAGE_EUR_PER_GB, computeFinalPrice };
-
-/** Opis maszyny do UI — bez symbolu dostawcy, zgodnie z zasadami copy FDSRun. */
-export const serverSpec = serverLabel;
 
 /** Dane wejściowe planera z wyniku analizy pliku. */
 export function toPlanInput(parsed: FdsParseResult): PlanInput {

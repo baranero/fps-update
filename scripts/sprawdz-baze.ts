@@ -49,13 +49,9 @@ const db = createClient(url, key, { auth: { persistSession: false } });
 /** Jedna sonda. Zwraca null, gdy element jest — albo komunikat, gdy go nie ma. */
 async function probe(p: SchemaProbe): Promise<string | null> {
   if (p.kind === "function") {
-    // Funkcja `append_fds_log` to UPDATE po `case_id`. Wołamy ją z numerem,
-    // który nie może istnieć, i pustym fragmentem — trafia w zero wierszy,
-    // więc sondowanie jest bezpieczne.
-    const { error } = await db.rpc(p.table, {
-      p_case_id: "__sonda-schematu__",
-      p_chunk: "",
-    });
+    // Argumenty wywołania opisuje sama sonda (lib/dbChecks.ts) — muszą być
+    // bezpieczne, bo funkcja jest wołana naprawdę.
+    const { error } = await db.rpc(p.table, p.rpcArgs ?? {});
     return error ? error.message : null;
   }
 

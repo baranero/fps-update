@@ -1,15 +1,10 @@
-﻿"use client";
-
-import { useState } from "react";
-import SectionTitle from "../Common/SectionTitle";
+﻿import SectionTitle from "../Common/SectionTitle";
 
 import { Brand } from "@/types/brand";
 import Image from "next/image";
 import brandsData from "../Brands/brandsData";
 
 const Video = () => {
-  const [isOpen, setOpen] = useState(false);
-
   return (
     <section className="relative z-10 py-16 md:py-20 lg:py-28">
       <div className="container">
@@ -25,8 +20,7 @@ const Video = () => {
             <div className="-mx-4 flex flex-wrap">
               <div className="w-full px-4">
                 <div
-                  className="wow fadeInUp flex flex-wrap items-center justify-center rounded-sm bg-slate-100 px-8 py-8 dark:bg-[#111827] sm:px-10 md:px-[50px] md:py-[40px] xl:p-[50px] 2xl:px-[70px] 2xl:py-[60px]"
-                  data-wow-delay=".1s"
+                  className="flex flex-wrap items-center justify-center rounded-sm bg-slate-100 px-8 py-8 dark:bg-[#111827] sm:px-10 md:px-[50px] md:py-[40px] xl:p-[50px] 2xl:px-[70px] 2xl:py-[60px]"
                 >
                   {brandsData.map((brand) => (
                     <SingleBrand key={brand.id} brand={brand} />

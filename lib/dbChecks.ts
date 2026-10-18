@@ -29,6 +29,12 @@ export interface SchemaProbe {
   /** Kolumna — wyłącznie dla `kind: "column"`. */
   column?: string;
   /**
+   * Wyłącznie dla `kind: "function"`: argumenty wywołania RPC. Sonda woła
+   * funkcję naprawdę, więc argumenty muszą być bezpieczne (trafiać w zero
+   * wierszy albo niczego nie zmieniać).
+   */
+  rpcArgs?: Record<string, unknown>;
+  /**
    * Wyłącznie dla `kind: "data"`: wiersze, których po migracji ma NIE BYĆ.
    * Migracja danych nie zostawia śladu w schemacie, więc jedynym dowodem jej
    * uruchomienia jest skutek, jaki miała wywołać.
@@ -69,7 +75,10 @@ export const SCHEMA_PROBES: readonly SchemaProbe[] = [
   { migration: "migration_locale.sql", kind: "column", table: "fds_submissions", column: "locale",
     critical: false, impact: "Maile do klienta pójdą po polsku niezależnie od języka zlecenia." },
 
+  // UPDATE po `case_id`, który nie może istnieć, z pustym fragmentem — trafia
+  // w zero wierszy, więc sondowanie jest bezpieczne.
   { migration: "migration_append_fds_log.sql", kind: "function", table: "append_fds_log",
+    rpcArgs: { p_case_id: "__sonda-schematu__", p_chunk: "" },
     critical: true, impact: "Maszyna nie doklei logu — strona zlecenia zostaje pusta w trakcie biegu." },
 
   { migration: "migration_devc_stream.sql", kind: "column", table: "fds_submissions", column: "devc_csv",
@@ -95,6 +104,12 @@ export const SCHEMA_PROBES: readonly SchemaProbe[] = [
 
   { migration: "migration_sim_access.sql", kind: "column", table: "profiles", column: "sim_access",
     critical: true, impact: "Bramka uruchamiania zostaje zamknięta: obliczenia odpala wyłącznie właściciel." },
+
+  // Polityk RLS ani wyzwalacza nie widać przez PostgREST (funkcji wyzwalacza
+  // nie da się wywołać przez RPC), więc migracja zostawia funkcję-znacznik.
+  { migration: "migration_profiles.sql", kind: "function", table: "profiles_policies_version",
+    rpcArgs: {},
+    critical: true, impact: "Polityki RLS profili nie są zapisane w repozytorium — klient mógłby sam nadać sobie dostęp do uruchamiania albo czytać cudze dane do faktury." },
 
   // Jedyna migracja DANYCH, nie schematu (kolumnę `price_old` dokłada
   // migration_price_backup.sql). Sprawdzamy więc jej SKUTEK: po uruchomieniu

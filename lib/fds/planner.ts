@@ -14,7 +14,6 @@
 
 import {
   SERVER_CATALOG,
-  getSpec,
   FAMILY_PERF,
   type FamilyPerf,
   type ServerFamily,
@@ -24,13 +23,10 @@ import { OVERHEAD_H, STORAGE_EUR_PER_GB, estimateOutputGb, priceFromCost } from 
 import { meshLoadFor } from "./mpi";
 import {
   CFL_MODEL, DEFAULT_DX, DT_MAX, DT_MIN, V_COEFF,
-  cflTimestep, effectiveVelocity, predictTimestep,
+  cflTimestep, predictTimestep,
   type TimestepModel,
 } from "./timestep";
 
-// Stale i wzory kroku czasowego mieszkaja w ./timestep — reeksport zostaje dla
-// kodu, ktory importowal je stad wczesniej.
-export { effectiveVelocity, cflTimestep, DT_MIN, DT_MAX, DEFAULT_DX, V_COEFF };
 export type { TimestepModel };
 
 // ─── Stałe modelu fizycznego ─────────────────────────────────────────────────
@@ -255,12 +251,6 @@ export interface PlanResult {
   blocked: "noServer" | "ramTooSmall" | "forcedProcs" | null;
 }
 
-// ─── Rozdział siatek między procesy ──────────────────────────────────────────
-//
-// Liczony w lib/fds/mpi.ts, bo ten sam podział trafia potem do pliku jako
-// MPI_PROCESS. Prognoza opisuje więc dokładnie ten układ, który pojedzie.
-export { meshLoadFor as maxProcLoad } from "./mpi";
-
 // ─── Budowa i wycena pojedynczego wariantu ───────────────────────────────────
 
 function buildPlan(
@@ -471,5 +461,3 @@ export function findPlan(result: PlanResult, serverType: string | null): RunPlan
   if (!serverType) return null;
   return result.allPlans.find((p) => p.serverType === serverType.toLowerCase()) ?? null;
 }
-
-export { getSpec };

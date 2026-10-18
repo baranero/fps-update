@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   MESH_OVERHEAD_CELLS,
   effectiveProcLoad,
-  effectiveVelocity,
   findPlan,
   planRuns,
   type PlanInput,
 } from "@/lib/fds/planner";
+import { effectiveVelocity } from "@/lib/fds/timestep";
 
 // Planer decyduje, na czym i jak długo policzy się zlecenie — czyli ile ono
 // kosztuje. Testy trzymają własności, które wynikają z kalibracji na realnych

@@ -9,10 +9,6 @@ import {
 // — izomorficznie, żeby UI i API oceniały to samo. Tutaj zostaje wyłącznie
 // odczyt i zapis stanu w bazie.
 
-/** Kolumny stanu dostępu — dokładane do zapytań panelu admina. */
-export const SIM_ACCESS_COLUMNS =
-  "sim_access, sim_access_requested_at, sim_access_decided_at, sim_access_note";
-
 // Kolumna przybywa razem z migration_sim_access.sql, a migracje bywają
 // uruchamiane po wdrożeniu kodu. Brak kolumny NIE może wywrócić strony ani
 // otworzyć bramki — schodzimy wtedy na „none", czyli stan sprzed zmiany:

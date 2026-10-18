@@ -10,7 +10,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/utils/adminCheck";
 import { getCalibrationDetail } from "@/lib/fds/calibration";
-import { effectiveVelocity, effectiveProcLoad, perProcThroughputFor } from "@/lib/fds/planner";
+import { effectiveProcLoad, perProcThroughputFor } from "@/lib/fds/planner";
+import { effectiveVelocity } from "@/lib/fds/timestep";
 
 export async function GET() {
   const userClient = await createClient();

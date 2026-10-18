@@ -4,11 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/client";
 import { fromRow, grossAmount, vatTreatment } from "@/lib/invoice";
+import { rateLimit, LIMITS } from "@/lib/utils/rateLimit";
 
 export async function POST(req: NextRequest) {
   const userClient = await createClient();
   const { data: { user } } = await userClient.auth.getUser();
   if (!user) return NextResponse.json({ error: "Nieautoryzowany." }, { status: 401 });
+
+  const limited = rateLimit(req, { scope: "checkout", identity: user.id, ...LIMITS.checkout });
+  if (limited) return limited;
 
   // Bez kluczy nie udajemy, że płatność jest możliwa — 503 i jasny komunikat,
   // zamiast błędu 500 z wnętrza SDK.
@@ -31,7 +35,8 @@ export async function POST(req: NextRequest) {
 
   if (!sub) return NextResponse.json({ error: "Nie znaleziono zlecenia." }, { status: 404 });
 
-  const owns = sub.user_id === user.id || sub.email === user.email;
+  // Ta sama reguła co w lib/utils/caseAccess.ts: liczy się konto, nie adres.
+  const owns = sub.user_id === user.id;
   if (!owns) return NextResponse.json({ error: "Brak dostępu." }, { status: 403 });
 
   if (sub.status !== "done") {

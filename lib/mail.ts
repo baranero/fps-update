@@ -7,6 +7,20 @@
 export const MAIL_FROM =
   process.env.MAIL_FROM ?? "FP Solutions <noreply@fp-solutions.pl>";
 
+/**
+ * Tekst od klienta (imię, uwagi, nazwa pliku) wstawiany do HTML maila.
+ * Bez tego `<script>` w polu „uwagi” trafiał do skrzynki właściciela jako kod,
+ * a nazwa pliku z `<` rozjeżdżała układ wiadomości.
+ */
+export function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ── Język maili ───────────────────────────────────────────────────────────────
 //
 // Maile do KLIENTA idą w języku, w którym złożył zlecenie — zapisujemy go przy
@@ -79,7 +93,7 @@ const COPY: Record<MailLocale, MailCopy> = {
     doneSubject: (caseId) => `Obliczenia FDS zakończone — ${caseId}`,
     doneBadge: "✓ Obliczenia zakończone pomyślnie",
     doneIntro:
-      "Obliczenia numeryczne FDS dla Twojego projektu zostały zakończone. Wyniki są dostępne do pobrania w panelu — pliki będą dostępne przez 60 dni.",
+      "Obliczenia numeryczne FDS dla Twojego projektu zostały zakończone. Wyniki są dostępne do pobrania w panelu — pliki będą dostępne przez 60 dni. Na karcie zlecenia czekają też ryciny ze Smokeview i analiza do raportu (czas oddymiania, strumienie, moc źródła).",
     doneCta: "Pobierz wyniki →",
     failSubject: (caseId) => `Problem z obliczeniami FDS — ${caseId}`,
     failBadge: "Obliczenia zakończone błędem",
@@ -104,7 +118,7 @@ const COPY: Record<MailLocale, MailCopy> = {
     doneSubject: (caseId) => `FDS computation finished — ${caseId}`,
     doneBadge: "✓ Computation finished successfully",
     doneIntro:
-      "The FDS computation for your project has finished. The results are ready to download in your account — files stay available for 60 days.",
+      "The FDS computation for your project has finished. The results are ready to download in your account — files stay available for 60 days. The job page also has Smokeview figures and a report analysis (clearance time, flows, source power).",
     doneCta: "Download the results →",
     failSubject: (caseId) => `Problem with your FDS computation — ${caseId}`,
     failBadge: "The computation ended with an error",
